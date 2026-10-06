@@ -11,7 +11,7 @@ container startup.
 ## Current Image
 
 ```text
-ghcr.io/kiranmaibattu-cyber/sentry_cv:intel-285h-2026.10.05-v5.2-dev4
+ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.05-v5.2-dev4
 ```
 
 The image is built from:
@@ -21,12 +21,9 @@ The image is built from:
 - `newdetails/sentry-v5.2`
 - baked OpenVINO/ONNX model files under `models/`
 
-The previous working image snapshot was:
-
-```text
-ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.05-v5.2-dev4
-sha256:54cd1b5c3af020749d819daa918fcae528387c788a3d934fca1681a536801e1d
-```
+This package already exists in GHCR and is public. The image is built from this
+repository and carries `org.opencontainers.image.source` pointing at
+`https://github.com/kiranmaibattu-cyber/sentry_cv`.
 
 ## Runtime Contract
 
@@ -77,7 +74,7 @@ localhost/apexfabric-intel-traffic-runtime-base:intel-285h-2026.09.18-v2
 Build the GHCR image:
 
 ```bash
-SENTINEL_IMAGE_REPOSITORY=ghcr.io/kiranmaibattu-cyber/sentry_cv \
+SENTINEL_IMAGE_REPOSITORY=ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime \
 SENTINEL_IMAGE_VERSION=2026.10.05-v5.2-dev4 \
 ./scripts/build_sentinel_v5_2_image.sh
 ```
@@ -85,7 +82,7 @@ SENTINEL_IMAGE_VERSION=2026.10.05-v5.2-dev4 \
 Push it:
 
 ```bash
-podman push ghcr.io/kiranmaibattu-cyber/sentry_cv:intel-285h-2026.10.05-v5.2-dev4
+podman push ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.05-v5.2-dev4
 ```
 
 ## Contract And Design Docs
