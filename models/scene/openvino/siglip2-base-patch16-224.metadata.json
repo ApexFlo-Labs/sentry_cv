@@ -1,0 +1,18 @@
+{
+  "model_id": "google/siglip2-base-patch16-224",
+  "model_revision": "75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2",
+  "embedding_space": "google/siglip2-base-patch16-224@75de2d55ec2d0b4efc50b3e9ad70dba96a7b2fa2:image-text:l2:768",
+  "dimensions": 768,
+  "input_shape": [
+    1,
+    3,
+    224,
+    224
+  ],
+  "input_color": "RGB",
+  "input_normalization": "(pixel/255-0.5)/0.5",
+  "precision": "FP16",
+  "source_validation_cosine": 0.9999997019767761,
+  "xml_sha256": "77cf06fb4df4d737218aa87b107e5d9c6885bbd92c31b9304c0a0494e98dce6c",
+  "bin_sha256": "b5d2ef2f5ad105de9f4279707efca7f3472937ca2985ea0e1a7df6442243b6ae"
+}
