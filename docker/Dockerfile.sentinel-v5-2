@@ -31,8 +31,8 @@ COPY edge_runtime/solution_packs/sporada_secure/runtime_v5_2/services /opt/traff
 COPY edge_runtime/solution_packs/sporada_secure/runtime_v5_2/traffic_pilot_runtime /opt/traffic-pilot/traffic_pilot_runtime
 COPY edge_runtime/solution_packs/sporada_secure/runtime_v5_2/config /opt/traffic-pilot/config
 COPY models/traffic-v11/openvino /models/traffic/openvino
-COPY models/traffic-v11/openvino/vehicle_yolo26n_fp16.xml /models/traffic/openvino/vehicle.xml
-COPY models/traffic-v11/openvino/vehicle_yolo26n_fp16.bin /models/traffic/openvino/vehicle.bin
+COPY models/traffic-v11/vehicle_yolo26n_fp16.xml /models/traffic/openvino/vehicle.xml
+COPY models/traffic-v11/vehicle_yolo26n_fp16.bin /models/traffic/openvino/vehicle.bin
 COPY models/traffic-v11/face/openvino /models/face/openvino
 COPY models/scene/openvino /models/scene/openvino
 COPY models/surveillance/transreid_ssl_int8.xml models/surveillance/transreid_ssl_int8.bin /models/surveillance/
