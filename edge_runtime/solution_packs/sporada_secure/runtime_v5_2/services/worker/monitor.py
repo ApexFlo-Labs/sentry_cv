@@ -121,10 +121,10 @@ class SystemMonitor:
                 "device": topology.decode_device,
                 "available": topology.decode_available,
             },
-            "npu": {
+            "inference": {
                 "backend": topology.detector_backend,
-                "device": topology.npu_device,
-                "available": topology.npu_available,
+                "device": topology.inference_devices,
+                "available": topology.inference_available,
                 "models_loaded": topology.models_resident,
             },
         }
