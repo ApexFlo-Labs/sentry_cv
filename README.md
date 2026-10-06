@@ -11,7 +11,7 @@ container startup.
 ## Current Image
 
 ```text
-ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.05-v5.2-dev4
+ghcr.io/apexflo-labs/sentinel-cv-runtime:intel-285h-2026.10.05-v5.2-dev4
 ```
 
 The image is built from:
@@ -74,7 +74,7 @@ localhost/apexfabric-intel-traffic-runtime-base:intel-285h-2026.09.18-v2
 Build the GHCR image:
 
 ```bash
-SENTINEL_IMAGE_REPOSITORY=ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime \
+SENTINEL_IMAGE_REPOSITORY=ghcr.io/apexflo-labs/sentinel-cv-runtime \
 SENTINEL_IMAGE_VERSION=2026.10.05-v5.2-dev4 \
 ./scripts/build_sentinel_v5_2_image.sh
 ```
@@ -82,7 +82,7 @@ SENTINEL_IMAGE_VERSION=2026.10.05-v5.2-dev4 \
 Push it:
 
 ```bash
-podman push ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.05-v5.2-dev4
+podman push ghcr.io/apexflo-labs/sentinel-cv-runtime:intel-285h-2026.10.05-v5.2-dev4
 ```
 
 ## Contract And Design Docs
