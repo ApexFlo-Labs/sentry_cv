@@ -62,7 +62,7 @@ RUN python -m pip install --break-system-packages --no-cache-dir jsonschema==4.2
 ARG IMAGE_VERSION=2026.10.05-v5.2-dev4
 ARG INTEL_TRAFFIC_RUNTIME_BASE_DIGEST=unresolved
 
-LABEL org.opencontainers.image.source="https://github.com/kiranmaibattu-cyber/sentry_cv" \
+LABEL org.opencontainers.image.source="https://github.com/ApexFlo-Labs/sentry_cv" \
       org.opencontainers.image.title="Sentinel CV Runtime" \
       org.opencontainers.image.description="V5.2 development runtime for Intel 285H" \
       org.opencontainers.image.version="${IMAGE_VERSION}" \

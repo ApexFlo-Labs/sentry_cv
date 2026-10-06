@@ -23,7 +23,7 @@ The image is built from:
 
 This package already exists in GHCR and is public. The image is built from this
 repository and carries `org.opencontainers.image.source` pointing at
-`https://github.com/kiranmaibattu-cyber/sentry_cv`.
+`https://github.com/ApexFlo-Labs/sentry_cv`.
 
 ## Runtime Contract
 
