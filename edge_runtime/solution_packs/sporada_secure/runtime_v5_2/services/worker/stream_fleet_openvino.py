@@ -271,7 +271,7 @@ def _camera_proc(cam: dict, camera_config: dict, redis_host: str, redis_port: in
     vehicle_config = ((worker_config.get("models") or {}).get("vehicle") or {})
     plate_config = ((worker_config.get("models") or {}).get("plate") or {})
     veh = OpenVINOYOLODetector(
-        openvino_model_path("vehicle"), "vehicle", device=VEHICLE_DEVICE, imgsz=640,
+        openvino_model_path("vehicle_yolo26n_fp16"), "vehicle", device=VEHICLE_DEVICE, imgsz=640,
         confidence=float(os.getenv("VEHICLE_CONF", str(vehicle_config.get("minimum_confidence", 0.3)))),
         class_ids=VEHICLE_CLASS_IDS, class_names=VEHICLE_CLASS_NAMES)
     plate = None
