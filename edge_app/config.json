@@ -1,0 +1,50 @@
+{
+  "settings": {
+    "model": "../models/traffic-v11/vehicle_yolo26n_fp16.xml",
+    "model_proc": "vehicle_yolo26_model_proc.json",
+    "model_instance_id": "vehicle-primary",
+    "fps": 5,
+    "nireq": 6,
+    "confidence": 0.3,
+    "rtsp_latency_ms": 200
+  },
+  "cameras": [
+    {
+      "id": "camera-01",
+      "uri": "rtsp://USER:PASSWORD@CAMERA_IP:554/STREAM_PATH",
+      "enabled": true
+    }
+  ],
+  "smoke_fire_gpu": {
+    "model": "../models/traffic-v11/openvino/smoke_fire.xml",
+    "model_proc": "smoke_fire_model_proc.json",
+    "model_instance_id": "smoke-fire-primary",
+    "fps": 1,
+    "nireq": 2,
+    "confidence": 0.35
+  },
+  "secondary": {
+    "plate_model": "../models/traffic-v11/openvino/license_plate.xml",
+    "ocr_model": "../models/traffic-v11/openvino/ocr.xml",
+    "face_detector_model": "../models/traffic-v11/face/openvino/scrfd_500m.onnx",
+    "face_embedding_model": "../models/traffic-v11/face/openvino/adaface_ir101_int8.xml",
+    "body_reid_model": "../models/surveillance/transreid_ssl_int8.xml",
+    "gait_model": "../models/surveillance/gaitbase_int8.xml",
+    "scene_model": "../models/scene/openvino/siglip2-base-patch16-224.xml",
+    "face_detector_device": "CPU",
+    "face_embedding_device": "NPU",
+    "body_reid_device": "NPU",
+    "gait_device": "NPU",
+    "scene_device": "NPU",
+    "face_enabled": true,
+    "body_reid_enabled": true,
+    "gait_enabled": true,
+    "scene_enabled": true,
+    "plate_size": 224,
+    "plate_confidence": 0.35,
+    "ocr_confidence": 0.4,
+    "person_interval": 5,
+    "scene_interval": 50,
+    "queue_size": 64
+  }
+}

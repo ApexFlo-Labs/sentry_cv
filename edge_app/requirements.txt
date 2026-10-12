@@ -1,0 +1,4 @@
+# Intel DL Streamer/system packages provide OpenVINO, python3-gi, GStreamer VA and gstgva.
+numpy>=1.26,<3
+opencv-python-headless>=4.8,<5
+Pillow>=9.5
