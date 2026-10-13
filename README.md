@@ -1,9 +1,9 @@
 # sentry_cv
 
-Sentinel CV V5.2 edge runtime snapshot for the Intel Core Ultra 9 285H
+Sentinel CV V6 edge runtime snapshot for the Intel Core Ultra 9 285H
 deployment profile.
 
-This repository contains the present working CV image source, the V5.2
+This repository contains the present working CV image source, the V6
 management contract/schema package, the related design notes, and the model
 artifacts needed to build the runtime image without downloading models at
 container startup.
@@ -11,14 +11,14 @@ container startup.
 ## Current Image
 
 ```text
-ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.07-v5.2-dev5
+ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.12-v6-dev13
 ```
 
 The image is built from:
 
 - `docker/Dockerfile.sentinel-v5-2`
 - `edge_runtime/solution_packs/sporada_secure/runtime_v5_2`
-- `newdetails/sentry-v5.2`
+- `newdetails/sentry-v6`
 - baked OpenVINO/ONNX model files under `models/`
 
 This package is published to the personal GHCR namespace for integration
@@ -32,7 +32,7 @@ Management mounts the desired state and camera URL secrets into the container:
 
 | Path | Purpose |
 |---|---|
-| `/configs/desired_state.json` | V5.2 desired state from Management |
+| `/configs/desired_state.json` | V6 desired state from Management |
 | `/run/secrets/sentinel/cameras/<camera-id>.url` | Camera source URL secret |
 | `/state` | Persistent event/evidence/outbox state |
 | `/tmp/sentinel` | Generated runtime files and temporary state |
@@ -76,19 +76,19 @@ Build the GHCR image:
 
 ```bash
 SENTINEL_IMAGE_REPOSITORY=ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime \
-SENTINEL_IMAGE_VERSION=2026.10.07-v5.2-dev5 \
+SENTINEL_IMAGE_VERSION=2026.10.12-v6-dev13 \
 ./scripts/build_sentinel_v5_2_image.sh
 ```
 
 Push it:
 
 ```bash
-podman push ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.07-v5.2-dev5
+podman push ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.12-v6-dev13
 ```
 
 ## Contract And Design Docs
 
-- `newdetails/sentry-v5.2/`: active V5.2 schemas, examples and contract.
+- `newdetails/sentry-v6/`: active V6 schemas, examples and contract.
 - `Sentry_Edge_Inference_Design.md`: event production policy/design guidance.
 - `V4_1_EVENT_PRODUCTION_POLICY_WORKING.md`: working policy notes used during
   the V5.2 alignment.

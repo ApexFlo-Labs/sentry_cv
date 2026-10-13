@@ -80,11 +80,15 @@ class OpenVINOYOLODetector:
         class_names: Optional[dict] = None,
         max_detections: Optional[int] = None,
         cache_dir: str = "/tmp/ov_cache",
+        performance_hint: str = "THROUGHPUT",
     ):
         import openvino as ov
         from openvino import Layout, Type
         from openvino.preprocess import ColorFormat, PrePostProcessor
 
+        performance_hint = performance_hint.upper()
+        if performance_hint not in {"LATENCY", "THROUGHPUT"}:
+            raise ValueError("YOLO performance_hint must be LATENCY or THROUGHPUT")
         self.model_name = model_name
         self.imgsz = int(imgsz)
         self.confidence = float(confidence)
@@ -104,7 +108,10 @@ class OpenVINOYOLODetector:
         inp.preprocess().convert_element_type(Type.f32).convert_color(ColorFormat.RGB).scale(255.0)
         model = ppp.build()
 
-        self._compiled = core.compile_model(model, device, {"PERFORMANCE_HINT": "THROUGHPUT"})
+        options = {"PERFORMANCE_HINT": performance_hint, "ALLOW_AUTO_BATCHING": False}
+        if performance_hint == "LATENCY" and device.split(".")[0] == "GPU":
+            options["NUM_STREAMS"] = "1"
+        self._compiled = core.compile_model(model, device, options)
         self._out = self._compiled.output(0)
         self.device = device
         try:

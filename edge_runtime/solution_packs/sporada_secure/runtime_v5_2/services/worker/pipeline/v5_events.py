@@ -347,6 +347,36 @@ class V5EventPipeline:
             return None
         return candidates[0][1]
 
+    def quiet_frame_needed(self, now: float) -> bool:
+        """Return whether pixels are useful while object inference is idle.
+
+        The current built-in motion policy does not force independent scene-only
+        conversion during idle. Scene samples ride on active inference frames and
+        on the periodic sweep frame. This method remains available for future
+        callers that can cheaply provide pixels.
+        """
+        return False
+
+    def process_quiet(self, now: float, index: int, frame=None) -> None:
+        """Advance lifecycle state for a frame where models did not run.
+
+        Quiet frames are unknown observations. They may age presences toward
+        track_lost/ended_unknown and emit health heartbeats, but they must not
+        produce count=0, zone_exit, fire_smoke_cleared, or other negative facts.
+        """
+        self.last_reliable_at = now
+        if not self.scene_pressure and now - self.last_health >= 30:
+            self.last_health = now
+            self._persist(self._event("camera_health", now, None, state="healthy", reason="none",
+                                      as_of=utc(now), last_reliable_at=utc(now),
+                                      sampling_gap_seconds=0))
+        self._lost_and_unknown(set(), now)
+        self._flush_face_candidates(now)
+        self._plate_idle_timeouts(now)
+        if frame is not None:
+            from types import SimpleNamespace
+            self._scenes(SimpleNamespace(frame=frame), now, f"{self.camera_id}:{index}")
+
     def process(self, packet, faces=()):
         now = (getattr(packet, "frame_observed_at", None)
                or getattr(packet, "frame_received_at", None)
@@ -728,6 +758,25 @@ class V5EventPipeline:
                                           zone_episodes=self._episodes(state)))
                 self.tracks.pop(key, None)
                 self.presences.pop(state["id"], None)
+
+    def _plate_idle_timeouts(self, now):
+        for state in self.presences.values():
+            if state["kind"] != "vehicle" or state["lost"]:
+                continue
+            for use_case_id, attempt in state["plate_attempts"].items():
+                if (use_case_id in state["plates"] or use_case_id in state["plate_outcomes"]
+                        or now - attempt["started"] < self.plate_outcome_delay):
+                    continue
+                selected = self._plate_candidate_ready(attempt, None, now)
+                if selected is not None:
+                    binding = next((item for item in self.bindings
+                                    if item["use_case_id"] == use_case_id), None)
+                    if binding is not None:
+                        self._emit_plate_read(state, binding, selected, None, now)
+                        attempt["started"] = now
+                        attempt["candidates"] = []
+                        continue
+                self._emit_plate_outcome(state, use_case_id, attempt)
 
     def _counts(self, packet, detections, now, frame_id):
         height, width = packet.frame.shape[:2]

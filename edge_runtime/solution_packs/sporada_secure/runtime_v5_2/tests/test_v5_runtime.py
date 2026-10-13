@@ -18,6 +18,8 @@ sys.path.insert(0, str(ROOT / "services" / "worker"))
 
 from pipeline import v5_events
 from pipeline.v5_events import V5EventPipeline
+from pipeline.motion_gate import MotionGateController
+from pipeline.surface_stream import SurfaceSwitch
 from pipeline.ocr_stabilizer import OcrStabilizer
 from pipeline.sentinel_delivery import SentinelV2Uploader
 from detectors.backends.openvino_ocr_async import AsyncOCR
@@ -87,6 +89,67 @@ def config(bindings, zones=(), lines=()):
 def events(tmp_path):
     return [json.loads(path.read_text())["observation"]
             for path in (tmp_path / "sentinel_v5_2" / "outbox" / "cam").glob("*.json")]
+
+
+def test_motion_gate_starts_active_then_releases_and_sweeps():
+    gate = MotionGateController(sweep_seconds=1, start_active=True)
+    frame = np.zeros((180, 320, 3), np.uint8)
+    for index in range(6):
+        state, run, reason = gate.update(frame, index / 10, 10)
+        assert (state, run, reason) == ("TRACKING", True, "active")
+        released = gate.observe_models(False, False)
+    assert released
+    assert not gate.tracking
+    for index in range(6, 16):
+        state, run, reason = gate.update(frame, index / 10, 10)
+        assert state == "MOTION"
+        if run:
+            assert reason == "sweep"
+            break
+    else:
+        raise AssertionError("motion gate did not issue an idle sweep")
+
+
+def test_surface_switch_starts_active_then_releases():
+    switch = SurfaceSwitch(sweep_seconds=1, start_active=True)
+    assert switch.tracking
+    for _ in range(5):
+        assert not switch.observe_models(False, False)
+        assert switch.tracking
+    assert switch.observe_models(False, False)
+    assert not switch.tracking
+
+
+def test_quiet_frame_advances_lifecycle_without_negative_facts(tmp_path, monkeypatch):
+    monkeypatch.setenv("APEXFABRIC_STATE_ROOT", str(tmp_path))
+    clock = SimpleNamespace(value=100.0, time=lambda: clock.value)
+    monkeypatch.setattr(v5_events, "time", clock)
+    zone = {"id": "parking", "name": "Parking", "poly": [[.1, .1], [.9, .1], [.9, .9], [.1, .9]]}
+    pipeline = V5EventPipeline("cam", config([
+        binding("presence", "vehicle_presence", "geometry", ["parking"]),
+        binding("count", "vehicle_counting", "geometry", ["parking"]),
+        binding("hazard", "fire_smoke", "geometry", ["parking"], None),
+    ], [zone]))
+    for index in range(3):
+        item = packet(index, [("car", 1, (20, 20, 70, 75))])
+        item.frame_received_at = clock.value
+        pipeline.process(item)
+        clock.value += .1
+    before = events(tmp_path)
+    zero_counts_before = len([item for item in before
+                              if item["event_type"] == "zone_count" and item["count"] == 0])
+    clock.value += 2.1
+    pipeline.process_quiet(clock.value, 4)
+    clock.value += 8
+    pipeline.process_quiet(clock.value, 5)
+    output = events(tmp_path)
+    assert any(item["event_type"] == "track_lost" for item in output)
+    assert any(item["event_type"] == "presence_ended_unknown" for item in output)
+    assert not any(item["event_type"] == "zone_exit" for item in output)
+    assert not any(item["event_type"] == "fire_smoke_cleared" for item in output)
+    zero_counts_after = len([item for item in output
+                             if item["event_type"] == "zone_count" and item["count"] == 0])
+    assert zero_counts_after == zero_counts_before
 
 
 def test_presence_count_scene_and_anpr(tmp_path, monkeypatch):

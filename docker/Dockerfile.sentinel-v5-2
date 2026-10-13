@@ -1,6 +1,8 @@
 ARG INTEL_TRAFFIC_RUNTIME_BASE=localhost/apexfabric-intel-traffic-runtime-base:intel-285h-2026.09.18-v2
 FROM ${INTEL_TRAFFIC_RUNTIME_BASE}
 
+USER 0:0
+
 ENV PYTHONUNBUFFERED=1 \
     PYTHONPATH=/opt/traffic-pilot \
     TRAFFIC_PILOT_ROOT=/opt/traffic-pilot \
@@ -19,11 +21,14 @@ ENV PYTHONUNBUFFERED=1 \
     GAIT_DEVICE=NPU \
     FACE_DETECTOR_DEVICE=GPU \
     FACE_EMBEDDER_DEVICE=NPU \
+    SENTINEL_MOTION_GATE_ENABLED=true \
+    SENTINEL_SURFACE_MOTION_GATE_ENABLED=false \
     APEX_API_HOST=0.0.0.0 \
     APEX_API_PORT=8080 \
     DESIRED_STATE_RELOAD_INTERVAL=2 \
     HOME=/tmp/sentinel \
-    XDG_CACHE_HOME=/tmp/sentinel/cache
+    XDG_CACHE_HOME=/tmp/sentinel/cache \
+    LD_LIBRARY_PATH=/usr/local/lib/python3.12/dist-packages/openvino/libs
 
 WORKDIR /opt/traffic-pilot
 
@@ -38,12 +43,25 @@ COPY models/scene/openvino /models/scene/openvino
 COPY models/surveillance/transreid_ssl_int8.xml models/surveillance/transreid_ssl_int8.bin /models/surveillance/
 COPY models/surveillance/gaitbase_int8.xml models/surveillance/gaitbase_int8.bin /models/surveillance/
 COPY edge_runtime/solution_packs/sporada_secure/runtime_v5_2/image_schema /opt/traffic-pilot/image_schema
+COPY native/lib /opt/finalcombo
+COPY native/ocvlib /opt/finalcombo/ocvlib
 
-RUN python -m pip install --break-system-packages --no-cache-dir jsonschema==4.23.0 \
-    && ln -s /usr/lib/x86_64-linux-gnu/libopenvino_intel_npu_compiler_loader.so \
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        python3-gi python3-gst-1.0 \
+        gir1.2-gstreamer-1.0 gir1.2-gst-plugins-base-1.0 \
+        gstreamer1.0-tools gstreamer1.0-plugins-base \
+        gstreamer1.0-plugins-good gstreamer1.0-libav gstreamer1.0-vaapi \
+    && rm -rf /var/lib/apt/lists/* \
+    && python -m pip install --break-system-packages --no-cache-dir jsonschema==4.23.0 \
+    && ln -sf /usr/lib/x86_64-linux-gnu/libopenvino_intel_npu_compiler_loader.so \
         /usr/local/lib/python3.12/dist-packages/openvino/libs/libopenvino_intel_npu_compiler_loader.so \
     && python -m py_compile traffic_pilot_runtime/*.py \
         services/worker/stream_fleet_openvino.py \
+        services/worker/pipeline/motion_gate.py \
+        services/worker/pipeline/surface_gate.py \
+        services/worker/pipeline/surface_stream.py \
+        services/worker/pipeline/camera_state.py \
         services/worker/pipeline/scene_embeddings.py \
         services/worker/pipeline/person_reid.py \
         services/worker/pipeline/sentinel_delivery.py \
@@ -57,9 +75,14 @@ RUN python -m pip install --break-system-packages --no-cache-dir jsonschema==4.2
     && test -f /models/scene/openvino/siglip2-base-patch16-224.xml \
     && test -f /models/surveillance/transreid_ssl_int8.xml \
     && test -f /models/surveillance/gaitbase_int8.xml \
+    && test -f /opt/finalcombo/libgpu_motion_gate_fixed_slots.so \
+    && test -f /opt/finalcombo/libva_y_copy_bridge.so \
+    && test -f /opt/finalcombo/ocvlib/libopencv_core.so.406 \
+    && mkdir -p /tmp/sentinel/cache \
+    && chown -R apexruntime:apexruntime /tmp/sentinel \
     && test "$(id -u apexruntime)" = "10001"
 
-ARG IMAGE_VERSION=2026.10.09-v6-dev5
+ARG IMAGE_VERSION=2026.10.12-v6-dev13
 ARG INTEL_TRAFFIC_RUNTIME_BASE_DIGEST=unresolved
 
 LABEL org.opencontainers.image.source="https://github.com/kiranmaibattu-cyber/sentry_cv" \
