@@ -21,6 +21,19 @@ ENV PYTHONUNBUFFERED=1 \
     GAIT_DEVICE=NPU \
     FACE_DETECTOR_DEVICE=GPU \
     FACE_EMBEDDER_DEVICE=NPU \
+    HEAD_POSE_DEVICE=NPU \
+    FACE_ADAPTIVE_SEARCH_INTERVAL_SECONDS=0.6 \
+    FACE_ADAPTIVE_SEARCH_FULL_RATE_SECONDS=10 \
+    FACE_ADAPTIVE_SEARCH_BACKOFF_AFTER_SECONDS=30 \
+    FACE_ADAPTIVE_SEARCH_BACKOFF_INTERVAL_SECONDS=1.5 \
+    FACE_ADAPTIVE_SEARCH_IDLE_INTERVAL_SECONDS=5 \
+    FACE_ADAPTIVE_ACQUIRED_INTERVAL_SECONDS=3 \
+    FACE_ADAPTIVE_HIGH_QUALITY_INTERVAL_SECONDS=15 \
+    FACE_ADAPTIVE_HIGH_QUALITY_THRESHOLD=0.75 \
+    FACE_ADAPTIVE_RECOVERY_GAP_SECONDS=2 \
+    FACE_ADAPTIVE_RECOVERY_WINDOW_SECONDS=4 \
+    FACE_ADAPTIVE_STATE_TTL_SECONDS=20 \
+    FACE_ADAPTIVE_IMPROVEMENT_THRESHOLD=0.10 \
     SENTINEL_MOTION_GATE_ENABLED=true \
     SENTINEL_SURFACE_MOTION_GATE_ENABLED=false \
     APEX_API_HOST=0.0.0.0 \
@@ -66,12 +79,15 @@ RUN apt-get update \
         services/worker/pipeline/person_reid.py \
         services/worker/pipeline/sentinel_delivery.py \
         services/worker/pipeline/v5_events.py \
+        services/worker/detectors/backends/openvino_face.py \
     && test -f /models/traffic/openvino/vehicle_yolo26n_fp16.xml \
     && test -f /models/traffic/openvino/license_plate.xml \
     && test -f /models/traffic/openvino/ocr.xml \
     && test -f /models/traffic/openvino/smoke_fire.xml \
     && test -f /models/face/openvino/scrfd_500m.onnx \
     && test -f /models/face/openvino/adaface_ir101_int8.xml \
+    && test -f /models/face/openvino/best_a0_fp16.xml \
+    && test -f /models/face/openvino/best_a0_fp16.bin \
     && test -f /models/scene/openvino/siglip2-base-patch16-224.xml \
     && test -f /models/surveillance/transreid_ssl_int8.xml \
     && test -f /models/surveillance/gaitbase_int8.xml \
@@ -82,7 +98,7 @@ RUN apt-get update \
     && chown -R apexruntime:apexruntime /tmp/sentinel \
     && test "$(id -u apexruntime)" = "10001"
 
-ARG IMAGE_VERSION=2026.10.12-v6-dev13
+ARG IMAGE_VERSION=2026.10.22-v6-dev15
 ARG INTEL_TRAFFIC_RUNTIME_BASE_DIGEST=unresolved
 
 LABEL org.opencontainers.image.source="https://github.com/kiranmaibattu-cyber/sentry_cv" \

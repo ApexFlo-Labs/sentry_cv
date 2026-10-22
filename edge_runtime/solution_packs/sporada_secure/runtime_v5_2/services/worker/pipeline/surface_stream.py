@@ -479,6 +479,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
         face_extractor = OpenVINOFaceExtractor(
             os.path.join(sf.FACE_MODELS_DIR, "scrfd_500m.onnx"),
             os.path.join(sf.FACE_MODELS_DIR, "adaface_ir101_int8.xml"),
+            os.path.join(sf.FACE_MODELS_DIR, "best_a0_fp16.xml"),
         )
         face_extractor.warmup()
         face_pipeline = FaceSamplePipeline(

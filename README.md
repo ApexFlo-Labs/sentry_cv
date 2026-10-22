@@ -11,7 +11,7 @@ container startup.
 ## Current Image
 
 ```text
-ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.12-v6-dev13
+ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.22-v6-dev15
 ```
 
 The image is built from:
@@ -55,6 +55,7 @@ access from the container runtime:
 | Decode | Intel iGPU / VAAPI |
 | YOLO person/vehicle detection | Intel GPU |
 | Face detection | Intel GPU |
+| SixDRepNet head-pose quality gate | Intel NPU |
 | Face embedding | Intel NPU |
 | Body ReID embedding | Intel NPU |
 | Gait embedding | Intel NPU |
@@ -63,6 +64,11 @@ access from the container runtime:
 
 The intended deployment policy is no CPU fallback for decode or model
 inference.
+
+Face inference uses a CV-owned adaptive lifecycle. New and recovered tracks are
+sampled rapidly, acquired tracks are checked every 3 seconds, and tracks with a
+quality score of at least 0.75 are checked every 15 seconds. Event emission
+still requires the fixed recognition-quality and material-improvement gates.
 
 ## Build
 
@@ -76,14 +82,14 @@ Build the GHCR image:
 
 ```bash
 SENTINEL_IMAGE_REPOSITORY=ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime \
-SENTINEL_IMAGE_VERSION=2026.10.12-v6-dev13 \
+SENTINEL_IMAGE_VERSION=2026.10.22-v6-dev15 \
 ./scripts/build_sentinel_v5_2_image.sh
 ```
 
 Push it:
 
 ```bash
-podman push ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.12-v6-dev13
+podman push ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.22-v6-dev15
 ```
 
 ## Contract And Design Docs
@@ -96,3 +102,6 @@ podman push ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.1
 - `SENTINEL_EDGE_MANAGEMENT_CONTRACT.md`: management/edge contract notes.
 - `SENTINEL_V18_1_ARCHITECTURE_AND_CONTRACT_DECISIONS.md`: history from the
   V18.1/V4/V5 design discussion.
+- `SESSION_CONTINUITY_RECORD.md`: detailed chronology, current implementation
+  truth, test evidence, repository rules, and unresolved work from the ongoing
+  design and validation sessions.

@@ -22,8 +22,10 @@ from pipeline.motion_gate import MotionGateController
 from pipeline.surface_stream import SurfaceSwitch
 from pipeline.ocr_stabilizer import OcrStabilizer
 from pipeline.sentinel_delivery import SentinelV2Uploader
+from pipeline.face_samples import AdaptiveFaceScheduler, FaceSamplePipeline
 from detectors.backends.openvino_ocr_async import AsyncOCR
 from detectors.backends.openvino_smoke_fire import _device_with_fallback
+from detectors.backends.openvino_face import OpenVINOFaceExtractor, _pose_quality, _rotation_to_euler
 import decode
 from stream_fleet_openvino import require_accelerator_device
 from traffic_pilot_runtime.desired_state import DesiredStateValidator
@@ -108,6 +110,147 @@ def test_motion_gate_starts_active_then_releases_and_sweeps():
             break
     else:
         raise AssertionError("motion gate did not issue an idle sweep")
+
+
+def test_head_pose_rotation_conversion_and_quality_ordering():
+    def rotation(pitch, yaw, roll):
+        x, y, z = np.radians([pitch, yaw, roll])
+        rx = np.asarray([[1, 0, 0], [0, np.cos(x), -np.sin(x)],
+                         [0, np.sin(x), np.cos(x)]])
+        ry = np.asarray([[np.cos(y), 0, np.sin(y)], [0, 1, 0],
+                         [-np.sin(y), 0, np.cos(y)]])
+        rz = np.asarray([[np.cos(z), -np.sin(z), 0], [np.sin(z), np.cos(z), 0],
+                         [0, 0, 1]])
+        return rz @ ry @ rx
+
+    actual = _rotation_to_euler(rotation(12, -24, 8))
+    assert actual == pytest.approx((12, -24, 8), abs=1e-5)
+    frontal = _pose_quality(3, 4, 2, 25, 35, 25)
+    turned = _pose_quality(20, 30, 18, 25, 35, 25)
+    boundary = _pose_quality(25, 35, 25, 25, 35, 25)
+    assert frontal == pytest.approx(1.0)
+    assert frontal > turned > boundary
+    assert boundary == pytest.approx(0.0)
+
+
+def test_head_pose_rotation_rejects_nonfinite_matrix():
+    matrix = np.eye(3)
+    matrix[0, 0] = np.nan
+    with pytest.raises(ValueError, match="not finite"):
+        _rotation_to_euler(matrix)
+
+
+def test_out_of_range_head_pose_is_rejected_before_face_embedding():
+    extractor = object.__new__(OpenVINOFaceExtractor)
+    extractor.min_face_px = 28
+    extractor.max_pitch = 25.0
+    extractor.max_yaw = 35.0
+    extractor.max_roll = 25.0
+    extractor.pose_context = 0.2
+    extractor._suppressions = {}
+    landmarks = np.asarray([[28, 30], [52, 30], [40, 42], [31, 55], [49, 55]], np.float32)
+    extractor._detect = lambda crop: [(np.asarray([20, 15, 60, 65], np.float32), landmarks, .9)]
+    extractor._pose = SimpleNamespace(estimate=lambda crop: (5.0, 52.0, 2.0))
+    extractor._embed = lambda chip: pytest.fail("AdaFace must not run for rejected head pose")
+    person = SimpleNamespace(model_name="vehicle", class_name="pedestrian",
+                             bbox=(20, 10, 100, 130), metadata={"track_id": 7})
+    assert extractor.extract(np.full((160, 140, 3), 128, np.uint8), [person]) == []
+    assert extractor.drain_suppressions() == {"head_pose_out_of_range": 1}
+
+
+def test_face_scheduler_reduces_one_hour_high_quality_work(monkeypatch):
+    monkeypatch.setenv("FACE_ADAPTIVE_SEARCH_INTERVAL_SECONDS", "0.6")
+    monkeypatch.setenv("FACE_ADAPTIVE_HIGH_QUALITY_INTERVAL_SECONDS", "15")
+    scheduler = AdaptiveFaceScheduler()
+    scheduler.configure(selection_window=4, improvement_threshold=.1, improvement_cooldown=5)
+    attempts = forwarded = 0
+    for step in range(6001):
+        now = step * .6
+        if not scheduler.due(7, now):
+            continue
+        attempts += 1
+        forwarded += int(scheduler.observe(7, now, .8))
+    state = scheduler.states[7]
+    assert state.mode == "high_quality"
+    assert state.baseline_quality == pytest.approx(.8)
+    assert attempts < 260
+    assert forwarded < 10
+
+
+def test_face_scheduler_uses_fast_recovery_window(monkeypatch):
+    monkeypatch.setenv("FACE_ADAPTIVE_SEARCH_INTERVAL_SECONDS", "0.5")
+    monkeypatch.setenv("FACE_ADAPTIVE_RECOVERY_GAP_SECONDS", "2")
+    monkeypatch.setenv("FACE_ADAPTIVE_RECOVERY_WINDOW_SECONDS", "4")
+    scheduler = AdaptiveFaceScheduler()
+    scheduler.configure(selection_window=1, improvement_threshold=.1, improvement_cooldown=5)
+    assert scheduler.due(9, 0)
+    assert scheduler.observe(9, 0, .8)
+    assert scheduler.due(9, .5)
+    assert scheduler.observe(9, .5, .82)
+    assert scheduler.due(9, 1.0)
+    assert scheduler.observe(9, 1.0, .81)
+    assert scheduler.states[9].mode == "high_quality"
+    assert scheduler.due(9, 4.0)
+    assert scheduler.states[9].mode == "recovery"
+    assert scheduler.observe(9, 4.0, .79)
+    assert scheduler.due(9, 4.5)
+
+
+def test_predicted_track_is_not_eligible_for_face_inference():
+    pipeline = object.__new__(FaceSamplePipeline)
+    pipeline.camera_config = {}
+    person = SimpleNamespace(model_name="vehicle", class_name="pedestrian",
+                             bbox=(10, 10, 80, 100),
+                             metadata={"track_id": 4, "predicted": True})
+    assert not pipeline._eligible(person, (120, 120, 3), 0)
+
+
+def test_face_pose_crop_uses_original_frame_coordinates_and_axis_scaling():
+    extractor = object.__new__(OpenVINOFaceExtractor)
+    extractor.pose_context = .2
+    frame = np.arange(180 * 240 * 3, dtype=np.int32).reshape(180, 240, 3)
+    crop = extractor._pose_crop(frame, (100, 50, 140, 110))
+    expected = frame[38:122, 92:148]
+    assert crop.shape == (84, 56, 3)
+    assert np.array_equal(crop, expected)
+    assert np.shares_memory(crop, frame)
+
+
+def test_face_extractor_maps_person_relative_face_to_original_frame():
+    extractor = object.__new__(OpenVINOFaceExtractor)
+    extractor.min_face_px = 28
+    extractor.max_pitch = 25.0
+    extractor.max_yaw = 35.0
+    extractor.max_roll = 25.0
+    extractor.pose_context = .2
+    extractor._suppressions = {}
+    landmarks = np.asarray([[25, 35], [65, 35], [45, 52], [30, 72], [60, 72]], np.float32)
+    extractor._detect = lambda crop: [(np.asarray([20, 30, 80, 100], np.float32), landmarks, .9)]
+    captured = {}
+
+    def pose(pixels):
+        captured["pose"] = pixels.copy()
+        return 2.0, 3.0, 1.0
+
+    extractor._pose = SimpleNamespace(estimate=pose)
+    extractor._align = lambda crop, points: np.full((112, 112, 3), 127, np.uint8)
+    extractor._embed = lambda chip: np.r_[np.float32(1), np.zeros(511, np.float32)]
+    frame = np.arange(400 * 500 * 3, dtype=np.int32).reshape(400, 500, 3)
+    person = SimpleNamespace(model_name="vehicle", class_name="pedestrian",
+                             bbox=(100, 50, 300, 350), metadata={"track_id": 7})
+    samples = extractor.extract(frame, [person])
+    assert len(samples) == 1
+    assert samples[0].bbox == (120, 80, 180, 150)
+    assert np.array_equal(captured["pose"], frame[66:164, 108:192])
+
+
+def test_face_evidence_bounds_are_square_original_frame_region():
+    frame = np.arange(200 * 300 * 3, dtype=np.int32).reshape(200, 300, 3)
+    bounds = V5EventPipeline._face_bounds(frame, (100, 50, 140, 110))
+    crop, actual = V5EventPipeline._crop(frame, bounds)
+    assert bounds == (60, 20, 180, 140)
+    assert actual == bounds
+    assert np.array_equal(crop, frame[20:140, 60:180])
 
 
 def test_surface_switch_starts_active_then_releases():
@@ -393,7 +536,7 @@ def test_face_and_body_are_independent_samples(tmp_path, monkeypatch):
     for index in range(1, 4):
         pipeline.process(packet(index, [("pedestrian", 2, (20, 10, 80, 90))]), [face] if index == 3 else [])
         clock.value += .6
-    clock.value += 1
+    clock.value += 4
     pipeline.process(packet(4))
     output = events(tmp_path)
     assert len([item for item in output if item["event_type"] == "object_present"]) == 1
@@ -444,7 +587,7 @@ def test_face_window_selects_best_original_frame(tmp_path, monkeypatch):
     better = SimpleNamespace(track_id=2, embedding=vector, quality=.8, bbox=(42, 30, 62, 55))
     pipeline.process(packet(4, [("pedestrian", 2, (20, 10, 80, 90))]), [better])
     assert not any(item["event_type"] == "person_feature_sample" for item in events(tmp_path))
-    clock.value += .6
+    clock.value += 3.1
     pipeline.process(packet(5))
     selected = [item for item in events(tmp_path) if item["event_type"] == "person_feature_sample"]
     assert len(selected) == 1 and selected[0]["quality"] == .8
@@ -465,16 +608,15 @@ def test_face_improvement_respects_cooldown(tmp_path, monkeypatch):
     for index in range(3):
         pipeline.process(packet(index, [("pedestrian", 2, (20, 10, 80, 90))]),
                          [first] if index == 2 else [])
-    clock.value += 2
+    clock.value += 4.1
     pipeline.process(packet(3, [("pedestrian", 2, (20, 10, 80, 90))]))
-    pipeline.process(packet(4, [("pedestrian", 2, (20, 10, 80, 90))]), [better])
-    clock.value += 2
-    pipeline.process(packet(5, [("pedestrian", 2, (20, 10, 80, 90))]), [better])
     assert len([item for item in events(tmp_path) if item["event_type"] == "person_feature_sample"]) == 1
-    clock.value += 4
-    pipeline.process(packet(6, [("pedestrian", 2, (20, 10, 80, 90))]), [better])
-    clock.value += 2
-    pipeline.process(packet(7))
+    pipeline.process(packet(4, [("pedestrian", 2, (20, 10, 80, 90))]), [better])
+    assert len([item for item in events(tmp_path) if item["event_type"] == "person_feature_sample"]) == 1
+    clock.value += 1.1
+    pipeline.process(packet(5, [("pedestrian", 2, (20, 10, 80, 90))]), [better])
+    clock.value += 4.1
+    pipeline.process(packet(6))
     assert len([item for item in events(tmp_path) if item["event_type"] == "person_feature_sample"]) == 2
 
 

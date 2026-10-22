@@ -280,6 +280,7 @@ def _camera_proc(cam: dict, camera_config: dict, redis_host: str, redis_port: in
         if enable_face:
             requested_devices["face detector"] = os.getenv("FACE_DETECTOR_DEVICE", "GPU")
             requested_devices["face embedder"] = os.getenv("FACE_EMBEDDER_DEVICE", "NPU")
+            requested_devices["head pose"] = os.getenv("HEAD_POSE_DEVICE", "NPU")
         if enable_reid and "transreid-ssl-v18.1" in enabled_profiles:
             requested_devices["body"] = BODY_REID_DEVICE
         if enable_reid and "gaitbase-v18.1" in enabled_profiles:
@@ -333,6 +334,7 @@ def _camera_proc(cam: dict, camera_config: dict, redis_host: str, redis_port: in
         face_extractor = OpenVINOFaceExtractor(
             os.path.join(FACE_MODELS_DIR, "scrfd_500m.onnx"),
             os.path.join(FACE_MODELS_DIR, "adaface_ir101_int8.xml"),
+            os.path.join(FACE_MODELS_DIR, "best_a0_fp16.xml"),
         )
         face_extractor.warmup()
         face_pipeline = FaceSamplePipeline(

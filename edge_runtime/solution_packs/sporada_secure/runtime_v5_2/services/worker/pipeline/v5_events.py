@@ -76,7 +76,7 @@ class V5EventPipeline:
         self.scene_pressure_reported_at = 0.0
         self.hazards: dict[tuple[str, str | None], dict[str, Any]] = {}
         self.face_candidates: dict[str, dict[str, Any]] = {}
-        self.face_selection_window = float(os.getenv("SENTINEL_FACE_SELECTION_WINDOW_SECONDS", "1.5"))
+        self.face_selection_window = float(os.getenv("SENTINEL_FACE_SELECTION_WINDOW_SECONDS", "4.0"))
         self.zone_boundary_margin = float(os.getenv("SENTINEL_ZONE_BOUNDARY_MARGIN", "0.01"))
         self.candidate_max_gap = float(os.getenv("SENTINEL_CANDIDATE_MAX_GAP_SECONDS", "1.5"))
         self.hazard_min_confidence = float(os.getenv("SENTINEL_HAZARD_MIN_CONFIDENCE", "0.55"))
