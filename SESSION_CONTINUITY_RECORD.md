@@ -615,6 +615,107 @@ validated:
 - Cross-camera fusion using face as recognition evidence and body/gait plus
   camera-time topology as candidate-association evidence.
 
+### 10.3 Per-Camera Runtime Telemetry
+
+The V6 dev16 change adds detailed operational telemetry to the original
+`GET /healthz` route without changing liveness semantics. There is no health
+alias. The route continues to return HTTP 200 while the API process is alive;
+the JSON fields `ready` and `worker_running` describe worker readiness.
+`GET /readyz` retains its existing probe behavior. Each camera entry also
+contains its health state, reason, last reliable time, status time, and whether
+its supervisor is retrying.
+
+Each camera process atomically publishes a two-second telemetry snapshot under
+`/state/metrics`. The health response exposes target, decoded, inference,
+motion-gate quiet, and durable-event output FPS separately. This distinction is
+intentional: decoded frames can continue while the motion gate suppresses
+model inference, and an actively processed camera can correctly produce zero
+durable events in a window. Output rates are grouped by event type and by V6
+`use_case_id`, with the corresponding app name.
+
+Timed stages include vehicle/person detection, plate detection and OCR,
+tracking/geometry, presence/zone lifecycle, line crossing, counting, ANPR
+policy, fire/smoke detection and policy, face detection, SixDRepNet pose,
+AdaFace, body, gait, scene embedding, event policy, and durable persistence.
+The endpoint also reports source-observation-to-outbox-persistence latency by
+event type, so deliberate face/ANPR candidate windows remain visible rather
+than being mistaken for transport latency.
+
+Resource reporting includes host CPU/RAM/swap, fleet-worker RSS/threads/file
+descriptors, and per-camera process CPU/RSS/thread counts. Model device
+placement is explicit. Timed GPU/NPU model workload is reported in
+milliseconds per second. It is not labelled as hardware utilization: when the
+driver exposes no supported busy counter, `hardware_utilization_pct` is null
+with `counter_unavailable`. Prometheus equivalents are exported by `/metrics`.
+
+The local image is:
+
+```text
+ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.26-v6-dev16
+image ID: a0ecdae78b369b02c99b50cafb93663665a822ca9803cfce757af16f0b244644
+local digest: sha256:878b344474e8f9136384839a84991c4c813746a2c6945072a4a8add64c8c355e
+```
+
+Unit/runtime coverage reached 46 passing tests and the V6 contract validator
+passed all five schemas and 16 examples. A normal-entrypoint live `ch9` run
+populated the endpoint with real events, use-case latencies, resources, and
+GPU/NPU workload. With the complete example app set, that bounded sample ran at
+about 0.99 decoded/inference FPS because fire/smoke inference averaged roughly
+850 ms per evaluated frame; the endpoint made that bottleneck visible. The
+image is local only at this point and has not been pushed.
+
+### 10.4 Corrected Resource And Stage Telemetry
+
+The V6 dev17 change corrects the interpretation and collection problems found
+during the Kubernetes-shaped dev16 audit. Fire/smoke once again follows its
+configured five-frame cadence during active processing; an idle motion-gate
+sweep still forces a fire/smoke evaluation so a static hazard is not hidden.
+Skipped periodic fire/smoke checks preserve prior confirmed-negative motion
+gate progress instead of resetting it. Plate detector latency is now recorded
+only when a vehicle crop actually invokes the model.
+
+The fire/smoke model also changes from OpenVINO `THROUGHPUT` to `LATENCY`.
+An isolated GPU benchmark showed that the old synchronous call selected an
+optimal request count of 1024 and averaged about 1004 ms, while `LATENCY`
+selected one request and averaged about 1.41 ms. This model is invoked
+synchronously at a bounded cadence, so latency mode matches the actual use.
+
+Every timed stage reports invocation count and calls per second. Windows with
+no invocation return null recent latency instead of presenting a lifetime
+average as a current measurement. Parent pipeline spans are marked with
+`includes_child_stages=true`, so Management must not sum a parent with its
+children. A complete frame-processing span is also published.
+
+Camera CPU is reported as cores consumed, avoiding the ambiguous psutil
+one-core percentage scale. RSS, PSS and USS are labelled as camera-process
+measurements. Container CPU and memory come
+from cgroup-v2 counters, which is the appropriate Kubernetes resource scope;
+process RSS is not treated as pod memory. Camera-attributed accelerator wall
+time is explicitly not hardware utilization. NPU utilization is calculated
+from the node's `npu_busy_time_us` delta. GPU utilization remains null because
+the installed `intel_gpu_top` is incompatible with this driver and no supported
+GPU busy counter is exposed; GPU frequency and model placement remain visible.
+
+The corrected image tag is:
+
+```text
+ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.26-v6-dev17
+image ID: 15df46c4e5be6f7da0140484a3dc75686eac02e40e6958701031623e78c5b72f
+local digest: sha256:4b2941f50b155d5323f10ccf56e97a851f5d6c35d9b1ed8553eef163424cb131
+```
+
+The final normal-entrypoint `ch9` run reached `ready=true` and
+`worker_running=true`. One completed telemetry window reported about 4.50
+inference FPS. Fire/smoke ran 20 times for 102 inference frames, confirming its
+one-in-five cadence, with a recent average of about 6.7 ms per invocation.
+Camera CPU was 6.203 cores; the container cgroup independently reported 32.61
+percent of the 16-core capacity and 3.36 GB memory. NPU hardware utilization was
+measured at 22.73 percent from its busy counter. GPU utilization remained null
+while GPU frequency and attributed model-call wall time remained available.
+The ambiguous psutil percentage field is absent. Runtime coverage is 49 passing
+tests and the V6 validator passes all five schemas and 16 event examples. The
+image is local and has not been pushed.
+
 ## 11. Anti-Regression Checklist
 
 Before changing the runtime, preserve these decisions:

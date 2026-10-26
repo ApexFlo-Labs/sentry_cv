@@ -2,12 +2,14 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from contextlib import nullcontext
 import hashlib
 import math
 import os
 from pathlib import Path
 import re
 import time
+from time import perf_counter
 from typing import Any
 import uuid
 
@@ -56,7 +58,8 @@ def bbox_normalized(box, width, height):
 
 
 class V5EventPipeline:
-    def __init__(self, camera_id: str, config: dict[str, Any], *, scene=None, body=None, gait=None):
+    def __init__(self, camera_id: str, config: dict[str, Any], *, scene=None, body=None,
+                 gait=None, telemetry=None):
         self.camera_id = camera_id
         self.config = (config.get("analytics") or {}).get("v5_events", {}).get("v5") or {}
         self.bindings = list(self.config["bindings"])
@@ -65,6 +68,7 @@ class V5EventPipeline:
         self.lines = {item["id"]: item for item in geometry.get("counting_lines") or []}
         self.session_id = str(uuid.uuid4())
         self.scene, self.body, self.gait = scene, body, gait
+        self.telemetry = telemetry
         self.tracks: dict[tuple[str, str], dict[str, Any]] = {}
         self.presences: dict[str, dict[str, Any]] = {}
         self.counts: dict[tuple[str, str | None], dict[str, Any]] = {}
@@ -205,7 +209,15 @@ class V5EventPipeline:
                 "source_frame_id": frame_id, **fields}
 
     def _persist(self, event, evidence=(), embeddings=()):
+        started = perf_counter()
         self.store.persist(event, list(evidence), list(embeddings))
+        if self.telemetry is not None:
+            self.telemetry.event_persisted(event, perf_counter() - started)
+
+    def _measure(self, stage: str, device: str | None = None):
+        if self.telemetry is None:
+            return nullcontext()
+        return self.telemetry.measure(stage, device=device)
 
     def _evidence(self, event, frame_id, image, kind, bounds, frame_shape, now):
         ok, encoded = cv2.imencode(".jpg", image, [int(cv2.IMWRITE_JPEG_QUALITY), 88])
@@ -462,21 +474,34 @@ class V5EventPipeline:
                         continue
                     state["zone_state"][zone_id] = True
                     state["episodes"][zone_id] = self._episode(zone_id, now, False)
-            self._zones(packet, state, containing, point, now, frame_id)
-            self._lines(packet, state, point, now, frame_id)
+            with self._measure("presence.zone_lifecycle"):
+                self._zones(packet, state, containing, point, now, frame_id)
+            with self._measure("line_crossing.policy"):
+                self._lines(packet, state, point, now, frame_id)
             if state["owner"] is None:
                 state["owner"] = self._owner(kind, containing)
             owner = state["owner"]
             if owner and (state["last_object"] == 0 or now - state["last_object"] >= 60):
-                self._object(packet, item, state, owner, now, frame_id)
+                with self._measure("object_presence.emission"):
+                    self._object(packet, item, state, owner, now, frame_id)
             if kind == "person":
-                self._features(packet, item, state, containing, face_by_track.get(track_id), vector, now, frame_id)
-        self._lost_and_unknown(active_keys, now)
-        self._counts(packet, detections, now, frame_id)
-        self._plates(packet, now, frame_id)
-        self._hazards(packet, now, frame_id)
-        self._scenes(packet, now, frame_id)
-        self._flush_face_candidates(now)
+                with self._measure("person_identity.policy"):
+                    self._features(
+                        packet, item, state, containing, face_by_track.get(track_id),
+                        vector, now, frame_id,
+                    )
+        with self._measure("presence.loss_recovery"):
+            self._lost_and_unknown(active_keys, now)
+        with self._measure("counting.policy"):
+            self._counts(packet, detections, now, frame_id)
+        with self._measure("anpr.policy"):
+            self._plates(packet, now, frame_id)
+        with self._measure("fire_smoke.policy"):
+            self._hazards(packet, now, frame_id)
+        with self._measure("scene_search.policy"):
+            self._scenes(packet, now, frame_id)
+        with self._measure("person_identity.candidate_flush"):
+            self._flush_face_candidates(now)
 
     def _body_vectors(self, packet, detections, now):
         if self.body is None:
@@ -489,7 +514,11 @@ class V5EventPipeline:
             crop, _ = self._crop(packet.frame, item.bbox)
             if crop is not None and crop.shape[0] >= 64 and crop.shape[1] >= 32 and self._body_quality(crop) >= .2:
                 crops.append((item, crop))
-        vectors = self.body.embed([crop for _, crop in crops]) if crops else []
+        if crops:
+            with self._measure("person_identity.body_embedding", "NPU"):
+                vectors = self.body.embed([crop for _, crop in crops])
+        else:
+            vectors = []
         result = {}
         for (item, _), vector in zip(crops, vectors):
             track_id = str(item.metadata["track_id"])
@@ -625,7 +654,9 @@ class V5EventPipeline:
             evidence.append(media)
             event["evidence_ids"] = [media[0]["evidence_id"]]
             if self.scene is not None and "siglip2-base-v1" in owner.get("embedding_profile_ids", []):
-                embedding = self._embedding(event, media[0], frame_id, self.scene.embed(crop),
+                with self._measure("object_presence.semantic_embedding", "GPU"):
+                    vector = self.scene.embed(crop)
+                embedding = self._embedding(event, media[0], frame_id, vector,
                                             "siglip2-base-v1", "semantic", now, state["id"])
                 embeddings.append(embedding)
                 event["embedding_ids"] = [embedding["embedding_id"]]
@@ -648,7 +679,11 @@ class V5EventPipeline:
             candidates.append(("body", body_vector, quality, item.bbox, "transreid-ssl-v18.1", None))
         if self.gait is not None and "gaitbase-v18.1" in profiles and packet.index % 3 == 0:
             key = state["id"]
-            result = self.gait.collect(packet.frame, [item], self.camera_id, {int(state["track_id"]): key}, captured_at=now)
+            with self._measure("person_identity.gait_processing", "NPU"):
+                result = self.gait.collect(
+                    packet.frame, [item], self.camera_id,
+                    {int(state["track_id"]): key}, captured_at=now,
+                )
             vector = result.get(int(state["track_id"]))
             if vector is not None:
                 count = len(self.gait.buffers[key])
@@ -1065,7 +1100,8 @@ class V5EventPipeline:
             crop, bounds = self._crop(packet.frame, bounds)
         if crop is None or crop.size == 0:
             return
-        vector = self.scene.embed(crop)
+        with self._measure("scene_search.embedding", "GPU"):
+            vector = self.scene.embed(crop)
         fields = {"trigger": trigger, "scope": binding["scope"], "zone_id": zone_id}
         if triggering_observation_id is not None:
             fields["triggering_observation_id"] = triggering_observation_id

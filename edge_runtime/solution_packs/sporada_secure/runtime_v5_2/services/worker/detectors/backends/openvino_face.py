@@ -9,6 +9,7 @@ from dataclasses import dataclass
 import logging
 import math
 import os
+import time
 
 import cv2
 import numpy as np
@@ -95,7 +96,8 @@ def _pose_quality(pitch: float, yaw: float, roll: float,
 class OpenVINOHeadPoseEstimator:
     """SixDRepNet A0 FP16 head-pose inference with no CPU fallback."""
 
-    def __init__(self, model_path: str) -> None:
+    def __init__(self, model_path: str, telemetry=None) -> None:
+        self.telemetry = telemetry
         core = shared_core()
         model = core.read_model(model_path)
         if list(model.input(0).shape) != [1, 3, 224, 224]:
@@ -131,7 +133,13 @@ class OpenVINOHeadPoseEstimator:
             [0.229, 0.224, 0.225], dtype=np.float32
         )
         tensor = np.ascontiguousarray(tensor.transpose(2, 0, 1)[None])
+        started = time.perf_counter()
         result = self._compiled([tensor])
+        if self.telemetry is not None:
+            self.telemetry.observe_latency(
+                "person_identity.face_pose", time.perf_counter() - started,
+                device=self.device,
+            )
         return _rotation_to_euler(np.asarray(result[self._output])[0])
 
 
@@ -161,7 +169,9 @@ class OpenVINOFaceExtractor:
     model_id = "face-embedding-model-v1"
     embedding_space = "face-embedding-model-v1:512:bgr-aligned-112"
 
-    def __init__(self, detector_model: str, embedder_model: str, pose_model: str) -> None:
+    def __init__(self, detector_model: str, embedder_model: str, pose_model: str,
+                 telemetry=None) -> None:
+        self.telemetry = telemetry
         core = shared_core()
         detector = core.read_model(detector_model)
         detector.reshape({detector.input(0): [1, 3, 320, 320]})
@@ -172,7 +182,7 @@ class OpenVINOFaceExtractor:
         self._embedder = core.compile_model(core.read_model(embedder_model), embedder_device,
                                             {"PERFORMANCE_HINT": "LATENCY"})
         self._embedder_output = self._embedder.output(0)
-        self._pose = OpenVINOHeadPoseEstimator(pose_model)
+        self._pose = OpenVINOHeadPoseEstimator(pose_model, telemetry=telemetry)
         self.detector_threshold = float(os.getenv("FACE_DETECTOR_CONF", "0.55"))
         self.nms_threshold = float(os.getenv("FACE_NMS_THRESHOLD", "0.4"))
         self.min_face_px = int(os.getenv("FACE_MIN_SIZE", "28"))
@@ -275,7 +285,13 @@ class OpenVINOFaceExtractor:
         canvas[:resized_height, :resized_width] = cv2.resize(bgr, (resized_width, resized_height))
         blob = cv2.dnn.blobFromImage(canvas, 1.0 / 128.0, (320, 320),
                                      (127.5, 127.5, 127.5), swapRB=True)
+        started = time.perf_counter()
         result = self._detector([blob])
+        if self.telemetry is not None:
+            self.telemetry.observe_latency(
+                "person_identity.face_detection", time.perf_counter() - started,
+                device=os.getenv("FACE_DETECTOR_DEVICE", "GPU"),
+            )
         outputs = [np.asarray(result[output]) for output in self._detector_outputs]
         scores_all, boxes_all, landmarks_all = [], [], []
         for level, stride in enumerate((8, 16, 32)):
@@ -324,5 +340,11 @@ class OpenVINOFaceExtractor:
     def _embed(self, chip: np.ndarray) -> np.ndarray:
         tensor = ((chip.astype(np.float32) / 255.0) - 0.5) / 0.5
         tensor = np.ascontiguousarray(tensor.transpose(2, 0, 1)[None])
+        started = time.perf_counter()
         result = self._embedder([tensor])
+        if self.telemetry is not None:
+            self.telemetry.observe_latency(
+                "person_identity.face_embedding", time.perf_counter() - started,
+                device=os.getenv("FACE_EMBEDDER_DEVICE", "NPU"),
+            )
         return _l2(np.asarray(result[self._embedder_output]))

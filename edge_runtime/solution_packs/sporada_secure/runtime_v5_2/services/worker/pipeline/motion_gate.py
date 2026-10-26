@@ -171,7 +171,8 @@ class MotionGateController:
             self.miss = 0
             return False
         if not fully_evaluated:
-            self.miss = 0
+            # A skipped periodic model is not a positive observation and not a
+            # confirmed negative. Preserve prior confirmed-negative progress.
             return False
         self.miss += 1
         if self.miss >= self.release_misses:

@@ -11,7 +11,7 @@ container startup.
 ## Current Image
 
 ```text
-ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.22-v6-dev15
+ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.26-v6-dev17
 ```
 
 The image is built from:
@@ -21,8 +21,9 @@ The image is built from:
 - `newdetails/sentry-v6`
 - baked OpenVINO/ONNX model files under `models/`
 
-This package is published to the personal GHCR namespace for integration
-testing. The image is built from this repository and carries
+This package targets the personal GHCR namespace for integration testing. The
+current dev17 image is local until explicitly pushed. It is built from this
+repository and carries
 `org.opencontainers.image.source` pointing at
 `https://github.com/kiranmaibattu-cyber/sentry_cv`.
 
@@ -41,9 +42,18 @@ The runtime exposes:
 
 | Endpoint | Purpose |
 |---|---|
-| `GET /healthz` | Process liveness |
+| `GET /healthz` | Process liveness plus per-camera health, FPS, use-case latency/output rates, CPU/RAM, device placement, and accelerator workload telemetry |
 | `GET /readyz` | Worker/config/model readiness |
-| `GET /metrics` | Runtime counters and revision state |
+| `GET /metrics` | Prometheus runtime, camera, use-case, resource, and emission metrics |
+
+`/healthz` remains a liveness endpoint and returns HTTP 200 while the HTTP
+process is alive; `ready` and `worker_running` inside its JSON describe runtime
+readiness. FPS and rates cover the latest completed two-second window. Model
+invocation wall time is explicitly separate from hardware utilization. NPU
+utilization comes from the node's cumulative busy counter. GPU utilization is
+left `null` when the node provides no compatible busy counter. CPU is reported
+as cores consumed, with camera-process and container-cgroup scope separated;
+container memory is not inferred by summing process RSS.
 
 ## Hardware Policy
 
@@ -82,14 +92,14 @@ Build the GHCR image:
 
 ```bash
 SENTINEL_IMAGE_REPOSITORY=ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime \
-SENTINEL_IMAGE_VERSION=2026.10.22-v6-dev15 \
+SENTINEL_IMAGE_VERSION=2026.10.26-v6-dev17 \
 ./scripts/build_sentinel_v5_2_image.sh
 ```
 
 Push it:
 
 ```bash
-podman push ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.22-v6-dev15
+podman push ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.26-v6-dev17
 ```
 
 ## Contract And Design Docs

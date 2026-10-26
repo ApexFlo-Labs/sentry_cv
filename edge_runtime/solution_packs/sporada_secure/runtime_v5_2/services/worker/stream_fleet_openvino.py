@@ -69,6 +69,11 @@ VEHICLE_CLASS_NAMES = {0: "pedestrian", 2: "car", 3: "motorcycle", 5: "bus", 7: 
 STREAM_SCHEMES = ("rtsp://", "rtsps://", "http://", "https://")
 
 
+def should_evaluate_fire_smoke(detector, frame_index: int, *, idle_sweep: bool) -> bool:
+    """Respect the model cadence during activity and force idle safety sweeps."""
+    return bool(detector is not None and (idle_sweep or detector.should_process(frame_index)))
+
+
 def load_cameras() -> list[dict]:
     import json
 
@@ -328,6 +333,7 @@ def _camera_proc(cam: dict, camera_config: dict, redis_host: str, redis_port: in
         start_active=True,
     ) if MOTION_GATE_ENABLED else None
     face_pipeline = None
+    face_extractor = None
     if enable_face:
         from detectors.backends.openvino_face import OpenVINOFaceExtractor
         from pipeline.face_samples import FaceSamplePipeline
@@ -365,11 +371,42 @@ def _camera_proc(cam: dict, camera_config: dict, redis_host: str, redis_port: in
             SCENE_MODEL_PATH, device=SCENE_EMBEDDER_DEVICE
         )
         scene_extractor.warmup()
+    from pipeline.runtime_telemetry import CameraTelemetry
+    telemetry_devices = {
+        "decode": "GPU/VAAPI",
+        "vehicle_person_detection": VEHICLE_DEVICE,
+    }
+    if plate is not None:
+        telemetry_devices["anpr_plate_detection"] = PLATE_DEVICE
+        telemetry_devices["anpr_ocr"] = os.getenv("OCR_DEVICE", "MULTI:GPU,NPU")
+    if smoke_fire is not None:
+        telemetry_devices["fire_smoke_detection"] = SMOKE_FIRE_DEVICE
+    if face_pipeline is not None:
+        telemetry_devices.update({
+            "face_detection": os.getenv("FACE_DETECTOR_DEVICE", "GPU"),
+            "face_embedding": os.getenv("FACE_EMBEDDER_DEVICE", "NPU"),
+            "face_pose": os.getenv("HEAD_POSE_DEVICE", "NPU"),
+        })
+    if body_extractor is not None:
+        telemetry_devices["body_embedding"] = BODY_REID_DEVICE
+    if gait_extractor is not None:
+        telemetry_devices["gait_embedding"] = GAIT_DEVICE
+    if scene_extractor is not None:
+        telemetry_devices["scene_embedding"] = SCENE_EMBEDDER_DEVICE
+    telemetry = CameraTelemetry(
+        name, target_fps=INFER_FPS, devices=telemetry_devices,
+        use_case_catalog={str(item["use_case_id"]): str(item["app"])
+                          for item in v5.get("bindings") or []},
+    )
+    if face_extractor is not None:
+        face_extractor.telemetry = telemetry
+        face_extractor._pose.telemetry = telemetry
     v5_pipeline = None
     if enable_v5:
         from pipeline.v5_events import V5EventPipeline
         v5_pipeline = V5EventPipeline(name, camera_config, scene=scene_extractor,
-                                      body=body_extractor, gait=gait_extractor)
+                                      body=body_extractor, gait=gait_extractor,
+                                      telemetry=telemetry)
 
     crossing_pipeline = None
     if "vehicle_entry_exit_counts" in runtime and not enable_v5:
@@ -398,7 +435,9 @@ def _camera_proc(cam: dict, camera_config: dict, redis_host: str, redis_port: in
             on_result=lambda text, confidence, ud: stab.observe(
                 ud[0], ud[1], text, confidence, ud[2], plate_width=ud[3]
             ),
+            telemetry=telemetry,
         )
+        telemetry.devices["anpr_ocr"] = async_ocr.actual_device
     geo, tracker, analytics_stage = build_post_detection_stages(camera_configs, mc)
 
     sink = build_analytics_sink(worker_config, redis_host=redis_host, redis_port=redis_port,
@@ -442,6 +481,7 @@ def _camera_proc(cam: dict, camera_config: dict, redis_host: str, redis_port: in
     for frame in dec.frames():
         fidx += 1
         frame_received_at = time.time()
+        frame_processing_started = time.perf_counter()
         if ready_path is not None:
             temporary = ready_path.parent / f".{name}.tmp"
             temporary.write_text("ready\n", encoding="utf-8")
@@ -458,13 +498,17 @@ def _camera_proc(cam: dict, camera_config: dict, redis_host: str, redis_port: in
             gate_state, gate_ran, gate_reason = "off", True, "disabled"
         else:
             gate_state, gate_ran, gate_reason = motion_gate.update(frame, frame_received_at, INFER_FPS)
+        telemetry.frame(inferred=gate_ran)
 
         if not gate_ran:
             if v5_pipeline is not None:
-                v5_pipeline.process_quiet(frame_received_at, fidx)
+                with telemetry.measure("event_policy.quiet_lifecycle"):
+                    v5_pipeline.process_quiet(frame_received_at, fidx)
         else:
+            with telemetry.measure("detection.vehicle_person", device=VEHICLE_DEVICE):
+                raw_vdets = veh.detect(frame)
             vdets = deduplicate_vehicles(
-                veh.detect(frame),
+                raw_vdets,
                 iou_threshold=float(os.getenv(
                     "VEHICLE_DEDUP_IOU", str(vehicle_config.get("dedup_iou", 0.55))
                 )),
@@ -480,40 +524,47 @@ def _camera_proc(cam: dict, camera_config: dict, redis_host: str, redis_port: in
                         continue
                     x1, y1, x2, y2 = vd.bbox
                     crop = frame[y1:y2, x1:x2]
-                    for pd in plate.detect(crop):
-                        pd.bbox = [x1 + pd.bbox[0], y1 + pd.bbox[1], x1 + pd.bbox[2], y1 + pd.bbox[3]]
-                        plate_crop = _crop(frame, pd.bbox)
-                        if not plate_crop_is_usable(
-                            plate_crop,
-                            width=pd.bbox[2] - pd.bbox[0],
-                            height=pd.bbox[3] - pd.bbox[1],
-                            min_width=int(os.getenv(
-                                "PLATE_MIN_WIDTH", str(plate_config.get("min_width", 16))
-                            )),
-                            min_height=int(os.getenv(
-                                "PLATE_MIN_HEIGHT", str(plate_config.get("min_height", 5))
-                            )),
-                            min_sharpness=float(os.getenv(
-                                "PLATE_MIN_SHARPNESS", str(plate_config.get("min_sharpness", 0.0))
-                            )),
-                            min_aspect_ratio=float(os.getenv(
-                                "PLATE_MIN_ASPECT", str(plate_config.get("min_aspect_ratio", 0.8))
-                            )),
-                            max_aspect_ratio=float(os.getenv(
-                                "PLATE_MAX_ASPECT", str(plate_config.get("max_aspect_ratio", 12.0))
-                            )),
-                        ):
-                            continue
-                        dets.append(pd)
+                    with telemetry.measure("anpr.plate_detection", device=PLATE_DEVICE):
+                        for pd in plate.detect(crop):
+                            pd.bbox = [x1 + pd.bbox[0], y1 + pd.bbox[1], x1 + pd.bbox[2], y1 + pd.bbox[3]]
+                            plate_crop = _crop(frame, pd.bbox)
+                            if not plate_crop_is_usable(
+                                plate_crop,
+                                width=pd.bbox[2] - pd.bbox[0],
+                                height=pd.bbox[3] - pd.bbox[1],
+                                min_width=int(os.getenv(
+                                    "PLATE_MIN_WIDTH", str(plate_config.get("min_width", 16))
+                                )),
+                                min_height=int(os.getenv(
+                                    "PLATE_MIN_HEIGHT", str(plate_config.get("min_height", 5))
+                                )),
+                                min_sharpness=float(os.getenv(
+                                    "PLATE_MIN_SHARPNESS", str(plate_config.get("min_sharpness", 0.0))
+                                )),
+                                min_aspect_ratio=float(os.getenv(
+                                    "PLATE_MIN_ASPECT", str(plate_config.get("min_aspect_ratio", 0.8))
+                                )),
+                                max_aspect_ratio=float(os.getenv(
+                                    "PLATE_MAX_ASPECT", str(plate_config.get("max_aspect_ratio", 12.0))
+                                )),
+                            ):
+                                continue
+                            dets.append(pd)
             if smoke_fire is None:
                 smoke_evaluated = False
                 smoke_dets = []
             else:
-                smoke_evaluated = motion_gate is not None or smoke_fire.should_process(fidx)
+                # During active processing respect the model's configured
+                # interval. An idle periodic sweep always evaluates smoke/fire
+                # so a static hazard can wake the gate.
+                smoke_evaluated = should_evaluate_fire_smoke(
+                    smoke_fire, fidx, idle_sweep=gate_reason == "sweep"
+                )
                 smoke_dets = []
                 if smoke_evaluated:
                     try:
-                        smoke_dets = smoke_fire.detect(frame)
+                        with telemetry.measure("fire_smoke.detection", device=SMOKE_FIRE_DEVICE):
+                            smoke_dets = smoke_fire.detect(frame)
                         dets.extend(smoke_dets)
                     except RuntimeError as exc:
                         smoke_evaluated = False
@@ -530,7 +581,8 @@ def _camera_proc(cam: dict, camera_config: dict, redis_host: str, redis_port: in
             packet.analytics_state["motion_gate"] = gate_state
             packet.analytics_state["motion_gate_reason"] = gate_reason
             packet.detections = dets
-            consume_packet(packet, geo, tracker, analytics_stage, stab, async_ocr)
+            with telemetry.measure("tracking_geometry_and_ocr_submit"):
+                consume_packet(packet, geo, tracker, analytics_stage, stab, async_ocr)
             if crossing_pipeline is not None:
                 crossing_pipeline.process(packet)
             tracked_people = [
@@ -541,14 +593,21 @@ def _camera_proc(cam: dict, camera_config: dict, redis_host: str, redis_port: in
             ]
             face_samples = []
             if face_pipeline is not None:
-                face_samples = face_pipeline.process(packet, tracked_people)
+                with telemetry.measure("person_identity.face_pipeline"):
+                    face_samples = face_pipeline.process(packet, tracked_people)
             if v5_pipeline is not None:
-                v5_pipeline.process(packet, face_samples)
+                with telemetry.measure("event_policy.active_frame"):
+                    v5_pipeline.process(packet, face_samples)
             if not enable_v5:
                 analytics.publish_packets([packet])
+        telemetry.observe_latency(
+            "pipeline.frame_processing_total",
+            time.perf_counter() - frame_processing_started,
+        )
         tnow = time.time()
         if fidx % 200 == 0:
             stab.prune(fidx)
+        telemetry.maybe_flush()
         report_n += 1
         if tnow - last >= 10.0:
             log.info("cam[%s] %.1f fps", name, report_n / (tnow - last))
@@ -560,6 +619,7 @@ def _camera_proc(cam: dict, camera_config: dict, redis_host: str, redis_port: in
                          motion_gate.motion_frames)
             last = tnow
             report_n = 0
+    telemetry.close()
 
 
 def main() -> int:
@@ -580,7 +640,7 @@ def main() -> int:
     skey = os.getenv("ANALYTICS_REDIS_STREAM", "traffic:analytics")
 
     from monitor import SystemMonitor
-    SystemMonitor.from_env(interval=float(os.getenv("SYSTEM_MONITOR_INTERVAL", "5"))).start()
+    SystemMonitor.from_env(interval=float(os.getenv("SYSTEM_MONITOR_INTERVAL", "2"))).start()
 
     ctx = mp.get_context("spawn")
     def start_camera(camera):

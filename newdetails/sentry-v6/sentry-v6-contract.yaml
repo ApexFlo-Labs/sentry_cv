@@ -118,6 +118,16 @@ runtimeEndpoints:
   health:
     route: GET /healthz
     readyWhen: process_and_http_event_loop_are_alive
+    responseIncludes:
+      - liveness_ready_worker_running_and_revision
+      - per_camera_health_state_reason_last_reliable_at_and_retrying
+      - per_camera_target_decoded_inference_quiet_and_output_fps
+      - per_use_case_processing_latency_and_output_rates
+      - source_observation_to_durable_persistence_latency_by_event_type
+      - host_cpu_ram_per_camera_process_cpu_ram_and_container_cgroup_cpu_ram
+      - model_device_placement_invocation_counts_and_attributed_stage_wall_time
+      - parent_pipeline_spans_are_marked_and_must_not_be_summed_with_child_stages
+      - hardware_gpu_npu_utilization_only_from_supported_node_device_busy_counters
   readiness:
     route: GET /readyz
     readyWhen:

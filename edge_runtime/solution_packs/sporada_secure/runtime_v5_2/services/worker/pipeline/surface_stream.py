@@ -189,7 +189,8 @@ class SurfaceSwitch:
         if vehicle_hit or smoke_hit:
             return self.observe(True)
         if not fully_evaluated:
-            self.miss = 0
+            # Preserve confirmed-negative progress when a periodic model was
+            # intentionally skipped; skipped is neither positive nor negative.
             return False
         return self.observe(False)
 
@@ -473,6 +474,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
         plate.warmup()
 
     face_pipeline = None
+    face_extractor = None
     if enable_face:
         from detectors.backends.openvino_face import OpenVINOFaceExtractor
         from pipeline.face_samples import FaceSamplePipeline
@@ -503,11 +505,43 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
         from pipeline.scene_embeddings import OpenVINOSceneExtractor
         scene_extractor = OpenVINOSceneExtractor(sf.SCENE_MODEL_PATH, device=sf.SCENE_EMBEDDER_DEVICE)
         scene_extractor.warmup()
+    from pipeline.runtime_telemetry import CameraTelemetry
+    fps = int(proc.get('fps', sf.INFER_FPS))
+    telemetry_devices = {
+        "decode": "GPU/VAAPI",
+        "vehicle_person_detection": sf.VEHICLE_DEVICE,
+    }
+    if plate is not None:
+        telemetry_devices["anpr_plate_detection"] = sf.PLATE_DEVICE
+        telemetry_devices["anpr_ocr"] = os.getenv("OCR_DEVICE", "MULTI:GPU,NPU")
+    if smoke_fire is not None:
+        telemetry_devices["fire_smoke_detection"] = sf.SMOKE_FIRE_DEVICE
+    if face_pipeline is not None:
+        telemetry_devices.update({
+            "face_detection": os.getenv("FACE_DETECTOR_DEVICE", "GPU"),
+            "face_embedding": os.getenv("FACE_EMBEDDER_DEVICE", "NPU"),
+            "face_pose": os.getenv("HEAD_POSE_DEVICE", "NPU"),
+        })
+    if body_extractor is not None:
+        telemetry_devices["body_embedding"] = sf.BODY_REID_DEVICE
+    if gait_extractor is not None:
+        telemetry_devices["gait_embedding"] = sf.GAIT_DEVICE
+    if scene_extractor is not None:
+        telemetry_devices["scene_embedding"] = sf.SCENE_EMBEDDER_DEVICE
+    telemetry = CameraTelemetry(
+        name, target_fps=fps, devices=telemetry_devices,
+        use_case_catalog={str(item["use_case_id"]): str(item["app"])
+                          for item in v5.get("bindings") or []},
+    )
+    if face_extractor is not None:
+        face_extractor.telemetry = telemetry
+        face_extractor._pose.telemetry = telemetry
     v5_pipeline = None
     if enable_v5:
         from pipeline.v5_events import V5EventPipeline
         v5_pipeline = V5EventPipeline(name, camera_config, scene=scene_extractor,
-                                      body=body_extractor, gait=gait_extractor)
+                                      body=body_extractor, gait=gait_extractor,
+                                      telemetry=telemetry)
     crossing_pipeline = None
     if "vehicle_entry_exit_counts" in runtime and not enable_v5:
         from pipeline.vehicle_crossings import VehicleCrossingPipeline
@@ -528,7 +562,9 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
             openvino_model_path("ocr"), device=os.getenv("OCR_DEVICE", "MULTI:GPU,NPU"),
             on_result=lambda text, confidence, ud: stab.observe(
                 ud[0], ud[1], text, confidence, ud[2], plate_width=ud[3]),
+            telemetry=telemetry,
         )
+        telemetry.devices["anpr_ocr"] = async_ocr.actual_device
     from pipeline.detection_quality import deduplicate_vehicles, plate_crop_is_usable
     from pipeline.types import FramePacket as _FramePacket
     geo, tracker, analytics_stage = sf.build_post_detection_stages(camera_configs, mc)
@@ -552,7 +588,6 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
     from pipeline.camera_state import publish_camera_state
     import json
     is_live = uri.startswith(('rtsp://', 'rtsps://'))
-    fps = int(proc.get('fps', sf.INFER_FPS))
     stats = Counter()
     config_mtime = os.stat(sf.CAMERAS_FILE).st_mtime_ns if os.path.exists(sf.CAMERAS_FILE) else None
     last_config_check = 0.0
@@ -666,6 +701,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 pts = int(sv.get_buffer().pts)
                 sb = None
                 frame_received_at = time.time()
+                frame_processing_started = time.perf_counter()
                 if frame_received_at - last_config_check >= sf.CAMERA_CONFIG_RELOAD_INTERVAL_S:
                     last_config_check = frame_received_at
                     previous = config_mtime
@@ -730,6 +766,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 continue
             fidx += 1
             stats['frames'] += 1
+            telemetry.frame(inferred=gate_ran)
             if not gate_ran:
                 stats['quiet_frames'] += 1
                 if v5_pipeline is not None:
@@ -737,12 +774,14 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                     if quiet_pixels:
                         stats['bgr_for_quiet_scene'] += 1
                         frame = _map_bgr(sb)
-                    v5_pipeline.process_quiet(frame_received_at, fidx, frame)
+                    with telemetry.measure("event_policy.quiet_lifecycle"):
+                        v5_pipeline.process_quiet(frame_received_at, fidx, frame)
             else:
                 stats['woken_frames'] += 1
                 stats['bgr_for_inference'] += 1
                 frame = _map_bgr(sb)
-                vdets = veh.detect(frame)
+                with telemetry.measure("detection.vehicle_person", device=sf.VEHICLE_DEVICE):
+                    vdets = veh.detect(frame)
                 vdets = deduplicate_vehicles(vdets)
                 dets = list(vdets)
                 if plate is not None:
@@ -751,26 +790,30 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                             continue
                         x1, y1, x2, y2 = vd.bbox
                         crop = frame[y1:y2, x1:x2]
-                        for pd in plate.detect(crop):
-                            pd.bbox = [x1 + pd.bbox[0], y1 + pd.bbox[1], x1 + pd.bbox[2], y1 + pd.bbox[3]]
-                            plate_crop = sf._crop(frame, pd.bbox)
-                            if not plate_crop_is_usable(
-                                plate_crop, width=pd.bbox[2] - pd.bbox[0], height=pd.bbox[3] - pd.bbox[1],
-                                min_width=int(os.getenv("PLATE_MIN_WIDTH", str(plate_config.get("min_width", 16)))),
-                                min_height=int(os.getenv("PLATE_MIN_HEIGHT", str(plate_config.get("min_height", 5)))),
-                                min_sharpness=float(os.getenv("PLATE_MIN_SHARPNESS", str(plate_config.get("min_sharpness", 0.0)))),
-                                min_aspect_ratio=float(os.getenv("PLATE_MIN_ASPECT", str(plate_config.get("min_aspect_ratio", 0.8)))),
-                                max_aspect_ratio=float(os.getenv("PLATE_MAX_ASPECT", str(plate_config.get("max_aspect_ratio", 12.0)))),
-                            ):
-                                continue
-                            dets.append(pd)
+                        with telemetry.measure("anpr.plate_detection", device=sf.PLATE_DEVICE):
+                            for pd in plate.detect(crop):
+                                pd.bbox = [x1 + pd.bbox[0], y1 + pd.bbox[1], x1 + pd.bbox[2], y1 + pd.bbox[3]]
+                                plate_crop = sf._crop(frame, pd.bbox)
+                                if not plate_crop_is_usable(
+                                    plate_crop, width=pd.bbox[2] - pd.bbox[0], height=pd.bbox[3] - pd.bbox[1],
+                                    min_width=int(os.getenv("PLATE_MIN_WIDTH", str(plate_config.get("min_width", 16)))),
+                                    min_height=int(os.getenv("PLATE_MIN_HEIGHT", str(plate_config.get("min_height", 5)))),
+                                    min_sharpness=float(os.getenv("PLATE_MIN_SHARPNESS", str(plate_config.get("min_sharpness", 0.0)))),
+                                    min_aspect_ratio=float(os.getenv("PLATE_MIN_ASPECT", str(plate_config.get("min_aspect_ratio", 0.8)))),
+                                    max_aspect_ratio=float(os.getenv("PLATE_MAX_ASPECT", str(plate_config.get("max_aspect_ratio", 12.0)))),
+                                ):
+                                    continue
+                                dets.append(pd)
                 smoke_dets = []
                 stats['vehicle'] += 1
                 stats['vehicle_detections'] += len(vdets)
-                smoke_evaluated = smoke_fire is not None
-                if smoke_fire is not None:
+                smoke_evaluated = sf.should_evaluate_fire_smoke(
+                    smoke_fire, fidx, idle_sweep=gate_state == "MOTION"
+                )
+                if smoke_evaluated:
                     try:
-                        smoke_dets = smoke_fire.detect(frame)
+                        with telemetry.measure("fire_smoke.detection", device=sf.SMOKE_FIRE_DEVICE):
+                            smoke_dets = smoke_fire.detect(frame)
                         stats['smoke'] += 1
                         stats['smoke_detections'] += len(smoke_dets)
                         dets.extend(smoke_dets)
@@ -787,7 +830,8 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 packet.analytics_state["motion_gate"] = gate_state
                 packet.analytics_state['fire_smoke_evaluated'] = smoke_evaluated
                 packet.detections = dets
-                sf.consume_packet(packet, geo, tracker, analytics_stage, stab, async_ocr)
+                with telemetry.measure("tracking_geometry_and_ocr_submit"):
+                    sf.consume_packet(packet, geo, tracker, analytics_stage, stab, async_ocr)
                 if crossing_pipeline is not None:
                     crossing_pipeline.process(packet)
                 tracked_people = [
@@ -797,14 +841,20 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 ]
                 face_samples = []
                 if face_pipeline is not None:
-                    face_samples = face_pipeline.process(packet, tracked_people)
+                    with telemetry.measure("person_identity.face_pipeline"):
+                        face_samples = face_pipeline.process(packet, tracked_people)
                 if v5_pipeline is not None:
-                    v5_pipeline.process(packet, face_samples)
+                    with telemetry.measure("event_policy.active_frame"):
+                        v5_pipeline.process(packet, face_samples)
                 if not enable_v5:
                     analytics.publish_packets([packet])
                 stats['packets'] += 1
                 if released:
                     tracker._trackers_by_source.clear()
+            telemetry.observe_latency(
+                "pipeline.frame_processing_total",
+                time.perf_counter() - frame_processing_started,
+            )
             if not ready:
                 publish_camera_state(name, camera_config, 'surface')
                 ready = True
@@ -812,6 +862,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 on_frame(fidx, pts, gate_ran)
             if fidx % 200 == 0:
                 stab.prune(fidx)
+            telemetry.maybe_flush()
             if sb is None:
                 stats['bgr_skipped_frames'] += 1
             if frame_limit is not None and fidx >= frame_limit:
@@ -828,6 +879,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 'fps': fidx / elapsed, 'switches': switch.switches, 'sweeps': switch.sweeps,
                 'smoke_enabled': smoke_fire is not None}
     finally:
+        telemetry.close()
         analytics.close()
         sv = sb = next_surface = None
         if converter is not None:

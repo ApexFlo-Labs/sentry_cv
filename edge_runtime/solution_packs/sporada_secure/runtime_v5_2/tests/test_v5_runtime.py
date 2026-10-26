@@ -7,6 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import sys
 import threading
+import time
 from types import SimpleNamespace
 
 import numpy as np
@@ -23,13 +24,17 @@ from pipeline.surface_stream import SurfaceSwitch
 from pipeline.ocr_stabilizer import OcrStabilizer
 from pipeline.sentinel_delivery import SentinelV2Uploader
 from pipeline.face_samples import AdaptiveFaceScheduler, FaceSamplePipeline
+from pipeline.runtime_telemetry import CameraTelemetry
+from pipeline.resource_metrics import AcceleratorSampler, CgroupSampler
 from detectors.backends.openvino_ocr_async import AsyncOCR
 from detectors.backends.openvino_smoke_fire import _device_with_fallback
 from detectors.backends.openvino_face import OpenVINOFaceExtractor, _pose_quality, _rotation_to_euler
 import decode
-from stream_fleet_openvino import require_accelerator_device
+from stream_fleet_openvino import require_accelerator_device, should_evaluate_fire_smoke
 from traffic_pilot_runtime.desired_state import DesiredStateValidator
-from traffic_pilot_runtime.solution_image_entrypoint import _hot_reload_signature, _per_camera_state
+from traffic_pilot_runtime.solution_image_entrypoint import (
+    RuntimeState, _health_payload, _hot_reload_signature, _metrics, _per_camera_state,
+)
 
 
 class Scene:
@@ -62,6 +67,80 @@ class Gait:
             self.buffer_times[key] = [float(captured_at or 0.0) - 1.0, float(captured_at or 0.0)]
             output[track_id] = vector
         return output
+
+
+def test_camera_runtime_telemetry_reports_rates_latency_outputs_and_resources(
+    tmp_path, monkeypatch,
+):
+    monkeypatch.setenv("APEXFABRIC_STATE_ROOT", str(tmp_path))
+    telemetry = CameraTelemetry(
+        "cam-a", target_fps=5,
+        devices={"vehicle": "GPU", "face": "NPU"},
+        interval_seconds=0.01,
+    )
+    telemetry.frame(inferred=True)
+    telemetry.frame(inferred=False)
+    telemetry.observe_latency("detection.vehicle_person", 0.012, device="GPU")
+    telemetry.event_persisted({
+        "event_type": "object_present",
+        "use_case_id": "presence-a",
+        "observed_at": v5_events.utc(time.time() - 0.05),
+    }, 0.002)
+    time.sleep(0.02)
+    payload = telemetry.flush(force=True)
+    assert payload["processing"]["target_fps"] == 5
+    assert payload["processing"]["decoded_fps"] > 0
+    assert payload["processing"]["inference_fps"] > 0
+    assert payload["processing"]["output_events_per_second"] > 0
+    assert payload["outputs"]["by_event_type"]["object_present"]["total"] == 1
+    assert payload["outputs"]["by_use_case_id"]["presence-a"]["total"] == 1
+    assert payload["use_case_processing"]["detection.vehicle_person"]["avg_ms"] == 12
+    assert payload["outputs"]["production_latency_by_event_type"]["object_present"]["avg_ms"] >= 40
+    assert payload["resources"]["process"]["rss_mb"] > 0
+    accelerator = payload["resources"]["accelerators"]["GPU"]
+    assert accelerator["attributed_stage_wall_ms_per_second"] > 0
+    assert accelerator["model_calls_in_window"] == 1
+    assert accelerator["scope"] == "camera_attributed_model_stages"
+    assert (tmp_path / "metrics" / "runtime-camera-cam-a.json").is_file()
+
+
+def test_health_payload_and_prometheus_metrics_include_per_camera_telemetry(
+    tmp_path, monkeypatch,
+):
+    monkeypatch.setenv("APEXFABRIC_STATE_ROOT", str(tmp_path))
+    telemetry = CameraTelemetry(
+        "cam-a", target_fps=5, devices={"vehicle": "GPU"}, interval_seconds=0.01,
+    )
+    telemetry.frame(inferred=True)
+    telemetry.observe_latency("detection.vehicle_person", 0.01, device="GPU")
+    telemetry.event_persisted({
+        "event_type": "zone_count", "use_case_id": "count-a",
+        "observed_at": v5_events.utc(time.time()),
+    }, 0.001)
+    time.sleep(0.02)
+    telemetry.flush(force=True)
+    state = RuntimeState("/configs/desired_state.json")
+    with state.lock:
+        state.ready = True
+        state.worker_running = True
+        state.active_revision = 6
+        state.plan = {"edge_id": "edge-a", "cameras": [{"camera_id": "cam-a"}]}
+    payload = _health_payload(state)
+    assert payload["ok"] is True
+    assert payload["ready"] is True
+    camera = payload["telemetry"]["cameras"][0]
+    assert camera["camera_id"] == "cam-a"
+    assert camera["fresh"] is True
+    assert camera["camera_health"] == {
+        "state": "degraded", "reason": "worker_starting",
+        "last_reliable_at": None, "as_of": None, "retrying": True,
+    }
+    assert camera["processing"]["decoded_fps"] > 0
+    assert payload["telemetry"]["accelerators"]["GPU"]["hardware_utilization_pct"] is None
+    prometheus = _metrics(state)
+    assert 'sentinel_camera_decoded_fps{camera_id="cam-a"}' in prometheus
+    assert 'sentinel_use_case_latency_seconds{camera_id="cam-a",stage="detection.vehicle_person"}' in prometheus
+    assert 'sentinel_events_emitted_total{camera_id="cam-a",event_type="zone_count"} 1' in prometheus
 
 
 def packet(index, boxes=(), plate=None):
@@ -110,6 +189,67 @@ def test_motion_gate_starts_active_then_releases_and_sweeps():
             break
     else:
         raise AssertionError("motion gate did not issue an idle sweep")
+
+
+def test_periodic_fire_smoke_cadence_and_idle_sweep_override():
+    detector = SimpleNamespace(should_process=lambda frame_index: frame_index % 5 == 0)
+    assert not should_evaluate_fire_smoke(detector, 3, idle_sweep=False)
+    assert should_evaluate_fire_smoke(detector, 5, idle_sweep=False)
+    assert should_evaluate_fire_smoke(detector, 3, idle_sweep=True)
+
+
+def test_motion_gate_preserves_negative_progress_when_periodic_model_is_skipped():
+    gate = MotionGateController(release_misses=2, start_active=True)
+    assert not gate.observe_models(False, False, fully_evaluated=True)
+    assert not gate.observe_models(False, False, fully_evaluated=False)
+    assert gate.observe_models(False, False, fully_evaluated=True)
+
+
+def test_cgroup_and_npu_hardware_counters_are_measured(tmp_path, monkeypatch):
+    cgroup = tmp_path / "cgroup"
+    cgroup.mkdir()
+    (cgroup / "cpu.stat").write_text("usage_usec 1000000\n", encoding="utf-8")
+    (cgroup / "cpu.max").write_text("200000 100000\n", encoding="utf-8")
+    (cgroup / "memory.current").write_text(str(256 * 1024 * 1024), encoding="utf-8")
+    (cgroup / "memory.max").write_text(str(1024 * 1024 * 1024), encoding="utf-8")
+    (cgroup / "pids.current").write_text("42\n", encoding="utf-8")
+    cgroup_sampler = CgroupSampler(cgroup)
+    time.sleep(0.01)
+    (cgroup / "cpu.stat").write_text("usage_usec 1010000\n", encoding="utf-8")
+    cgroup_sample = cgroup_sampler.sample()
+    assert cgroup_sample["measurement_status"] == "measured"
+    assert cgroup_sample["cpu_cores_used"] > 0
+    assert cgroup_sample["cpu_limit_cores"] == 2
+    assert cgroup_sample["memory_current_mb"] == 256
+    assert cgroup_sample["memory_limit_utilization_pct"] == 25
+
+    npu_busy = tmp_path / "npu_busy"
+    npu_memory = tmp_path / "npu_memory"
+    npu_frequency = tmp_path / "npu_frequency"
+    npu_max_frequency = tmp_path / "npu_max_frequency"
+    gpu_frequency = tmp_path / "gpu_frequency"
+    gpu_max_frequency = tmp_path / "gpu_max_frequency"
+    npu_busy.write_text("1000000\n", encoding="utf-8")
+    npu_memory.write_text("4096\n", encoding="utf-8")
+    npu_frequency.write_text("800\n", encoding="utf-8")
+    npu_max_frequency.write_text("1600\n", encoding="utf-8")
+    gpu_frequency.write_text("900\n", encoding="utf-8")
+    gpu_max_frequency.write_text("2300\n", encoding="utf-8")
+    monkeypatch.setenv("SENTINEL_NPU_BUSY_TIME_PATH", str(npu_busy))
+    monkeypatch.setenv("SENTINEL_NPU_MEMORY_PATH", str(npu_memory))
+    monkeypatch.setenv("SENTINEL_NPU_FREQUENCY_PATH", str(npu_frequency))
+    monkeypatch.setenv("SENTINEL_NPU_MAX_FREQUENCY_PATH", str(npu_max_frequency))
+    monkeypatch.setenv("SENTINEL_GPU_FREQUENCY_PATH", str(gpu_frequency))
+    monkeypatch.setenv("SENTINEL_GPU_MAX_FREQUENCY_PATH", str(gpu_max_frequency))
+    accelerator_sampler = AcceleratorSampler()
+    time.sleep(0.01)
+    npu_busy.write_text("1005000\n", encoding="utf-8")
+    accelerators = accelerator_sampler.sample()
+    assert accelerators["NPU"]["hardware_measurement_status"] == "measured"
+    assert 0 < accelerators["NPU"]["hardware_utilization_pct"] <= 100
+    assert accelerators["NPU"]["memory_used_bytes"] == 4096
+    assert accelerators["GPU"]["hardware_utilization_pct"] is None
+    assert accelerators["GPU"]["current_frequency_mhz"] == 900
 
 
 def test_head_pose_rotation_conversion_and_quality_ordering():
