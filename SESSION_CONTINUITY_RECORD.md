@@ -702,6 +702,7 @@ The corrected image tag is:
 ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.26-v6-dev17
 image ID: 15df46c4e5be6f7da0140484a3dc75686eac02e40e6958701031623e78c5b72f
 local digest: sha256:4b2941f50b155d5323f10ccf56e97a851f5d6c35d9b1ed8553eef163424cb131
+GHCR registry digest: sha256:0dcc7b1b299d715b5b3d9796b97df37d8d355445dd80da009cf188da78357272
 ```
 
 The final normal-entrypoint `ch9` run reached `ready=true` and
@@ -714,7 +715,7 @@ measured at 22.73 percent from its busy counter. GPU utilization remained null
 while GPU frequency and attributed model-call wall time remained available.
 The ambiguous psutil percentage field is absent. Runtime coverage is 49 passing
 tests and the V6 validator passes all five schemas and 16 event examples. The
-image is local and has not been pushed.
+image was pushed to the personal `kiranmaibattu-cyber` GHCR namespace.
 
 ## 11. Anti-Regression Checklist
 

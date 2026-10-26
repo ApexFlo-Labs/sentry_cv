@@ -12,6 +12,7 @@ container startup.
 
 ```text
 ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.26-v6-dev17
+registry digest: sha256:0dcc7b1b299d715b5b3d9796b97df37d8d355445dd80da009cf188da78357272
 ```
 
 The image is built from:
@@ -21,9 +22,8 @@ The image is built from:
 - `newdetails/sentry-v6`
 - baked OpenVINO/ONNX model files under `models/`
 
-This package targets the personal GHCR namespace for integration testing. The
-current dev17 image is local until explicitly pushed. It is built from this
-repository and carries
+This package is published to the personal GHCR namespace for integration
+testing. It is built from this repository and carries
 `org.opencontainers.image.source` pointing at
 `https://github.com/kiranmaibattu-cyber/sentry_cv`.
 
