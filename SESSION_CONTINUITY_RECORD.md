@@ -2,7 +2,7 @@
 
 Status: durable engineering handoff and decision history
 Last updated: 2026-10-21
-Repository: `https://github.com/kiranmaibattu-cyber/sentry_cv`
+Repository: `https://github.com/ApexFlo-Labs/sentry_cv`
 
 ## 1. Purpose
 
@@ -767,10 +767,10 @@ batching must therefore choose and compile a fixed batch size first.
 The published personal-GHCR development candidate is:
 
 ```text
-ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev19
-image ID: 79a70ea03e6aa6e4068d777427c345417a996cf37a702fef16292c5e8611aee5
-local digest: sha256:b227eec52224caac67890623021ad1935fcc57db22ff49bb39248b3c3f9eef3a
-registry digest: sha256:b227eec52224caac67890623021ad1935fcc57db22ff49bb39248b3c3f9eef3a
+ghcr.io/apexflo-labs/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev19
+image ID: 498f664e99527a6c0515b849ca5a73204b97cec3618c130190d0071bf601cc62
+local digest: sha256:12b4a7bac6c7c3e817ba33bca96abe38466d25182df13dd611b1e2f5964071e4
+registry digest: sha256:12b4a7bac6c7c3e817ba33bca96abe38466d25182df13dd611b1e2f5964071e4
 ```
 
 A subsequent dev19 RTSPS run used a 1920x1080 H.264 stream at a requested 5

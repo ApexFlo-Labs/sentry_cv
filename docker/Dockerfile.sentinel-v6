@@ -105,7 +105,7 @@ RUN apt-get update \
 ARG IMAGE_VERSION=2026.10.27-v6-dev19
 ARG INTEL_TRAFFIC_RUNTIME_BASE_DIGEST=unresolved
 
-LABEL org.opencontainers.image.source="https://github.com/kiranmaibattu-cyber/sentry_cv" \
+LABEL org.opencontainers.image.source="https://github.com/ApexFlo-Labs/sentry_cv" \
       org.opencontainers.image.title="Sentinel CV Runtime" \
       org.opencontainers.image.description="V6 development runtime for Intel 285H with V6.0 wire payloads" \
       org.opencontainers.image.version="${IMAGE_VERSION}" \

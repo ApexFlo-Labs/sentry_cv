@@ -11,11 +11,11 @@ container startup.
 ## Current V6 Image Candidate
 
 ```text
-ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev19
-image ID: 79a70ea03e6aa6e4068d777427c345417a996cf37a702fef16292c5e8611aee5
-local digest: sha256:b227eec52224caac67890623021ad1935fcc57db22ff49bb39248b3c3f9eef3a
-publication status: published development image in personal GHCR
-registry digest: sha256:b227eec52224caac67890623021ad1935fcc57db22ff49bb39248b3c3f9eef3a
+ghcr.io/apexflo-labs/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev19
+image ID: 498f664e99527a6c0515b849ca5a73204b97cec3618c130190d0071bf601cc62
+local digest: sha256:12b4a7bac6c7c3e817ba33bca96abe38466d25182df13dd611b1e2f5964071e4
+publication status: published development image in ApexFlo Labs GHCR
+registry digest: sha256:12b4a7bac6c7c3e817ba33bca96abe38466d25182df13dd611b1e2f5964071e4
 ```
 
 This is the first candidate in this repository with a true V6 wire boundary.
@@ -36,7 +36,7 @@ compilation and uses the GPU's FP16 execution path without an explicit `f32`
 hint. A future batching worker must compile a separate fixed-size model instance
 for its selected batch. Dev18 remains the preceding published build. Both carry
 `org.opencontainers.image.source` pointing at
-`https://github.com/kiranmaibattu-cyber/sentry_cv`.
+`https://github.com/ApexFlo-Labs/sentry_cv`.
 
 ## Runtime Contract
 
@@ -105,7 +105,7 @@ localhost/apexfabric-intel-traffic-runtime-base:intel-285h-2026.09.18-v2
 Build the GHCR image:
 
 ```bash
-SENTINEL_IMAGE_REPOSITORY=ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime \
+SENTINEL_IMAGE_REPOSITORY=ghcr.io/apexflo-labs/sentinel-cv-runtime \
 SENTINEL_IMAGE_VERSION=2026.10.27-v6-dev19 \
 ./scripts/build_sentinel_v6_image.sh
 ```
@@ -113,7 +113,7 @@ SENTINEL_IMAGE_VERSION=2026.10.27-v6-dev19 \
 Push it:
 
 ```bash
-podman push ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev19
+podman push ghcr.io/apexflo-labs/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev19
 ```
 
 ## Contract And Design Docs

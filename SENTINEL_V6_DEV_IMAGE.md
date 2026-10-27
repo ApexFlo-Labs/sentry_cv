@@ -1,14 +1,14 @@
 # Sentinel V6.0 Development Image
 
-Current local image: `ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev19`
+Current local image: `ghcr.io/apexflo-labs/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev19`
 
-Image ID: `79a70ea03e6aa6e4068d777427c345417a996cf37a702fef16292c5e8611aee5`
+Image ID: `498f664e99527a6c0515b849ca5a73204b97cec3618c130190d0071bf601cc62`
 
-Local digest: `sha256:b227eec52224caac67890623021ad1935fcc57db22ff49bb39248b3c3f9eef3a`
+Local digest: `sha256:12b4a7bac6c7c3e817ba33bca96abe38466d25182df13dd611b1e2f5964071e4`
 
-Registry digest: `sha256:b227eec52224caac67890623021ad1935fcc57db22ff49bb39248b3c3f9eef3a`
+Registry digest: `sha256:12b4a7bac6c7c3e817ba33bca96abe38466d25182df13dd611b1e2f5964071e4`
 
-Publication status: pushed to the personal `kiranmaibattu-cyber` GHCR namespace.
+Publication status: pushed to the `apexflo-labs` GHCR namespace.
 
 Build: `bash scripts/build_sentinel_v6_image.sh`
 
