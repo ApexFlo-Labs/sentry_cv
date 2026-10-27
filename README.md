@@ -14,10 +14,20 @@ Supervisor
      -> one vehicle/person model with four asynchronous requests
      -> one smoke/fire model with one asynchronous request
      -> fair round-robin camera scheduling and Python metadata sink
+     -> detection-driven secondary admission capped at 2 FPS per camera
+        -> plate detection + Indian ANPR on NPU
+        -> face detection + FaceID embeddings on NPU
+        -> body ReID + temporal gait embeddings on NPU
+        -> transient crops, text and vectors discarded immediately
 ```
 
-Secondary analytics code remains available but is currently disabled in the
-configuration. The legacy DL Streamer primary path remains available by setting
+Secondary analytics is centralized rather than instantiated in each ingest
+worker. Its bounded latest-work queue protects primary throughput and reports
+queue depth, drops, failures, and aggregate product rates without exposing or
+persisting inference content. Indian ANPR accepts standard state/RTO and Bharat
+Series alphanumeric formats only. Scene embeddings remain disabled.
+
+The legacy DL Streamer primary path remains available by setting
 `settings.primary_backend` to `dlstreamer`. The direct path deliberately uses
 system-memory NV12: it avoids the unstable VA-surface inference path while also
 avoiding BGR conversion and halving shared-frame bandwidth.

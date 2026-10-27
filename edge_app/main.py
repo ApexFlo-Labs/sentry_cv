@@ -68,21 +68,23 @@ def main() -> int:
 
     metrics_path = Path(f"/run/user/{os.getuid()}/sentry-cv-worker-{args.worker_id}.json")
     discard = DiscardSink(metrics_path=metrics_path)
-    secondary_enabled = bool(config["secondary"].get("enabled", True))
     direct_primary = str(
         config["settings"].get("primary_backend", "dlstreamer")
     ).lower() == "openvino"
+    secondary_requested = bool(config["secondary"].get("enabled", True))
+    secondary_enabled = secondary_requested and not direct_primary
     direct_smoke = str(
         config["smoke_fire_gpu"].get("backend", "dlstreamer")
     ).lower() == "openvino"
-    if direct_primary and secondary_enabled:
-        raise ValueError("direct OpenVINO primary currently requires secondary.enabled=false")
     secondary = (
         SecondaryPipeline(config["secondary"], discard.consume).start()
         if secondary_enabled else None
     )
     if not secondary_enabled:
-        log.info("secondary analytics disabled; primary metadata will be discarded")
+        log.info(
+            "secondary analytics %s; primary metadata will be discarded by ingest worker",
+            "centralized" if direct_primary and secondary_requested else "disabled",
+        )
 
     def publish_primary(result) -> None:
         if secondary is not None:

@@ -171,7 +171,7 @@
     "confidence": 0.35
   },
   "secondary": {
-    "enabled": false,
+    "enabled": true,
     "plate_model": "../models/traffic-v11/openvino/license_plate.xml",
     "ocr_model": "../models/traffic-v11/openvino/ocr.xml",
     "face_detector_model": "../models/traffic-v11/face/openvino/scrfd_500m.onnx",
@@ -179,7 +179,9 @@
     "body_reid_model": "../models/surveillance/transreid_ssl_int8.xml",
     "gait_model": "../models/surveillance/gaitbase_int8.xml",
     "scene_model": "../models/scene/openvino/siglip2-base-patch16-224.xml",
-    "face_detector_device": "CPU",
+    "plate_device": "NPU",
+    "ocr_device": "NPU",
+    "face_detector_device": "NPU",
     "face_embedding_device": "NPU",
     "body_reid_device": "NPU",
     "gait_device": "NPU",
@@ -187,12 +189,15 @@
     "face_enabled": true,
     "body_reid_enabled": true,
     "gait_enabled": true,
-    "scene_enabled": true,
+    "scene_enabled": false,
     "plate_size": 224,
     "plate_confidence": 0.35,
     "ocr_confidence": 0.4,
-    "person_interval": 5,
+    "input_fps": 2,
+    "person_interval": 2,
+    "plate_interval": 2,
+    "track_iou_threshold": 0.1,
     "scene_interval": 50,
-    "queue_size": 64
+    "queue_size": 32
   }
 }

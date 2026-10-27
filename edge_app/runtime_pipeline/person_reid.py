@@ -168,8 +168,12 @@ class OpenVINOGaitExtractor:
             sequence = np.stack(buffer)[indices].astype(np.float32) / 255.0
             result = np.asarray(self.gait([sequence[None]])[self.gait_output])
             vector = _l2(result, self.dimension)
-            self.cache[key] = vector
             output[track_id] = vector
+            # This runtime is extraction-only: start a fresh temporal window and
+            # never retain a generated embedding after handing it to the caller.
+            buffer.clear()
+            self.buffer_times[key].clear()
+            self.cache.pop(key, None)
         return output
 
     def cached(self, key: str) -> np.ndarray | None:

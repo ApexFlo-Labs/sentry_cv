@@ -7,6 +7,7 @@ import logging
 import os
 from pathlib import Path
 import queue
+import re
 import threading
 import time
 from types import SimpleNamespace
@@ -18,6 +19,17 @@ from .pipeline import DetectionResult
 
 log = logging.getLogger(__name__)
 ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+INDIAN_PLATE_PATTERNS = (
+    re.compile(r"^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}$"),
+    re.compile(r"^[0-9]{2}BH[0-9]{4}[A-Z]{1,2}$"),
+)
+
+
+def _indian_plate_text(indices: np.ndarray) -> str:
+    """Decode positional OCR output and accept Indian registration formats."""
+    blank = ALPHABET.index("_")
+    text = "".join(ALPHABET[int(value)] for value in indices if int(value) != blank)
+    return text if any(pattern.fullmatch(text) for pattern in INDIAN_PLATE_PATTERNS) else ""
 
 
 def _letterbox(image: np.ndarray, size: int):
@@ -49,11 +61,16 @@ class SecondaryModels:
         inp.tensor().set_element_type(Type.u8).set_layout(Layout("NHWC")).set_color_format(ColorFormat.BGR)
         inp.model().set_layout(Layout("NCHW"))
         inp.preprocess().convert_element_type(Type.f32).convert_color(ColorFormat.RGB).scale(255.0)
-        self.plate = core.compile_model(ppp.build(), "CPU", {"PERFORMANCE_HINT": "LATENCY"})
+        plate_device = str(config.get("plate_device", "CPU"))
+        self.plate = core.compile_model(
+            ppp.build(), plate_device, {"PERFORMANCE_HINT": "LATENCY"}
+        )
         self.plate_output = self.plate.output(0)
 
+        ocr_device = str(config.get("ocr_device", "CPU"))
         self.ocr = core.compile_model(
-            core.read_model(config["ocr_model"]), "CPU", {"PERFORMANCE_HINT": "LATENCY"}
+            core.read_model(config["ocr_model"]), ocr_device,
+            {"PERFORMANCE_HINT": "LATENCY"},
         )
         self.ocr_output = self.ocr.output(0)
         self.plate_size = int(config.get("plate_size", 224))
@@ -67,11 +84,11 @@ class SecondaryModels:
             "gait": str(config.get("gait_device", "NPU")),
             "scene": str(config.get("scene_device", "NPU")),
         }
-        if devices["face_detector"] != "CPU":
-            raise ValueError("face detection must remain on CPU in this configuration")
-        for name in ("face_embedding", "body_reid", "gait", "scene"):
+        for name in ("face_embedding", "body_reid", "gait"):
             if devices[name] != "NPU":
                 raise ValueError(f"{name} must use NPU, got {devices[name]}")
+        if config.get("scene_enabled", True) and devices["scene"] != "NPU":
+            raise ValueError(f"scene must use NPU, got {devices['scene']}")
         os.environ.update({
             "FACE_DETECTOR_DEVICE": devices["face_detector"],
             "FACE_EMBEDDER_DEVICE": devices["face_embedding"],
@@ -94,10 +111,16 @@ class SecondaryModels:
         for model in (self.face, self.body, self.gait, self.scene):
             if model is not None and hasattr(model, "warmup"):
                 model.warmup()
-        log.info(
-            "secondary ready: plate=CPU ocr=CPU face-detect=CPU "
-            "face-embed=NPU body-reid=NPU gait=NPU scene=NPU"
-        )
+        enabled = [f"plate={plate_device}", f"ocr={ocr_device}"]
+        if self.face is not None:
+            enabled.extend((f"face-detect={devices['face_detector']}", "face-embed=NPU"))
+        if self.body is not None:
+            enabled.append("body-reid=NPU")
+        if self.gait is not None:
+            enabled.append("gait=NPU")
+        if self.scene is not None:
+            enabled.append("scene=NPU")
+        log.info("secondary ready: %s", " ".join(enabled))
 
     def detect_plate(self, vehicle: np.ndarray) -> list[dict]:
         canvas, scale, pad_x, pad_y = _letterbox(vehicle, self.plate_size)
@@ -127,7 +150,7 @@ class SecondaryModels:
         probabilities /= probabilities.sum(axis=-1, keepdims=True)
         indices = np.argmax(probabilities, axis=-1)
         keep = indices != ALPHABET.index("_")
-        text = "".join(ALPHABET[index] for index in indices[keep])
+        text = _indian_plate_text(indices)
         if not np.any(keep):
             return text, 0.0
         selected = probabilities[np.arange(len(indices))[keep], indices[keep]]
@@ -149,15 +172,21 @@ class SecondaryPipeline:
         self.frame_indices: dict[str, int] = {}
         self.track_state: dict[str, dict[int, list[int]]] = {}
         self.next_track_id = 1
+        self.submitted = 0
+        self.dropped = 0
+        self.processed = 0
+        self.failures = 0
 
     def start(self):
         self.thread.start()
         return self
 
     def submit(self, result: DetectionResult) -> None:
+        self.submitted += 1
         try:
             self.queue.put_nowait(result)
         except queue.Full:
+            self.dropped += 1
             try:
                 self.queue.get_nowait()
             except queue.Empty:
@@ -174,29 +203,31 @@ class SecondaryPipeline:
         }
         if frame is None:
             return payload
-        for vehicle in result.detections:
-            if vehicle["label"] not in self.VEHICLE_LABELS:
-                continue
-            x1, y1, x2, y2 = vehicle["bbox"]
-            crop = frame[max(0, y1):min(result.height, y2), max(0, x1):min(result.width, x2)]
-            if crop.size == 0:
-                continue
-            for plate in self.models.detect_plate(crop):
-                px1, py1, px2, py2 = plate["bbox"]
-                plate_crop = crop[py1:py2, px1:px2]
-                if plate_crop.size == 0:
-                    continue
-                text, confidence = self.models.read_plate(plate_crop)
-                if confidence < self.models.ocr_confidence:
-                    text = ""
-                payload["plates"].append({
-                    "vehicle_bbox": vehicle["bbox"],
-                    "bbox": [x1 + px1, y1 + py1, x1 + px2, y1 + py2],
-                    "detection_confidence": plate["confidence"],
-                    "text": text, "ocr_confidence": confidence,
-                })
         frame_index = self.frame_indices.get(result.camera_id, 0) + 1
         self.frame_indices[result.camera_id] = frame_index
+        plate_interval = max(1, int(self.models_config.get("plate_interval", 2)))
+        if frame_index % plate_interval == 0:
+            for vehicle in result.detections:
+                if vehicle["label"] not in self.VEHICLE_LABELS:
+                    continue
+                x1, y1, x2, y2 = vehicle["bbox"]
+                crop = frame[max(0, y1):min(result.height, y2), max(0, x1):min(result.width, x2)]
+                if crop.size == 0:
+                    continue
+                for plate in self.models.detect_plate(crop):
+                    px1, py1, px2, py2 = plate["bbox"]
+                    plate_crop = crop[py1:py2, px1:px2]
+                    if plate_crop.size == 0:
+                        continue
+                    text, confidence = self.models.read_plate(plate_crop)
+                    if confidence < self.models.ocr_confidence:
+                        text = ""
+                    payload["plates"].append({
+                        "vehicle_bbox": vehicle["bbox"],
+                        "bbox": [x1 + px1, y1 + py1, x1 + px2, y1 + py2],
+                        "detection_confidence": plate["confidence"],
+                        "text": text, "ocr_confidence": confidence,
+                    })
         people = self._tracked_people(result)
         person_interval = max(1, int(self.models_config.get("person_interval", 5)))
         if people and frame_index % person_interval == 0:
@@ -247,7 +278,8 @@ class SecondaryPipeline:
         people = []
         for detection in (item for item in result.detections if item["label"] == "person"):
             best = max(previous, key=lambda key: self._iou(detection["bbox"], previous[key]), default=None)
-            if best is None or self._iou(detection["bbox"], previous[best]) < 0.25 or best in updated:
+            threshold = float(self.models_config.get("track_iou_threshold", 0.1))
+            if best is None or self._iou(detection["bbox"], previous[best]) < threshold or best in updated:
                 best = self.next_track_id
                 self.next_track_id += 1
             updated[best] = detection["bbox"]
@@ -275,8 +307,20 @@ class SecondaryPipeline:
                 continue
             try:
                 self.consume(self._process(result))
+                self.processed += 1
             except Exception:
+                self.failures += 1
                 log.exception("secondary inference failed camera=%s", result.camera_id)
+
+    def snapshot(self) -> dict:
+        return {
+            "submitted": self.submitted,
+            "processed": self.processed,
+            "dropped": self.dropped,
+            "failures": self.failures,
+            "queue_depth": self.queue.qsize(),
+            "queue_capacity": self.queue.maxsize,
+        }
 
     def close(self, timeout: float = 10.0) -> bool:
         """Stop accepting backlog and wait for the active inference to finish."""

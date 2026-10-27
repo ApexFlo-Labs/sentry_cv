@@ -229,6 +229,9 @@ class Supervisor:
                 "p95_inference_latency_ms", 0.0
             ),
         }
+        totals["secondary"] = primary_metrics.get("secondary", {
+            "enabled": False,
+        })
         totals["workers"] = workers
         totals["updated_at"] = time.time()
         temporary = self.aggregate_metrics.with_suffix(".tmp")
@@ -242,6 +245,8 @@ class Supervisor:
         try:
             while not self.stop_requested:
                 time.sleep(1.0)
+                if self.stop_requested:
+                    break
                 mtime = self.config_path.stat().st_mtime_ns
                 if mtime != last_mtime:
                     try:

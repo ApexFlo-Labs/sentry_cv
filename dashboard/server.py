@@ -234,6 +234,7 @@ def status() -> dict:
     primary_fps = config.get("settings", {}).get("fps", 0)
     smoke_fps = config.get("smoke_fire_gpu", {}).get("fps", 0)
     smoke_device = config.get("smoke_fire_gpu", {}).get("device", "GPU")
+    secondary = config.get("secondary", {})
     return {
         "timestamp": time.time(),
         "service": {
@@ -302,6 +303,9 @@ def status() -> dict:
             {"stage": "H.264/H.265 decode", "device": "iGPU / VA-API", "rate": "source FPS"},
             {"stage": "Vehicle/person inference", "device": "iGPU / OpenVINO", "rate": f"{primary_fps} FPS/stream"},
             {"stage": "Smoke/fire inference", "device": f"{smoke_device} / OpenVINO", "rate": f"{smoke_fps} FPS/stream"},
+            {"stage": "Face + plate detection", "device": "NPU / OpenVINO", "rate": f"{secondary.get('input_fps', 0)} FPS/stream input"},
+            {"stage": "ANPR OCR", "device": "NPU / OpenVINO", "rate": "plate-driven"},
+            {"stage": "Face, ReID + gait embeddings", "device": "NPU / OpenVINO", "rate": "detection-driven"},
         ],
     }
 
