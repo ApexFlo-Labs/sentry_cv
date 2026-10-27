@@ -1,12 +1,12 @@
 # Sentinel V6.0 Development Image
 
-Current local image: `ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev18`
+Current local image: `ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev19`
 
-Image ID: `c8ed2754bb65942bd39c7358c78a5e203389d4d919e2bfb1509000e564988797`
+Image ID: `79a70ea03e6aa6e4068d777427c345417a996cf37a702fef16292c5e8611aee5`
 
-Local digest: `sha256:905f3870119e41dbdc8eb4fd16200cc88453ea21db78c88153e0a24289ad2b3b`
+Local digest: `sha256:b227eec52224caac67890623021ad1935fcc57db22ff49bb39248b3c3f9eef3a`
 
-Registry digest: `sha256:68afe451795b7cd21d2c0bf4e07d1e753cc02264ee3286961fecc1f71409a767`
+Registry digest: `sha256:b227eec52224caac67890623021ad1935fcc57db22ff49bb39248b3c3f9eef3a`
 
 Publication status: pushed to the personal `kiranmaibattu-cyber` GHCR namespace.
 
@@ -23,8 +23,16 @@ deferred by the contract.
 ## Verified
 
 - V6 package validator passes: 5 schemas and 16 representative Event examples.
-- Dev18 runtime tests pass: 49 tests, including rejection of 5.2 desired state
-  and V6 acknowledgement validation.
+- Dev19 replaces the static 80-class vehicle IR with the supplied dynamic-batch
+  nine-class FP16 IR. The per-camera detector fixes batch 1 before GPU
+  compilation and does not request `f32` inference precision. In-image
+  OpenVINO 2026.2 testing detected the Camera12 car as class 1 (`car`) on GPU.
+  Separate fixed-batch-2 testing also preserved both sample detections in FP16.
+- Dev19 runtime tests pass: 50 tests, including the nine-class model mapping,
+  rejection of 5.2 desired state, and V6 acknowledgement validation.
+- A dev19 RTSPS run sustained approximately 4.87-5 FPS with VAAPI decode and
+  delivered 200 observations, 97 JPEG evidence assets, and 93 embeddings to a
+  V6 acknowledgement receiver with no dead letters or remaining outbox files.
 - An RTSPS dev18 run reached healthy status at approximately 5 FPS and
   persisted 55 observations, 25 evidence metadata records and 18 embeddings;
   every boundary object carried `schema_version: "6.0"`.
@@ -44,6 +52,15 @@ deferred by the contract.
 
 ## Not Yet Release-Ready
 
+- After acknowledged camera-health observations are removed from the outbox,
+  `/healthz` can fall back to `degraded/worker_starting` even while fresh frames
+  continue at the requested FPS. The latest acknowledged camera state needs a
+  separate durable runtime cache.
+- The dev19 RTSPS view produced repeated person track-loss/recovery transitions.
+  This requires comparison with visual ground truth before changing association
+  or lifecycle gates. The view did not contain qualifying ANPR, line-crossing,
+  fire/smoke, or high-quality face observations, so those final triggers were
+  not certified by that run.
 - No real Management V6 ingest endpoint was connected. The live runs used the local outbox; Management acceptance, retention, backpressure, and replay remain unverified.
 - Any persisted 5.2 outbox must be drained with the previous image before
   upgrading; partially acknowledged records are not automatically migrated.

@@ -287,6 +287,8 @@ class V6EventPipeline:
 
     @staticmethod
     def _vehicle_type(class_name):
+        if class_name == "minivan":
+            return "van"
         return class_name if class_name in {"car", "truck", "van", "bus", "motorcycle"} else "other"
 
     def _presence_timeouts(self, state):
@@ -643,7 +645,9 @@ class V6EventPipeline:
         first = state["last_object"] == 0
         event = self._event("object_present", now, frame_id, owner["use_case_id"],
                             presence_id=state["id"], track_id=state["track_id"],
-                            object_type=state["kind"], vehicle_type=(item.class_name if item.class_name in {"car", "truck", "van", "bus", "motorcycle"} else "other") if state["kind"] == "vehicle" else None,
+                            object_type=state["kind"],
+                            vehicle_type=self._vehicle_type(item.class_name)
+                            if state["kind"] == "vehicle" else None,
                             reason="first_seen" if first else "periodic",
                             bbox_normalized=bbox_normalized(item.bbox, width, height),
                             confidence=max(0.0, min(1.0, float(item.confidence))),

@@ -30,7 +30,12 @@ from detectors.backends.openvino_ocr_async import AsyncOCR
 from detectors.backends.openvino_smoke_fire import _device_with_fallback
 from detectors.backends.openvino_face import OpenVINOFaceExtractor, _pose_quality, _rotation_to_euler
 import decode
-from stream_fleet_openvino import require_accelerator_device, should_evaluate_fire_smoke
+from stream_fleet_openvino import (
+    VEHICLE_CLASS_IDS,
+    VEHICLE_CLASS_NAMES,
+    require_accelerator_device,
+    should_evaluate_fire_smoke,
+)
 from traffic_pilot_runtime.desired_state import DesiredStateValidator
 from traffic_pilot_runtime.solution_image_entrypoint import (
     RuntimeState, _health_payload, _hot_reload_signature, _metrics, _per_camera_state,
@@ -67,6 +72,17 @@ class Gait:
             self.buffer_times[key] = [float(captured_at or 0.0) - 1.0, float(captured_at or 0.0)]
             output[track_id] = vector
         return output
+
+
+def test_dynamic_vehicle_model_class_map_and_contract_vehicle_types():
+    assert VEHICLE_CLASS_IDS == set(range(8))
+    assert VEHICLE_CLASS_NAMES == {
+        0: "bus", 1: "car", 2: "minivan", 3: "motorcycle",
+        4: "rickshaw", 5: "truck", 6: "bicycle", 7: "pedestrian",
+    }
+    assert V6EventPipeline._vehicle_type("minivan") == "van"
+    assert V6EventPipeline._vehicle_type("rickshaw") == "other"
+    assert V6EventPipeline._vehicle_type("bicycle") == "other"
 
 
 def test_camera_runtime_telemetry_reports_rates_latency_outputs_and_resources(

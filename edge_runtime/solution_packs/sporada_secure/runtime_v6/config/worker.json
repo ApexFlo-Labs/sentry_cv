@@ -1,7 +1,7 @@
 {
   "models": {
     "vehicle": {
-      "path": "/models/traffic/openvino/vehicle_yolo26n_fp16.xml",
+      "path": "/models/traffic/openvino/vehicle_yolo26n_fp16_dynamic.xml",
       "backend": "openvino",
       "tensorrt": false,
       "batch_size": "streams",
@@ -19,7 +19,9 @@
         "pedestrian",
         "bicycle",
         "car",
+        "minivan",
         "motorcycle",
+        "rickshaw",
         "bus",
         "truck"
       ],
@@ -27,7 +29,9 @@
         "pedestrian": 0.25,
         "bicycle": 0.25,
         "car": 0.25,
+        "minivan": 0.25,
         "motorcycle": 0.25,
+        "rickshaw": 0.25,
         "bus": 0.25,
         "truck": 0.25
       },

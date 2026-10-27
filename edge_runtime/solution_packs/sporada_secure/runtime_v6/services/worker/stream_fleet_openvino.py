@@ -64,8 +64,20 @@ def require_accelerator_device(label: str, requested: str) -> None:
     devices = parts[-1].split(",")
     if not devices or any(device.split(".", 1)[0] not in {"GPU", "NPU"} for device in devices):
         raise ValueError(f"{label} must use GPU/NPU, got {requested}")
-VEHICLE_CLASS_IDS = {0, 2, 3, 5, 7}
-VEHICLE_CLASS_NAMES = {0: "pedestrian", 2: "car", 3: "motorcycle", 5: "bus", 7: "truck"}
+# Class order from vehicle_yolo26n_fp16_dynamic.runtime.json.  The model calls
+# class 7 "person"; the rest of this pipeline uses the canonical label
+# "pedestrian", so normalize it at the detector boundary.
+VEHICLE_CLASS_NAMES = {
+    0: "bus",
+    1: "car",
+    2: "minivan",
+    3: "motorcycle",
+    4: "rickshaw",
+    5: "truck",
+    6: "bicycle",
+    7: "pedestrian",
+}
+VEHICLE_CLASS_IDS = set(VEHICLE_CLASS_NAMES)
 STREAM_SCHEMES = ("rtsp://", "rtsps://", "http://", "https://")
 
 
@@ -299,7 +311,8 @@ def _camera_proc(cam: dict, camera_config: dict, redis_host: str, redis_port: in
     vehicle_config = ((worker_config.get("models") or {}).get("vehicle") or {})
     plate_config = ((worker_config.get("models") or {}).get("plate") or {})
     veh = OpenVINOYOLODetector(
-        openvino_model_path("vehicle_yolo26n_fp16"), "vehicle", device=VEHICLE_DEVICE, imgsz=640,
+        openvino_model_path("vehicle_yolo26n_fp16_dynamic"), "vehicle",
+        device=VEHICLE_DEVICE, imgsz=640,
         confidence=float(os.getenv("VEHICLE_CONF", str(vehicle_config.get("minimum_confidence", 0.3)))),
         class_ids=VEHICLE_CLASS_IDS, class_names=VEHICLE_CLASS_NAMES)
     plate = None

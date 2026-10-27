@@ -7,3 +7,4 @@
 
 # Keep this compact runtime model cloneable while the repository LFS quota is exhausted.
 models/traffic-v11/face/openvino/best_a0_fp16.bin -filter -diff -merge -text
+models/traffic-v11/vehicle_yolo26n_fp16_dynamic.bin -filter -diff -merge -text

@@ -449,7 +449,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
     vehicle_config = ((worker_config.get("models") or {}).get("vehicle") or {})
     plate_config = ((worker_config.get("models") or {}).get("plate") or {})
     veh = OpenVINOYOLODetector(
-        openvino_model_path("vehicle_yolo26n_fp16"), "vehicle",
+        openvino_model_path("vehicle_yolo26n_fp16_dynamic"), "vehicle",
         device=sf.VEHICLE_DEVICE, imgsz=640, performance_hint="LATENCY",
         confidence=float(os.getenv("VEHICLE_CONF", str(vehicle_config.get("minimum_confidence", 0.3)))),
         class_ids=sf.VEHICLE_CLASS_IDS, class_names=sf.VEHICLE_CLASS_NAMES)

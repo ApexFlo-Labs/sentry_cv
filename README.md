@@ -11,11 +11,11 @@ container startup.
 ## Current V6 Image Candidate
 
 ```text
-ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev18
-image ID: c8ed2754bb65942bd39c7358c78a5e203389d4d919e2bfb1509000e564988797
-local digest: sha256:905f3870119e41dbdc8eb4fd16200cc88453ea21db78c88153e0a24289ad2b3b
+ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev19
+image ID: 79a70ea03e6aa6e4068d777427c345417a996cf37a702fef16292c5e8611aee5
+local digest: sha256:b227eec52224caac67890623021ad1935fcc57db22ff49bb39248b3c3f9eef3a
 publication status: published development image in personal GHCR
-registry digest: sha256:68afe451795b7cd21d2c0bf4e07d1e753cc02264ee3286961fecc1f71409a767
+registry digest: sha256:b227eec52224caac67890623021ad1935fcc57db22ff49bb39248b3c3f9eef3a
 ```
 
 This is the first candidate in this repository with a true V6 wire boundary.
@@ -30,7 +30,11 @@ The image is built from:
 - `newdetails/sentry-v6`
 - baked OpenVINO/ONNX model files under `models/`
 
-Dev18 is the published true-V6 development build. It is built from this repository and carries
+Dev19 replaces the static 80-class vehicle IR with the supplied dynamic-batch
+nine-class vehicle IR. The current per-camera detector fixes batch 1 before GPU
+compilation and uses the GPU's FP16 execution path without an explicit `f32`
+hint. A future batching worker must compile a separate fixed-size model instance
+for its selected batch. Dev18 remains the preceding published build. Both carry
 `org.opencontainers.image.source` pointing at
 `https://github.com/kiranmaibattu-cyber/sentry_cv`.
 
@@ -102,14 +106,14 @@ Build the GHCR image:
 
 ```bash
 SENTINEL_IMAGE_REPOSITORY=ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime \
-SENTINEL_IMAGE_VERSION=2026.10.27-v6-dev18 \
+SENTINEL_IMAGE_VERSION=2026.10.27-v6-dev19 \
 ./scripts/build_sentinel_v6_image.sh
 ```
 
 Push it:
 
 ```bash
-podman push ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev18
+podman push ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev19
 ```
 
 ## Contract And Design Docs

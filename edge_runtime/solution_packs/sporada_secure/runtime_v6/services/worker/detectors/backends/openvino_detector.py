@@ -99,6 +99,12 @@ class OpenVINOYOLODetector:
 
         core = shared_core(cache_dir)
         model = core.read_model(model_xml)
+        # The vehicle IR accepts a dynamic batch, but the Intel GPU path is
+        # compiled for the batch actually used by this detector.  The current
+        # per-camera worker submits one frame per request.  A future batching
+        # worker must reshape its own model instance to its selected fixed
+        # batch (for example 2 or 4) before compilation.
+        model.reshape({model.input(0): [1, 3, self.imgsz, self.imgsz]})
         # Fold preprocessing into the graph: accept uint8 NHWC BGR, let the device
         # convert to the model's f32 NCHW RGB /255 input.
         ppp = PrePostProcessor(model)

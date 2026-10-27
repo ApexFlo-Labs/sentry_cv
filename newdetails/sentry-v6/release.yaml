@@ -2,10 +2,10 @@ contract: sentry-v6
 schema_version: "6.0"
 wire_schema_version: "6.0"
 status: published-development
-image: ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev18
-registry_digest: sha256:68afe451795b7cd21d2c0bf4e07d1e753cc02264ee3286961fecc1f71409a767
-local_digest: sha256:905f3870119e41dbdc8eb4fd16200cc88453ea21db78c88153e0a24289ad2b3b
-image_id: c8ed2754bb65942bd39c7358c78a5e203389d4d919e2bfb1509000e564988797
+image: ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev19
+registry_digest: sha256:b227eec52224caac67890623021ad1935fcc57db22ff49bb39248b3c3f9eef3a
+local_digest: sha256:b227eec52224caac67890623021ad1935fcc57db22ff49bb39248b3c3f9eef3a
+image_id: 79a70ea03e6aa6e4068d777427c345417a996cf37a702fef16292c5e8611aee5
 architecture: amd64
 hardware_profile: intel-285h
 changes:
@@ -19,3 +19,25 @@ changes:
   - corrected_per_camera_and_container_runtime_telemetry
   - measured_npu_utilization_and_explicitly_unavailable_gpu_utilization
   - bounded_fire_smoke_cadence_with_latency_optimized_inference
+  - dynamic_batch_vehicle_ir_with_fixed_batch_one_gpu_compilation
+  - nine_class_vehicle_model_mapping_at_detector_boundary
+validation:
+  runtime_tests: 50
+  schemas: 5
+  event_examples: 16
+  live_rtsps:
+    target_fps: 5
+    sustained_fps_range: [4.87, 5.0]
+    observations_delivered: 200
+    evidence_delivered: 97
+    embeddings_delivered: 93
+    remaining_outbox: 0
+    dead_letters: 0
+known_issues:
+  - acknowledged_camera_health_is_not_retained_for_healthz_state_resolution
+  - tested_view_showed_repeated_person_loss_recovery_transitions
+untested_live_triggers:
+  - anpr
+  - line_crossing
+  - fire_smoke_transition
+  - qualifying_face_sample

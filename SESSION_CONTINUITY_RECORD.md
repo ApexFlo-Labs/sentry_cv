@@ -748,6 +748,41 @@ persisted only V6 observations, evidence and embeddings. Upgrade requires
 draining any persisted `/state/sentinel_v5_2` outbox first; partially
 acknowledged 5.2 packages must not be silently relabelled as V6.
 
+### 10.6 Dynamic-Batch Vehicle Model
+
+On 2026-10-27 dev19 replaced the static vehicle IR with
+`vehicle_yolo26n_fp16_dynamic.xml/.bin`. The previous IR has an 80-class score
+head (`[1,80,8400]`); the supplied dynamic IR has a nine-class score head
+(`[batch,9,8400]`) and therefore uses its supplied class order. Class 7
+`person` is normalized to the pipeline's internal `pedestrian` label, and
+`minivan` is represented as contract vehicle type `van`.
+
+The current per-camera detector reshapes the model to fixed batch 1 before GPU
+compilation and does not request an `f32` precision hint. Testing inside the
+OpenVINO 2026.2 image confirmed Camera12 car detection on GPU. A fixed batch 2
+compiled before inference also preserved both tested detections in FP16; merely
+submitting batch 2 to a fully dynamic FP16 compilation did not. Future actual
+batching must therefore choose and compile a fixed batch size first.
+
+The published personal-GHCR development candidate is:
+
+```text
+ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev19
+image ID: 79a70ea03e6aa6e4068d777427c345417a996cf37a702fef16292c5e8611aee5
+local digest: sha256:b227eec52224caac67890623021ad1935fcc57db22ff49bb39248b3c3f9eef3a
+registry digest: sha256:b227eec52224caac67890623021ad1935fcc57db22ff49bb39248b3c3f9eef3a
+```
+
+A subsequent dev19 RTSPS run used a 1920x1080 H.264 stream at a requested 5
+FPS. It sustained approximately 4.87-5 FPS with VAAPI decode and delivered 200
+observations, 97 JPEG evidence assets, and 93 embeddings through the V6
+acknowledgement sequence with zero dead letters and an empty outbox. The run
+also exposed two follow-up items: acknowledged camera-health records are no
+longer available to the `/healthz` state resolver after outbox deletion, and
+the view produced repeated person loss/recovery transitions that need visual
+ground-truth review. ANPR, crossing, hazard transitions, and a qualifying face
+sample were not present in this stream and therefore were not trigger-tested.
+
 ## 11. Anti-Regression Checklist
 
 Before changing the runtime, preserve these decisions:

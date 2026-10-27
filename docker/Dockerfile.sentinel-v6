@@ -49,8 +49,9 @@ COPY edge_runtime/solution_packs/sporada_secure/runtime_v6/services /opt/traffic
 COPY edge_runtime/solution_packs/sporada_secure/runtime_v6/traffic_pilot_runtime /opt/traffic-pilot/traffic_pilot_runtime
 COPY edge_runtime/solution_packs/sporada_secure/runtime_v6/config /opt/traffic-pilot/config
 COPY models/traffic-v11/openvino /models/traffic/openvino
-COPY models/traffic-v11/vehicle_yolo26n_fp16.xml /models/traffic/openvino/vehicle_yolo26n_fp16.xml
-COPY models/traffic-v11/vehicle_yolo26n_fp16.bin /models/traffic/openvino/vehicle_yolo26n_fp16.bin
+COPY models/traffic-v11/vehicle_yolo26n_fp16_dynamic.xml /models/traffic/openvino/vehicle_yolo26n_fp16_dynamic.xml
+COPY models/traffic-v11/vehicle_yolo26n_fp16_dynamic.bin /models/traffic/openvino/vehicle_yolo26n_fp16_dynamic.bin
+COPY models/traffic-v11/vehicle_yolo26n_fp16_dynamic.runtime.json /models/traffic/openvino/vehicle_yolo26n_fp16_dynamic.runtime.json
 COPY models/traffic-v11/face/openvino /models/face/openvino
 COPY models/scene/openvino /models/scene/openvino
 COPY models/surveillance/transreid_ssl_int8.xml models/surveillance/transreid_ssl_int8.bin /models/surveillance/
@@ -82,7 +83,8 @@ RUN apt-get update \
         services/worker/pipeline/sentinel_delivery.py \
         services/worker/pipeline/v6_events.py \
         services/worker/detectors/backends/openvino_face.py \
-    && test -f /models/traffic/openvino/vehicle_yolo26n_fp16.xml \
+    && test -f /models/traffic/openvino/vehicle_yolo26n_fp16_dynamic.xml \
+    && test -f /models/traffic/openvino/vehicle_yolo26n_fp16_dynamic.runtime.json \
     && test -f /models/traffic/openvino/license_plate.xml \
     && test -f /models/traffic/openvino/ocr.xml \
     && test -f /models/traffic/openvino/smoke_fire.xml \
@@ -100,7 +102,7 @@ RUN apt-get update \
     && chown -R apexruntime:apexruntime /tmp/sentinel \
     && test "$(id -u apexruntime)" = "10001"
 
-ARG IMAGE_VERSION=2026.10.27-v6-dev18
+ARG IMAGE_VERSION=2026.10.27-v6-dev19
 ARG INTEL_TRAFFIC_RUNTIME_BASE_DIGEST=unresolved
 
 LABEL org.opencontainers.image.source="https://github.com/kiranmaibattu-cyber/sentry_cv" \
