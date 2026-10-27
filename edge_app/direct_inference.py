@@ -22,29 +22,43 @@ from .shared_frames import SharedFrameReader
 
 
 log = logging.getLogger(__name__)
-DETECTION_LABELS = {
-    0: "person",
-    2: "car",
+PRIMARY_DETECTION_LABELS = {
+    0: "bus",
+    1: "car",
+    2: "minivan",
     3: "motorcycle",
-    5: "bus",
-    7: "truck",
+    4: "rickshaw",
+    5: "truck",
+    6: "bicycle",
+    7: "person",
+    8: "others",
 }
+SMOKE_DETECTION_LABELS = {0: "fire", 1: "smoke"}
 
 
 def compile_image_model(core, path: Path, width: int, height: int,
                         nireq: int, performance_hint: str,
-                        pixel_format: str = "BGR"):
+                        pixel_format: str = "BGR",
+                        model_color_format: str = "RGB"):
     model = core.read_model(path)
     model.reshape({model.input(0): [1, 3, height, width]})
     preprocessor = PrePostProcessor(model)
     preprocessor.input().tensor().set_element_type(ov.Type.u8)
     preprocessor.input().tensor().set_layout(ov.Layout("NHWC"))
+    target_color = {
+        "BGR": ColorFormat.BGR,
+        "RGB": ColorFormat.RGB,
+    }.get(model_color_format.upper())
+    if target_color is None:
+        raise ValueError(f"unsupported model color format: {model_color_format}")
     if pixel_format.upper() == "NV12":
         preprocessor.input().tensor().set_color_format(ColorFormat.NV12_SINGLE_PLANE)
         preprocessor.input().tensor().set_spatial_static_shape(height, width)
-        preprocessor.input().preprocess().convert_color(ColorFormat.BGR)
+        preprocessor.input().preprocess().convert_color(target_color)
     else:
         preprocessor.input().tensor().set_color_format(ColorFormat.BGR)
+        if target_color == ColorFormat.RGB:
+            preprocessor.input().preprocess().convert_color(ColorFormat.RGB)
     preprocessor.input().preprocess().convert_element_type(ov.Type.f32)
     preprocessor.input().preprocess().scale(255.0)
     preprocessor.input().model().set_layout(ov.Layout("NCHW"))
@@ -77,6 +91,9 @@ class DirectInference:
         self.width = int(self.settings.get("input_width", 640))
         self.height = int(self.settings.get("input_height", 640))
         self.pixel_format = str(self.settings.get("direct_input_format", "BGR"))
+        self.model_color_format = str(
+            self.settings.get("model_color_format", "RGB")
+        )
         model_path = (config_path.parent / self.settings["model"]).resolve()
         self.readers = {
             camera_id: SharedFrameReader(
@@ -91,6 +108,9 @@ class DirectInference:
         self.smoke_height = int(self.smoke_settings.get("input_height", 320))
         self.smoke_pixel_format = str(
             self.smoke_settings.get("direct_input_format", "BGR")
+        )
+        self.smoke_model_color_format = str(
+            self.smoke_settings.get("model_color_format", "RGB")
         )
         self.smoke_readers = {
             camera_id: SharedFrameReader(
@@ -107,9 +127,25 @@ class DirectInference:
         self.smoke_samples: dict[str, deque[float]] = {
             camera_id: deque() for camera_id in self.cameras
         }
+        self.smoke_detection_samples: dict[str, deque[float]] = {
+            camera_id: deque() for camera_id in self.cameras
+        }
+        self.smoke_label_samples = {
+            label: deque() for label in SMOKE_DETECTION_LABELS.values()
+        }
         self.total_results = 0
-        self.total_smoke_results = 0
+        self.total_smoke_inferences = 0
+        self.total_smoke_detections = 0
+        self.total_smoke_labels = {
+            label: 0 for label in SMOKE_DETECTION_LABELS.values()
+        }
         self.total_detections = 0
+        self.total_primary_labels = {
+            label: 0 for label in PRIMARY_DETECTION_LABELS.values()
+        }
+        self.primary_label_samples = {
+            label: deque() for label in PRIMARY_DETECTION_LABELS.values()
+        }
         self.latencies_ms: deque[float] = deque(maxlen=1000)
         self.secondary_input_fps = float(
             self.secondary_settings.get("input_fps", 2.0)
@@ -135,15 +171,16 @@ class DirectInference:
         performance_hint = str(self.direct.get("performance_hint", "THROUGHPUT"))
         self.compiled = compile_image_model(
             core, model_path, self.width, self.height, self.nireq, performance_hint,
-            self.pixel_format,
+            self.pixel_format, self.model_color_format,
         )
         self.queue = ov.AsyncInferQueue(self.compiled, self.nireq)
         self.queue.set_callback(self._on_complete)
         self.input_port = self.compiled.input(0)
         self.output_port = self.compiled.output(0)
         log.info(
-            "central OpenVINO compiled model=%s shape=%s cameras=%d requests=%s",
-            model_path, self.input_port.shape, len(self.cameras),
+            "central OpenVINO compiled model=%s shape=%s color=%s cameras=%d requests=%s",
+            model_path, self.input_port.shape, self.model_color_format,
+            len(self.cameras),
             self.nireq,
         )
         if self.smoke_enabled:
@@ -152,6 +189,7 @@ class DirectInference:
             self.smoke_compiled = compile_image_model(
                 core, smoke_path, self.smoke_width, self.smoke_height,
                 self.smoke_nireq, performance_hint, self.smoke_pixel_format,
+                self.smoke_model_color_format,
             )
             self.smoke_queue = ov.AsyncInferQueue(
                 self.smoke_compiled, self.smoke_nireq
@@ -159,8 +197,9 @@ class DirectInference:
             self.smoke_queue.set_callback(self._on_smoke_complete)
             self.smoke_input_port = self.smoke_compiled.input(0)
             log.info(
-                "central smoke OpenVINO compiled model=%s shape=%s requests=%d",
-                smoke_path, self.smoke_input_port.shape, self.smoke_nireq,
+                "central smoke OpenVINO compiled model=%s shape=%s color=%s requests=%d",
+                smoke_path, self.smoke_input_port.shape,
+                self.smoke_model_color_format, self.smoke_nireq,
             )
         self.secondary = None
         if self.secondary_enabled:
@@ -182,7 +221,7 @@ class DirectInference:
         for row in rows:
             score = float(row[4])
             class_id = int(round(float(row[5])))
-            label = DETECTION_LABELS.get(class_id)
+            label = PRIMARY_DETECTION_LABELS.get(class_id)
             if score < confidence or label is None:
                 continue
             x1 = max(0, min(self.width, int(round(float(row[0])))))
@@ -197,6 +236,60 @@ class DirectInference:
                 "confidence": score,
                 "bbox": [x1, y1, x2, y2],
             })
+        return detections
+
+    def _postprocess_smoke(self, output: np.ndarray) -> list[dict]:
+        prediction = np.asarray(output)
+        if prediction.ndim != 3 or prediction.shape[0] != 1:
+            raise ValueError(f"unexpected smoke/fire output shape: {prediction.shape}")
+        rows = prediction[0].T if prediction.shape[1] < prediction.shape[2] else prediction[0]
+        if rows.shape[1] != 4 + len(SMOKE_DETECTION_LABELS):
+            raise ValueError(f"unexpected smoke/fire row shape: {rows.shape}")
+        threshold = float(self.smoke_settings.get("confidence", 0.35))
+        iou_threshold = float(self.smoke_settings.get("nms_iou_threshold", 0.7))
+        class_scores = rows[:, 4:]
+        class_ids = np.argmax(class_scores, axis=1)
+        scores = class_scores[np.arange(len(rows)), class_ids]
+        selected_rows = rows[scores >= threshold]
+        selected_scores = scores[scores >= threshold]
+        selected_classes = class_ids[scores >= threshold]
+        boxes = np.empty((len(selected_rows), 4), dtype=np.float32)
+        boxes[:, 0] = selected_rows[:, 0] - selected_rows[:, 2] / 2.0
+        boxes[:, 1] = selected_rows[:, 1] - selected_rows[:, 3] / 2.0
+        boxes[:, 2] = selected_rows[:, 0] + selected_rows[:, 2] / 2.0
+        boxes[:, 3] = selected_rows[:, 1] + selected_rows[:, 3] / 2.0
+        boxes[:, [0, 2]] = np.clip(boxes[:, [0, 2]], 0, self.smoke_width)
+        boxes[:, [1, 3]] = np.clip(boxes[:, [1, 3]], 0, self.smoke_height)
+        candidates = []
+        for box, score, class_id in zip(boxes, selected_scores, selected_classes):
+            x1, y1, x2, y2 = map(float, box)
+            if x2 <= x1 or y2 <= y1:
+                continue
+            class_id = int(class_id)
+            candidates.append({
+                "label": SMOKE_DETECTION_LABELS[class_id],
+                "class_id": class_id,
+                "confidence": float(score),
+                "bbox": [int(round(x1)), int(round(y1)), int(round(x2)), int(round(y2))],
+            })
+        detections = []
+        for class_id in SMOKE_DETECTION_LABELS:
+            class_candidates = [
+                item for item in candidates if item["class_id"] == class_id
+            ]
+            if not class_candidates:
+                continue
+            boxes = [
+                [
+                    item["bbox"][0], item["bbox"][1],
+                    item["bbox"][2] - item["bbox"][0],
+                    item["bbox"][3] - item["bbox"][1],
+                ]
+                for item in class_candidates
+            ]
+            scores = [item["confidence"] for item in class_candidates]
+            selected = cv2.dnn.NMSBoxes(boxes, scores, threshold, iou_threshold)
+            detections.extend(class_candidates[int(index)] for index in selected)
         return detections
 
     def _secondary_due(self, camera_id: str, capture_time: float) -> bool:
@@ -252,22 +345,34 @@ class DirectInference:
         with self.metrics_lock:
             self.total_results += 1
             self.total_detections += len(detections)
+            for detection in detections:
+                label = detection["label"]
+                self.total_primary_labels[label] += 1
+                self.primary_label_samples[label].append(now)
             self.latencies_ms.append(latency_ms)
             self.samples[camera_id].append(now)
 
-    def _on_smoke_complete(self, _request, userdata) -> None:
+    def _on_smoke_complete(self, request, userdata) -> None:
         camera_id, _started, frame = userdata
+        detections = self._postprocess_smoke(request.get_output_tensor().data)
         del frame
         now = time.time()
         with self.metrics_lock:
-            self.total_smoke_results += 1
+            self.total_smoke_inferences += 1
+            self.total_smoke_detections += len(detections)
             self.smoke_samples[camera_id].append(now)
+            self.smoke_detection_samples[camera_id].extend([now] * len(detections))
+            for detection in detections:
+                label = detection["label"]
+                self.total_smoke_labels[label] += 1
+                self.smoke_label_samples[label].append(now)
 
     def _write_metrics(self, now: float) -> None:
         cutoff = now - 10.0
         cameras = {}
         aggregate = 0.0
         smoke_aggregate = 0.0
+        smoke_detection_aggregate = 0.0
         with self.metrics_lock:
             for camera_id, samples in self.samples.items():
                 while samples and samples[0] < cutoff:
@@ -282,13 +387,36 @@ class DirectInference:
                     smoke_samples.popleft()
                 smoke_rate = len(smoke_samples) / 10.0
                 smoke_aggregate += smoke_rate
-                cameras[camera_id]["smoke_fire_results_per_second"] = round(
+                cameras[camera_id]["smoke_fire_inferences_per_second"] = round(
                     smoke_rate, 2
+                )
+                detection_samples = self.smoke_detection_samples[camera_id]
+                while detection_samples and detection_samples[0] < cutoff:
+                    detection_samples.popleft()
+                detection_rate = len(detection_samples) / 10.0
+                smoke_detection_aggregate += detection_rate
+                cameras[camera_id]["smoke_fire_detections_per_second"] = round(
+                    detection_rate, 2
                 )
             latency = list(self.latencies_ms)
             total_results = self.total_results
             total_detections = self.total_detections
-            total_smoke_results = self.total_smoke_results
+            total_primary_labels = dict(self.total_primary_labels)
+            primary_label_rates = {}
+            for label, samples in self.primary_label_samples.items():
+                while samples and samples[0] < cutoff:
+                    samples.popleft()
+                primary_label_rates[label] = round(len(samples) / 10.0, 2)
+            total_smoke_inferences = self.total_smoke_inferences
+            total_smoke_detections = self.total_smoke_detections
+            total_smoke_labels = dict(self.total_smoke_labels)
+            smoke_label_rates = {}
+            for label, samples in self.smoke_label_samples.items():
+                while samples and samples[0] < cutoff:
+                    samples.popleft()
+                smoke_label_rates[f"{label}_detections_per_second"] = round(
+                    len(samples) / 10.0, 2
+                )
             secondary_rates = {}
             for name, samples in self.secondary_samples.items():
                 while samples and samples[0] < cutoff:
@@ -307,8 +435,15 @@ class DirectInference:
             "primary_results": total_results,
             "primary_results_per_second": round(aggregate, 2),
             "primary_detections": total_detections,
-            "smoke_fire_results": total_smoke_results,
-            "smoke_fire_results_per_second": round(smoke_aggregate, 2),
+            "primary_detections_by_class": total_primary_labels,
+            "primary_detections_per_second_by_class": primary_label_rates,
+            "smoke_fire_inferences": total_smoke_inferences,
+            "smoke_fire_inferences_per_second": round(smoke_aggregate, 2),
+            "smoke_fire_detections": total_smoke_detections,
+            "smoke_fire_detections_per_second": round(smoke_detection_aggregate, 2),
+            "fire_detections": total_smoke_labels["fire"],
+            "smoke_detections": total_smoke_labels["smoke"],
+            **smoke_label_rates,
             "average_inference_latency_ms": round(float(np.mean(latency)), 3) if latency else 0.0,
             "p95_inference_latency_ms": round(float(np.percentile(latency, 95)), 3) if latency else 0.0,
             "uptime_seconds": round(now - self.started_at, 1),

@@ -10,7 +10,8 @@ measurements and will vary with RTSP timing and visible objects.
 - Application inputs: 20 logical cameras; cameras 11-20 intentionally consume
   the same ten URLs as cameras 1-10.
 - Ingest: four isolated workers with five logical cameras each.
-- Inference: one centralized OpenVINO process.
+- Inference: one centralized OpenVINO process. Both GPU models receive normalized
+  RGB generated directly from NV12 inside the OpenVINO preprocessing graph.
 - Retention: no frames, crops, plate strings, or embedding vectors are saved or
   logged. Only anonymous aggregate counters and rates are written to runtime
   metrics under `/run/user/1000`.
@@ -36,33 +37,40 @@ used as the source rate.
 
 ## Processing pipeline
 
+The primary model's embedded class order is used exactly: `bus`, `car`,
+`minivan`, `motorcycle`, `rickshaw`, `truck`, `bicycle`, `person`, and `others`.
+This is not the COCO class order.
+
 | Stage | Device | Model/input | Configured cadence | Observed aggregate |
 |---|---|---|---:|---:|
 | RTSP decode | iGPU VA-API | Native H.264/HEVC | Native source rate | 20 logical decoders |
-| Primary normalization | iGPU/OpenVINO preprocessing | NV12 640x640 | 10 FPS/camera | Included below |
-| Person/vehicle detection | iGPU/OpenVINO | YOLO, 640x640, 4 async requests | 10 FPS/camera; 200 FPS target | 193.9-195.2 FPS |
-| Smoke/fire detection | iGPU/OpenVINO | 320x320, 1 async request | 2 FPS/camera; 40 FPS target | 40.1 FPS |
-| Secondary admission | CPU frame conversion/queue | 640x640 BGR | Up to 2 FPS/camera; 40 FPS target | 34.0-34.6 FPS |
-| Plate detection | NPU/OpenVINO | 224x224 vehicle crops | Every 2nd secondary frame | 20.4-24.9 detections/s |
+| Primary normalization | iGPU/OpenVINO preprocessing | NV12→RGB, 640x640, FP32 /255 | 10 FPS/camera | Included below |
+| Person/vehicle detection | iGPU/OpenVINO | Custom nine-class YOLO, 640x640, 4 async requests | 10 FPS/camera; 200 FPS target | ~188-191 FPS |
+| Smoke/fire inference | iGPU/OpenVINO | NV12→RGB, YOLOv8 320x320, 1 async request | 2 FPS/camera; 40 FPS target | 40 FPS |
+| Smoke/fire postprocess | CPU/NumPy + OpenCV | Confidence 0.35, class-aware NMS 0.70 | Every inference | ~9-12 detections/s |
+| Secondary admission | CPU frame conversion/queue | 640x640 BGR | Up to 0.7 FPS/camera; 14 FPS target | ~13-14 FPS |
+| Plate detection | NPU/OpenVINO | 224x224 vehicle crops | Every 3rd secondary frame | ~10-15 detections/s |
 | Indian ANPR OCR | NPU/OpenVINO | 128x64 plate crops | Every detected plate | 0 accepted strings/s |
-| Face detection | NPU/OpenVINO | SCRFD 320x320 person crops | Every 2nd secondary frame | 0 qualifying faces/s |
-| Face embedding | NPU/OpenVINO | AdaFace 112x112, 512-D | Per qualifying face | 0 embeddings/s |
-| Body ReID embedding | NPU/OpenVINO | TransReID 256x128, 384-D | Every 2nd secondary frame | 4.6-5.3 embeddings/s |
-| Gait embedding | NPU/OpenVINO | 30x64x44 sequence, 4096-D | After 20 valid moving silhouettes | 0-0.2 embeddings/s |
-| Scene embedding | NPU/OpenVINO | SigLIP2 224x224, 768-D | Every 20 secondary frames (~0.1 FPS/camera) | 2.0 embeddings/s |
+| Face detection | NPU/OpenVINO | SCRFD 320x320 person crops | Every 3rd secondary frame | ~0.2 qualifying faces/s |
+| Face embedding | NPU/OpenVINO | AdaFace 112x112, 512-D | Per qualifying face | ~0.2 embeddings/s |
+| Body ReID embedding | NPU/OpenVINO | TransReID 256x128, 384-D | Every 3rd secondary frame | ~15-22 embeddings/s |
+| Gait embedding | NPU/OpenVINO | 30x64x44 sequence, 4096-D | After 20 valid moving silhouettes | ~0.1 embeddings/s |
+| Scene embedding | NPU/OpenVINO | SigLIP2 224x224, 768-D | Every 7 secondary frames (~0.1 FPS/camera) | ~2.0 embeddings/s |
 | Tracking/cropping/postprocess | CPU/OpenCV | Transient memory only | Detection-driven | Included in CPU load |
 
-The primary and smoke/fire rates count completed frame inferences. Plate, face,
-ReID, gait, and scene rates count generated products, so they depend on visible
-objects and are not expected to equal their scheduling cadence.
+Primary FPS and smoke/fire inference FPS count completed frame inferences.
+Smoke/fire detection rates are separately decoded, thresholded, and NMS-filtered
+products. Plate, face, ReID, gait, and scene rates count generated products, so
+they depend on visible objects and are not expected to equal their scheduling
+cadence.
 Scene phases are deterministically staggered across cameras to avoid synchronized
 NPU bursts.
 
 ## Current performance and health
 
-- Combined primary + smoke/fire output: 232-235 results/s.
-- Primary latency: 18.0 ms average, 26.8 ms p95.
-- Secondary queue: normally 0-4 of 32 after scene-phase staggering.
+- Combined primary + smoke/fire frame inference: approximately 228-231 FPS.
+- Primary latency: approximately 17-20 ms average, 27-31 ms p95.
+- Secondary queue: normally 0-1 of 32 after cadence balancing.
 - Secondary dropped work: 0.
 - Secondary inference failures: 0.
 - System CPU: 34.9-40.2%.
@@ -80,5 +88,5 @@ The iGPU compute engine is the limiting resource because it is nearly saturated
 by the 200 FPS primary target plus 40 FPS smoke/fire target. Decode capacity is
 not limiting. The NPU has absorbed every secondary model, including scene
 embedding, while the bounded secondary queue currently operates without drops.
-The zero face and accepted-ANPR rates reflect the current traffic footage and
+Low face and zero accepted-ANPR rates reflect the current traffic footage and
 strict quality/Indian-format filters; they do not indicate model startup errors.

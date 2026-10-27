@@ -162,19 +162,41 @@ class Supervisor:
                     primary_metrics = {}
             except (FileNotFoundError, json.JSONDecodeError, OSError):
                 pass
+        smoke_inferences = int(
+            primary_metrics.get(
+                "smoke_fire_inferences",
+                primary_metrics.get("smoke_fire_results", 0),
+            ) if self.central_smoke else 0
+        )
+        smoke_inference_rate = float(
+            primary_metrics.get(
+                "smoke_fire_inferences_per_second",
+                primary_metrics.get("smoke_fire_results_per_second", 0.0),
+            ) if self.central_smoke else 0.0
+        )
         totals = {
             "generated_results": 0,
             "primary_results": int(primary_metrics.get("primary_results", 0)),
-            "smoke_fire_results": int(
-                primary_metrics.get("smoke_fire_results", 0)
+            "smoke_fire_inferences": smoke_inferences,
+            "smoke_fire_detections": int(
+                primary_metrics.get("smoke_fire_detections", 0)
                 if self.central_smoke else 0
+            ),
+            "fire_detections": int(primary_metrics.get("fire_detections", 0)),
+            "smoke_detections": int(primary_metrics.get("smoke_detections", 0)),
+            "smoke_fire_inferences_per_second": smoke_inference_rate,
+            "smoke_fire_detections_per_second": float(
+                primary_metrics.get("smoke_fire_detections_per_second", 0.0)
+            ),
+            "fire_detections_per_second": float(
+                primary_metrics.get("fire_detections_per_second", 0.0)
+            ),
+            "smoke_detections_per_second": float(
+                primary_metrics.get("smoke_detections_per_second", 0.0)
             ),
             "results_per_second": float(
                 primary_metrics.get("primary_results_per_second", 0.0)
-            ) + float(
-                primary_metrics.get("smoke_fire_results_per_second", 0.0)
-                if self.central_smoke else 0.0
-            ),
+            ) + smoke_inference_rate,
         }
         central_cameras = primary_metrics.get("cameras", {})
         workers = []
@@ -186,7 +208,9 @@ class Supervisor:
             except (FileNotFoundError, json.JSONDecodeError, OSError):
                 pass
             if not self.central_smoke:
-                totals["smoke_fire_results"] += int(metrics.get("smoke_fire_results", 0))
+                totals["smoke_fire_inferences"] += int(
+                    metrics.get("smoke_fire_results", 0)
+                )
             if not direct_active:
                 totals["primary_results"] += int(metrics.get("primary_results", 0))
             totals["results_per_second"] += float(metrics.get("results_per_second", 0.0))
@@ -198,7 +222,10 @@ class Supervisor:
                 camera_metrics[camera_id] = merged
             worker_rate = sum(
                 float(values.get("primary_results_per_second", 0.0))
-                + float(values.get("smoke_fire_results_per_second", 0.0))
+                + float(values.get(
+                    "smoke_fire_inferences_per_second",
+                    values.get("smoke_fire_results_per_second", 0.0),
+                ))
                 for values in camera_metrics.values()
             )
             workers.append({
@@ -209,7 +236,7 @@ class Supervisor:
                 "camera_metrics": camera_metrics,
             })
         totals["generated_results"] = (
-            totals["primary_results"] + totals["smoke_fire_results"]
+            totals["primary_results"] + totals["smoke_fire_inferences"]
         )
         totals["results_per_second"] = round(totals["results_per_second"], 2)
         totals["worker_count"] = len(workers)

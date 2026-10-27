@@ -5,6 +5,7 @@
     "model_instance_id": "vehicle-primary-dynamic-batch4",
     "primary_backend": "openvino",
     "direct_input_format": "NV12",
+    "model_color_format": "RGB",
     "device": "GPU",
     "batch_size": 1,
     "input_width": 640,
@@ -161,6 +162,7 @@
     "model_instance_id": "smoke-fire-primary",
     "backend": "openvino",
     "direct_input_format": "NV12",
+    "model_color_format": "RGB",
     "input_width": 320,
     "input_height": 320,
     "fps": 2,
@@ -168,7 +170,8 @@
     "device": "GPU",
     "pre_process_backend": "ie",
     "scheduling_policy": "throughput",
-    "confidence": 0.35
+    "confidence": 0.35,
+    "nms_iou_threshold": 0.7
   },
   "secondary": {
     "enabled": true,
@@ -193,12 +196,12 @@
     "plate_size": 224,
     "plate_confidence": 0.35,
     "ocr_confidence": 0.4,
-    "input_fps": 2,
-    "person_interval": 2,
-    "plate_interval": 2,
+    "input_fps": 0.7,
+    "person_interval": 3,
+    "plate_interval": 3,
     "track_iou_threshold": 0.1,
     "track_hold_frames": 3,
-    "scene_interval": 20,
+    "scene_interval": 7,
     "queue_size": 32
   }
 }

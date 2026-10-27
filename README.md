@@ -12,9 +12,9 @@ Supervisor
      -> system-memory NV12 latest-frame slots (bounded, no backlog)
   -> one central OpenVINO GPU scheduler
      -> one vehicle/person model with four asynchronous requests
-     -> one smoke/fire model with one asynchronous request
+     -> one smoke/fire model with one asynchronous request and YOLOv8 NMS
      -> fair round-robin camera scheduling and Python metadata sink
-     -> detection-driven secondary admission capped at 2 FPS per camera
+     -> detection-driven secondary admission capped at 0.7 FPS per camera
         -> plate detection + Indian ANPR on NPU
         -> face detection + FaceID embeddings on NPU
         -> body ReID + temporal gait embeddings on NPU
@@ -26,13 +26,17 @@ Secondary analytics is centralized rather than instantiated in each ingest
 worker. Its bounded latest-work queue protects primary throughput and reports
 queue depth, drops, failures, and aggregate product rates without exposing or
 persisting inference content. Indian ANPR accepts standard state/RTO and Bharat
-Series alphanumeric formats only. Scene embeddings run once every 20 admitted
-secondary frames per camera (approximately once every 10 seconds at 2 FPS).
+Series alphanumeric formats only. Face/ReID and plate work runs every third
+admitted frame, while gait tracking receives the full 0.7 FPS secondary cadence.
+Scene embeddings run every seventh admitted frame (approximately once every 10
+seconds per camera).
 
 The legacy DL Streamer primary path remains available by setting
 `settings.primary_backend` to `dlstreamer`. The direct path deliberately uses
 system-memory NV12: it avoids the unstable VA-surface inference path while also
-avoiding BGR conversion and halving shared-frame bandwidth.
+avoiding CPU-side primary color conversion and halving shared-frame bandwidth.
+OpenVINO converts NV12 directly to normalized RGB on the iGPU, matching both
+models' preprocessing contracts.
 
 ## Run
 

@@ -161,7 +161,7 @@ class SecondaryModels:
 class SecondaryPipeline:
     """One shared model set and bounded secondary queue for every camera."""
 
-    VEHICLE_LABELS = {"car", "motorcycle", "bus", "truck"}
+    VEHICLE_LABELS = {"bus", "car", "minivan", "motorcycle", "rickshaw", "truck"}
 
     def __init__(self, config: dict, consume):
         self._config = config
