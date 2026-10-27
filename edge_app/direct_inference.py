@@ -122,6 +122,7 @@ class DirectInference:
             "faces": 0,
             "body_reid": 0,
             "gait": 0,
+            "scene": 0,
         }
         self.secondary_samples = {
             name: deque() for name in self.secondary_totals
@@ -219,6 +220,7 @@ class DirectInference:
             "faces": len(payload.get("faces", ())),
             "body_reid": len(payload.get("body_reid", ())),
             "gait": len(payload.get("gait", ())),
+            "scene": 1 if payload.get("scene") is not None else 0,
         }
         with self.metrics_lock:
             for name, count in counts.items():
@@ -229,7 +231,7 @@ class DirectInference:
         camera_id, capture_time, started, frame = userdata
         latency_ms = (time.perf_counter() - started) * 1000.0
         detections = self._postprocess(request.get_output_tensor().data)
-        if detections and self._secondary_due(camera_id, capture_time):
+        if self._secondary_due(camera_id, capture_time):
             if self.pixel_format.upper() == "NV12":
                 bgr = cv2.cvtColor(
                     frame.reshape(self.height * 3 // 2, self.width),

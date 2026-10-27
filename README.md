@@ -18,6 +18,7 @@ Supervisor
         -> plate detection + Indian ANPR on NPU
         -> face detection + FaceID embeddings on NPU
         -> body ReID + temporal gait embeddings on NPU
+        -> periodic scene embeddings on NPU
         -> transient crops, text and vectors discarded immediately
 ```
 
@@ -25,7 +26,8 @@ Secondary analytics is centralized rather than instantiated in each ingest
 worker. Its bounded latest-work queue protects primary throughput and reports
 queue depth, drops, failures, and aggregate product rates without exposing or
 persisting inference content. Indian ANPR accepts standard state/RTO and Bharat
-Series alphanumeric formats only. Scene embeddings remain disabled.
+Series alphanumeric formats only. Scene embeddings run once every 20 admitted
+secondary frames per camera (approximately once every 10 seconds at 2 FPS).
 
 The legacy DL Streamer primary path remains available by setting
 `settings.primary_backend` to `dlstreamer`. The direct path deliberately uses

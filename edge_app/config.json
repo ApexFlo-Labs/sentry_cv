@@ -189,7 +189,7 @@
     "face_enabled": true,
     "body_reid_enabled": true,
     "gait_enabled": true,
-    "scene_enabled": false,
+    "scene_enabled": true,
     "plate_size": 224,
     "plate_confidence": 0.35,
     "ocr_confidence": 0.4,
@@ -197,7 +197,8 @@
     "person_interval": 2,
     "plate_interval": 2,
     "track_iou_threshold": 0.1,
-    "scene_interval": 50,
+    "track_hold_frames": 3,
+    "scene_interval": 20,
     "queue_size": 32
   }
 }

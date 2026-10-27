@@ -306,6 +306,7 @@ def status() -> dict:
             {"stage": "Face + plate detection", "device": "NPU / OpenVINO", "rate": f"{secondary.get('input_fps', 0)} FPS/stream input"},
             {"stage": "ANPR OCR", "device": "NPU / OpenVINO", "rate": "plate-driven"},
             {"stage": "Face, ReID + gait embeddings", "device": "NPU / OpenVINO", "rate": "detection-driven"},
+            {"stage": "Scene embeddings", "device": "NPU / OpenVINO", "rate": f"every {secondary.get('scene_interval', 0)} secondary frames"},
         ],
     }
 

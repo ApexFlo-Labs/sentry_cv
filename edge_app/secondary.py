@@ -171,6 +171,7 @@ class SecondaryPipeline:
         self.thread = threading.Thread(target=self._run, name="cpu-secondary", daemon=True)
         self.frame_indices: dict[str, int] = {}
         self.track_state: dict[str, dict[int, list[int]]] = {}
+        self.track_misses: dict[str, int] = {}
         self.next_track_id = 1
         self.submitted = 0
         self.dropped = 0
@@ -274,9 +275,19 @@ class SecondaryPipeline:
 
     def _tracked_people(self, result: DetectionResult) -> list:
         previous = self.track_state.setdefault(result.camera_id, {})
+        detections = [
+            item for item in result.detections if item["label"] == "person"
+        ]
+        if not detections:
+            misses = self.track_misses.get(result.camera_id, 0) + 1
+            self.track_misses[result.camera_id] = misses
+            if misses >= int(self.models_config.get("track_hold_frames", 3)):
+                self.track_state[result.camera_id] = {}
+            return []
+        self.track_misses[result.camera_id] = 0
         updated = {}
         people = []
-        for detection in (item for item in result.detections if item["label"] == "person"):
+        for detection in detections:
             best = max(previous, key=lambda key: self._iou(detection["bbox"], previous[key]), default=None)
             threshold = float(self.models_config.get("track_iou_threshold", 0.1))
             if best is None or self._iou(detection["bbox"], previous[best]) < threshold or best in updated:
