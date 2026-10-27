@@ -717,6 +717,37 @@ The ambiguous psutil percentage field is absent. Runtime coverage is 49 passing
 tests and the V6 validator passes all five schemas and 16 event examples. The
 image was pushed to the personal `kiranmaibattu-cyber` GHCR namespace.
 
+### 10.5 True V6 Wire Boundary
+
+On 2026-10-27 the V6 package was detached from the prior 5.2 wire
+compatibility profile. Desired state, observations, evidence metadata,
+embeddings and acknowledgements now require `schema_version: "6.0"`. Delivery
+uses `/api/v6/ingest/events`, `/api/v6/ingest/evidence` and
+`/api/v6/ingest/embeddings`, with acknowledgements carrying V6
+`schema_version`, `kind`, `id`, `status`, and an evidence checksum where
+applicable. New durable records use `/state/sentinel_v6`.
+
+The source/runtime directory, build file, event producer, generated runtime
+key, tests and policy document were renamed to V6. The stale legacy worker
+metrics monitor is no longer started by the V6 camera process; `/healthz` and
+`/metrics` remain the operational telemetry interfaces.
+
+The local candidate is:
+
+```text
+ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev18
+image ID: c8ed2754bb65942bd39c7358c78a5e203389d4d919e2bfb1509000e564988797
+local digest: sha256:905f3870119e41dbdc8eb4fd16200cc88453ea21db78c88153e0a24289ad2b3b
+registry digest: sha256:68afe451795b7cd21d2c0bf4e07d1e753cc02264ee3286961fecc1f71409a767
+publication status: pushed to the personal kiranmaibattu-cyber GHCR namespace
+```
+
+Forty-nine runtime tests and all five schemas plus sixteen examples pass. A
+normal-entrypoint RTSPS run reached healthy status at approximately 5 FPS and
+persisted only V6 observations, evidence and embeddings. Upgrade requires
+draining any persisted `/state/sentinel_v5_2` outbox first; partially
+acknowledged 5.2 packages must not be silently relabelled as V6.
+
 ## 11. Anti-Regression Checklist
 
 Before changing the runtime, preserve these decisions:

@@ -8,22 +8,29 @@ management contract/schema package, the related design notes, and the model
 artifacts needed to build the runtime image without downloading models at
 container startup.
 
-## Current Image
+## Current V6 Image Candidate
 
 ```text
-ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.26-v6-dev17
-registry digest: sha256:0dcc7b1b299d715b5b3d9796b97df37d8d355445dd80da009cf188da78357272
+ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev18
+image ID: c8ed2754bb65942bd39c7358c78a5e203389d4d919e2bfb1509000e564988797
+local digest: sha256:905f3870119e41dbdc8eb4fd16200cc88453ea21db78c88153e0a24289ad2b3b
+publication status: published development image in personal GHCR
+registry digest: sha256:68afe451795b7cd21d2c0bf4e07d1e753cc02264ee3286961fecc1f71409a767
 ```
+
+This is the first candidate in this repository with a true V6 wire boundary.
+Desired state, observations, evidence metadata, embeddings and acknowledgements
+use schema `6.0`, delivery targets `/api/v6/ingest/...`, and new durable records
+are stored under `/state/sentinel_v6`.
 
 The image is built from:
 
-- `docker/Dockerfile.sentinel-v5-2`
-- `edge_runtime/solution_packs/sporada_secure/runtime_v5_2`
+- `docker/Dockerfile.sentinel-v6`
+- `edge_runtime/solution_packs/sporada_secure/runtime_v6`
 - `newdetails/sentry-v6`
 - baked OpenVINO/ONNX model files under `models/`
 
-This package is published to the personal GHCR namespace for integration
-testing. It is built from this repository and carries
+Dev18 is the published true-V6 development build. It is built from this repository and carries
 `org.opencontainers.image.source` pointing at
 `https://github.com/kiranmaibattu-cyber/sentry_cv`.
 
@@ -37,6 +44,9 @@ Management mounts the desired state and camera URL secrets into the container:
 | `/run/secrets/sentinel/cameras/<camera-id>.url` | Camera source URL secret |
 | `/state` | Persistent event/evidence/outbox state |
 | `/tmp/sentinel` | Generated runtime files and temporary state |
+
+Before upgrading from a 5.2-wire image, drain `/state/sentinel_v5_2`. A
+partially acknowledged 5.2 record cannot safely be relabelled as V6.
 
 The runtime exposes:
 
@@ -92,14 +102,14 @@ Build the GHCR image:
 
 ```bash
 SENTINEL_IMAGE_REPOSITORY=ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime \
-SENTINEL_IMAGE_VERSION=2026.10.26-v6-dev17 \
-./scripts/build_sentinel_v5_2_image.sh
+SENTINEL_IMAGE_VERSION=2026.10.27-v6-dev18 \
+./scripts/build_sentinel_v6_image.sh
 ```
 
 Push it:
 
 ```bash
-podman push ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.26-v6-dev17
+podman push ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev18
 ```
 
 ## Contract And Design Docs
@@ -107,8 +117,8 @@ podman push ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.10.2
 - `newdetails/sentry-v6/`: active V6 schemas, examples and contract.
 - `Sentry_Edge_Inference_Design.md`: event production policy/design guidance.
 - `V4_1_EVENT_PRODUCTION_POLICY_WORKING.md`: working policy notes used during
-  the V5.2 alignment.
-- `SENTINEL_V5_2_DEV_IMAGE.md`: image-specific implementation notes.
+  the V6.0 alignment.
+- `SENTINEL_V6_DEV_IMAGE.md`: image-specific implementation notes.
 - `SENTINEL_EDGE_MANAGEMENT_CONTRACT.md`: management/edge contract notes.
 - `SENTINEL_V18_1_ARCHITECTURE_AND_CONTRACT_DECISIONS.md`: history from the
   V18.1/V4/V5 design discussion.
