@@ -64,8 +64,8 @@ def require_accelerator_device(label: str, requested: str) -> None:
     devices = parts[-1].split(",")
     if not devices or any(device.split(".", 1)[0] not in {"GPU", "NPU"} for device in devices):
         raise ValueError(f"{label} must use GPU/NPU, got {requested}")
-# Class order from vehicle_yolo26n_fp16_dynamic.runtime.json.  The model calls
-# class 7 "person"; the rest of this pipeline uses the canonical label
+# Class order from the nine-class vehicle model's embedded metadata. The model
+# calls class 7 "person"; the rest of this pipeline uses the canonical label
 # "pedestrian", so normalize it at the detector boundary.
 VEHICLE_CLASS_NAMES = {
     0: "bus",

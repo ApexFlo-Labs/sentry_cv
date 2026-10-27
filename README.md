@@ -11,11 +11,11 @@ container startup.
 ## Current V6 Image Candidate
 
 ```text
-ghcr.io/apexflo-labs/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev19
-image ID: 498f664e99527a6c0515b849ca5a73204b97cec3618c130190d0071bf601cc62
-local digest: sha256:12b4a7bac6c7c3e817ba33bca96abe38466d25182df13dd611b1e2f5964071e4
+ghcr.io/apexflo-labs/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev20
+image ID: e07b386ac836cc00f231942ffd6c0b7a9638e3a0e93037bd3f884b135dbc22a1
+local digest: sha256:1710f535b71ac665aa2e2c41b90657ab7cf6994121886b75d301d3c4505f744e
 publication status: published development image in ApexFlo Labs GHCR
-registry digest: sha256:12b4a7bac6c7c3e817ba33bca96abe38466d25182df13dd611b1e2f5964071e4
+registry digest: sha256:1710f535b71ac665aa2e2c41b90657ab7cf6994121886b75d301d3c4505f744e
 ```
 
 This is the first candidate in this repository with a true V6 wire boundary.
@@ -30,7 +30,10 @@ The image is built from:
 - `newdetails/sentry-v6`
 - baked OpenVINO/ONNX model files under `models/`
 
-Dev19 replaces the static 80-class vehicle IR with the supplied dynamic-batch
+Dev20 uses the dynamic-batch nine-class vehicle IR introduced in dev19 and
+removes the unused `vehicle_yolo26n_fp16_dynamic.runtime.json` manifest. The
+runtime loads only the model XML/BIN and keeps the class mapping at the tested
+detector boundary. Dev19 replaced the static 80-class vehicle IR with the supplied dynamic-batch
 nine-class vehicle IR. The current per-camera detector fixes batch 1 before GPU
 compilation and uses the GPU's FP16 execution path without an explicit `f32`
 hint. A future batching worker must compile a separate fixed-size model instance
@@ -106,14 +109,14 @@ Build the GHCR image:
 
 ```bash
 SENTINEL_IMAGE_REPOSITORY=ghcr.io/apexflo-labs/sentinel-cv-runtime \
-SENTINEL_IMAGE_VERSION=2026.10.27-v6-dev19 \
+SENTINEL_IMAGE_VERSION=2026.10.27-v6-dev20 \
 ./scripts/build_sentinel_v6_image.sh
 ```
 
 Push it:
 
 ```bash
-podman push ghcr.io/apexflo-labs/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev19
+podman push ghcr.io/apexflo-labs/sentinel-cv-runtime:intel-285h-2026.10.27-v6-dev20
 ```
 
 ## Contract And Design Docs
