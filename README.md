@@ -31,6 +31,10 @@ admitted frame, while gait tracking receives the full 0.7 FPS secondary cadence.
 Scene embeddings run every seventh admitted frame (approximately once every 10
 seconds per camera).
 
+The complete implementation history, test matrix, design decisions, data flow,
+and current inference report are in
+[`docs/end-to-end-session-report.md`](docs/end-to-end-session-report.md).
+
 The legacy DL Streamer primary path remains available by setting
 `settings.primary_backend` to `dlstreamer`. The direct path deliberately uses
 system-memory NV12: it avoids the unstable VA-surface inference path while also
