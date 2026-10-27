@@ -11,6 +11,7 @@ import re
 import threading
 import time
 from types import SimpleNamespace
+import zlib
 
 import cv2
 import numpy as np
@@ -254,7 +255,11 @@ class SecondaryPipeline:
                 for track_id, vector in vectors.items()
             ]
         scene_interval = max(1, int(self.models_config.get("scene_interval", 50)))
-        if self.models.scene is not None and frame_index % scene_interval == 0:
+        scene_phase = zlib.crc32(result.camera_id.encode("utf-8")) % scene_interval
+        if (
+            self.models.scene is not None
+            and (frame_index + scene_phase) % scene_interval == 0
+        ):
             vector = self.models.scene.embed(frame)
             payload["scene"] = {"embedding_dimensions": int(vector.size)}
         return payload

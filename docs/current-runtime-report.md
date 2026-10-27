@@ -55,12 +55,14 @@ used as the source rate.
 The primary and smoke/fire rates count completed frame inferences. Plate, face,
 ReID, gait, and scene rates count generated products, so they depend on visible
 objects and are not expected to equal their scheduling cadence.
+Scene phases are deterministically staggered across cameras to avoid synchronized
+NPU bursts.
 
 ## Current performance and health
 
 - Combined primary + smoke/fire output: 232-235 results/s.
 - Primary latency: 18.0 ms average, 26.8 ms p95.
-- Secondary queue: 0-4 of 32 during steady-state sampling.
+- Secondary queue: normally 0-4 of 32 after scene-phase staggering.
 - Secondary dropped work: 0.
 - Secondary inference failures: 0.
 - System CPU: 34.9-40.2%.
