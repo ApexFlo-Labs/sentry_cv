@@ -178,6 +178,9 @@ class SecondaryPipeline:
         self.dropped = 0
         self.processed = 0
         self.failures = 0
+        self.frame_conversions = 0
+        self.frame_conversion_seconds = 0.0
+        self.processing_seconds = 0.0
 
     def start(self):
         self.thread.start()
@@ -196,19 +199,55 @@ class SecondaryPipeline:
             self.queue.put_nowait(result)
 
     def _process(self, result: DetectionResult) -> dict:
-        frame = result.frame
         payload = {
             "schema_version": "1.0", "camera_id": result.camera_id,
             "timestamp": result.timestamp, "frame": {"width": result.width, "height": result.height},
             "detections": result.detections, "plates": [], "faces": [],
             "body_reid": [], "gait": [], "scene": None,
         }
-        if frame is None:
+        if result.frame is None:
             return payload
         frame_index = self.frame_indices.get(result.camera_id, 0) + 1
         self.frame_indices[result.camera_id] = frame_index
+
         plate_interval = max(1, int(self.models_config.get("plate_interval", 2)))
-        if frame_index % plate_interval == 0:
+        plate_due = (
+            frame_index % plate_interval == 0
+            and any(
+                item["label"] in self.VEHICLE_LABELS
+                for item in result.detections
+            )
+        )
+        people = self._tracked_people(result)
+        person_interval = max(1, int(self.models_config.get("person_interval", 5)))
+        person_due = bool(people) and frame_index % person_interval == 0
+        gait_due = bool(people) and self.models.gait is not None
+        scene_interval = max(1, int(self.models_config.get("scene_interval", 50)))
+        scene_phase = zlib.crc32(result.camera_id.encode("utf-8")) % scene_interval
+        scene_due = (
+            self.models.scene is not None
+            and (frame_index + scene_phase) % scene_interval == 0
+        )
+        if not (plate_due or person_due or gait_due or scene_due):
+            return payload
+
+        conversion_started = time.perf_counter()
+        pixel_format = result.pixel_format.upper()
+        if pixel_format == "NV12":
+            frame = cv2.cvtColor(
+                result.frame.reshape(result.height * 3 // 2, result.width),
+                cv2.COLOR_YUV2BGR_NV12,
+            )
+        elif pixel_format == "BGR":
+            frame = result.frame.reshape(result.height, result.width, 3)
+        else:
+            raise ValueError(
+                f"unsupported secondary pixel format: {result.pixel_format}"
+            )
+        self.frame_conversions += 1
+        self.frame_conversion_seconds += time.perf_counter() - conversion_started
+
+        if plate_due:
             for vehicle in result.detections:
                 if vehicle["label"] not in self.VEHICLE_LABELS:
                     continue
@@ -230,9 +269,7 @@ class SecondaryPipeline:
                         "detection_confidence": plate["confidence"],
                         "text": text, "ocr_confidence": confidence,
                     })
-        people = self._tracked_people(result)
-        person_interval = max(1, int(self.models_config.get("person_interval", 5)))
-        if people and frame_index % person_interval == 0:
+        if person_due:
             if self.models.face is not None:
                 for sample in self.models.face.extract(frame, people):
                     payload["faces"].append({
@@ -247,19 +284,14 @@ class SecondaryPipeline:
                     {"track_id": track_id, "embedding_dimensions": int(vector.size)}
                     for track_id, vector in zip(track_ids, vectors)
                 ]
-        if people and self.models.gait is not None:
+        if gait_due:
             keys = {int(p.metadata["track_id"]): f"{result.camera_id}:{p.metadata['track_id']}" for p in people}
             vectors = self.models.gait.collect(frame, people, result.camera_id, keys, result.timestamp)
             payload["gait"] = [
                 {"track_id": track_id, "embedding_dimensions": int(vector.size)}
                 for track_id, vector in vectors.items()
             ]
-        scene_interval = max(1, int(self.models_config.get("scene_interval", 50)))
-        scene_phase = zlib.crc32(result.camera_id.encode("utf-8")) % scene_interval
-        if (
-            self.models.scene is not None
-            and (frame_index + scene_phase) % scene_interval == 0
-        ):
+        if scene_due:
             vector = self.models.scene.embed(frame)
             payload["scene"] = {"embedding_dimensions": int(vector.size)}
         return payload
@@ -322,7 +354,9 @@ class SecondaryPipeline:
             except queue.Empty:
                 continue
             try:
+                started = time.perf_counter()
                 self.consume(self._process(result))
+                self.processing_seconds += time.perf_counter() - started
                 self.processed += 1
             except Exception:
                 self.failures += 1
@@ -336,6 +370,13 @@ class SecondaryPipeline:
             "failures": self.failures,
             "queue_depth": self.queue.qsize(),
             "queue_capacity": self.queue.maxsize,
+            "frame_conversions": self.frame_conversions,
+            "average_frame_conversion_ms": round(
+                self.frame_conversion_seconds * 1000.0 / self.frame_conversions, 3
+            ) if self.frame_conversions else 0.0,
+            "average_processing_ms": round(
+                self.processing_seconds * 1000.0 / self.processed, 3
+            ) if self.processed else 0.0,
         }
 
     def close(self, timeout: float = 10.0) -> bool:

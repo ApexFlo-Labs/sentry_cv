@@ -154,7 +154,8 @@
   "direct_openvino": {
     "nireq": 4,
     "smoke_nireq": 1,
-    "performance_hint": "THROUGHPUT"
+    "performance_hint": "THROUGHPUT",
+    "gpu_queue_throttle": "MEDIUM"
   },
   "smoke_fire_gpu": {
     "model": "../models/traffic-v11/openvino/smoke_fire.xml",

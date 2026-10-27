@@ -31,6 +31,7 @@ class DetectionResult:
     height: int
     detections: list[dict]
     frame: np.ndarray | None = None
+    pixel_format: str = "BGR"
 
 
 def _quote(value: str) -> str:

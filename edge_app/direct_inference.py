@@ -39,7 +39,8 @@ SMOKE_DETECTION_LABELS = {0: "fire", 1: "smoke"}
 def compile_image_model(core, path: Path, width: int, height: int,
                         nireq: int, performance_hint: str,
                         pixel_format: str = "BGR",
-                        model_color_format: str = "RGB"):
+                        model_color_format: str = "RGB",
+                        queue_throttle: str = "MEDIUM"):
     model = core.read_model(path)
     model.reshape({model.input(0): [1, 3, height, width]})
     preprocessor = PrePostProcessor(model)
@@ -62,9 +63,13 @@ def compile_image_model(core, path: Path, width: int, height: int,
     preprocessor.input().preprocess().convert_element_type(ov.Type.f32)
     preprocessor.input().preprocess().scale(255.0)
     preprocessor.input().model().set_layout(ov.Layout("NCHW"))
+    throttle = queue_throttle.upper()
+    if throttle not in {"LOW", "MEDIUM", "HIGH"}:
+        raise ValueError(f"unsupported GPU queue throttle: {queue_throttle}")
     return core.compile_model(preprocessor.build(), "GPU", {
         "PERFORMANCE_HINT": performance_hint,
         "PERFORMANCE_HINT_NUM_REQUESTS": str(nireq),
+        "GPU_QUEUE_THROTTLE": throttle,
     })
 
 
@@ -169,19 +174,25 @@ class DirectInference:
         core = ov.Core()
         self.nireq = int(self.direct.get("nireq", 1))
         performance_hint = str(self.direct.get("performance_hint", "THROUGHPUT"))
+        self.gpu_queue_throttle = str(
+            self.direct.get("gpu_queue_throttle", "MEDIUM")
+        )
         self.compiled = compile_image_model(
             core, model_path, self.width, self.height, self.nireq, performance_hint,
-            self.pixel_format, self.model_color_format,
+            self.pixel_format, self.model_color_format, self.gpu_queue_throttle,
         )
         self.queue = ov.AsyncInferQueue(self.compiled, self.nireq)
         self.queue.set_callback(self._on_complete)
         self.input_port = self.compiled.input(0)
         self.output_port = self.compiled.output(0)
         log.info(
-            "central OpenVINO compiled model=%s shape=%s color=%s cameras=%d requests=%s",
+            "central OpenVINO compiled model=%s shape=%s color=%s cameras=%d requests=%s "
+            "queue-throttle=%s streams=%s",
             model_path, self.input_port.shape, self.model_color_format,
             len(self.cameras),
             self.nireq,
+            self.compiled.get_property("GPU_QUEUE_THROTTLE"),
+            self.compiled.get_property("NUM_STREAMS"),
         )
         if self.smoke_enabled:
             smoke_path = (config_path.parent / self.smoke_settings["model"]).resolve()
@@ -189,7 +200,7 @@ class DirectInference:
             self.smoke_compiled = compile_image_model(
                 core, smoke_path, self.smoke_width, self.smoke_height,
                 self.smoke_nireq, performance_hint, self.smoke_pixel_format,
-                self.smoke_model_color_format,
+                self.smoke_model_color_format, self.gpu_queue_throttle,
             )
             self.smoke_queue = ov.AsyncInferQueue(
                 self.smoke_compiled, self.smoke_nireq
@@ -197,9 +208,12 @@ class DirectInference:
             self.smoke_queue.set_callback(self._on_smoke_complete)
             self.smoke_input_port = self.smoke_compiled.input(0)
             log.info(
-                "central smoke OpenVINO compiled model=%s shape=%s color=%s requests=%d",
+                "central smoke OpenVINO compiled model=%s shape=%s color=%s requests=%d "
+                "queue-throttle=%s streams=%s",
                 smoke_path, self.smoke_input_port.shape,
                 self.smoke_model_color_format, self.smoke_nireq,
+                self.smoke_compiled.get_property("GPU_QUEUE_THROTTLE"),
+                self.smoke_compiled.get_property("NUM_STREAMS"),
             )
         self.secondary = None
         if self.secondary_enabled:
@@ -325,20 +339,14 @@ class DirectInference:
         latency_ms = (time.perf_counter() - started) * 1000.0
         detections = self._postprocess(request.get_output_tensor().data)
         if self._secondary_due(camera_id, capture_time):
-            if self.pixel_format.upper() == "NV12":
-                bgr = cv2.cvtColor(
-                    frame.reshape(self.height * 3 // 2, self.width),
-                    cv2.COLOR_YUV2BGR_NV12,
-                )
-            else:
-                bgr = frame.reshape(self.height, self.width, 3)
             self.secondary.submit(DetectionResult(
                 camera_id=camera_id,
                 timestamp=capture_time,
                 width=self.width,
                 height=self.height,
                 detections=detections,
-                frame=bgr,
+                frame=frame,
+                pixel_format=self.pixel_format,
             ))
         del frame  # keep the input allocation alive until inference completes
         now = time.time()

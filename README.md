@@ -42,6 +42,13 @@ avoiding CPU-side primary color conversion and halving shared-frame bandwidth.
 OpenVINO converts NV12 directly to normalized RGB on the iGPU, matching both
 models' preprocessing contracts.
 
+Secondary work remains NV12 while queued and is converted to BGR only after a
+scheduled plate, person/gait, or scene stage actually needs pixels. Conversion
+runs in the secondary thread rather than an OpenVINO completion callback.
+`direct_openvino.gpu_queue_throttle` is configurable, but `MEDIUM` is retained:
+live testing showed that `LOW` saves host CPU by slowing GPU completion polling
+at an unacceptable primary-throughput and latency cost.
+
 ## Run
 
 Install the packages listed in [`edge_app/requirements.txt`](edge_app/requirements.txt)

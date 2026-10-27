@@ -48,7 +48,7 @@ This is not the COCO class order.
 | Person/vehicle detection | iGPU/OpenVINO | Custom nine-class YOLO, 640x640, 4 async requests | 10 FPS/camera; 200 FPS target | ~188-191 FPS |
 | Smoke/fire inference | iGPU/OpenVINO | NV12→RGB, YOLOv8 320x320, 1 async request | 2 FPS/camera; 40 FPS target | 40 FPS |
 | Smoke/fire postprocess | CPU/NumPy + OpenCV | Confidence 0.35, class-aware NMS 0.70 | Every inference | ~9-12 detections/s |
-| Secondary admission | CPU frame conversion/queue | 640x640 BGR | Up to 0.7 FPS/camera; 14 FPS target | ~13-14 FPS |
+| Secondary admission | Bounded NV12 queue; conditional CPU conversion | 640x640 NV12→BGR only when pixels are required | Up to 0.7 FPS/camera; 14 FPS target | ~13-14 FPS |
 | Plate detection | NPU/OpenVINO | 224x224 vehicle crops | Every 3rd secondary frame | ~10-15 detections/s |
 | Indian ANPR OCR | NPU/OpenVINO | 128x64 plate crops | Every detected plate | 0 accepted strings/s |
 | Face detection | NPU/OpenVINO | SCRFD 320x320 person crops | Every 3rd secondary frame | ~0.2 qualifying faces/s |
@@ -73,6 +73,9 @@ NPU bursts.
 - Secondary queue: normally 0-1 of 32 after cadence balancing.
 - Secondary dropped work: 0.
 - Secondary inference failures: 0.
+- Average admitted-frame NV12→BGR conversion: approximately 0.25-0.31 ms.
+- Average complete secondary work item: approximately 44-47 ms, including
+  object-driven NPU inference.
 - System CPU: 34.9-40.2%.
 - SentryCV CPU: 26.1-26.6%, or about 4.2 of 16 logical cores.
 - RAM: 30.6% system use; SentryCV cgroup approximately 3.16 GB.
@@ -90,3 +93,8 @@ not limiting. The NPU has absorbed every secondary model, including scene
 embedding, while the bounded secondary queue currently operates without drops.
 Low face and zero accepted-ANPR rates reflect the current traffic footage and
 strict quality/Indian-format filters; they do not indicate model startup errors.
+
+A host CPU profile found the largest central-process cost in Intel GPU driver
+completion polling (`libigdrcl`), not OpenCV cropping. Setting OpenVINO GPU queue
+throttle to `LOW` reduced host CPU but also reduced primary delivery and raised
+latency, so the deployed value remains `MEDIUM` to preserve the throughput goal.

@@ -473,6 +473,76 @@ Final decision:
 This produced a stable queue, zero drops, zero failures, and actual gait
 embeddings while protecting primary throughput.
 
+### 5.15 Follow-up: ROI zero-copy and host CPU profiling
+
+The proposed future optimization was to crop object ROIs directly from decoded
+VA surfaces and avoid bringing full frames through host memory. Before changing
+the process topology, the running central process was sampled with `perf` and
+the existing conversion/crop operations were microbenchmarked.
+
+The profile showed that the largest host cost was not crop extraction:
+
+- approximately 54% of sampled atom-core cycles were inside Intel's GPU compute
+  runtime (`libigdrcl`), principally GPU completion polling;
+- OpenCV routines represented only a few percent of samples; and
+- `memmove` represented approximately 3%.
+
+On the target host, a standalone 640x640 NV12-to-BGR conversion measured about
+0.14 ms wall time with OpenCV's normal thread configuration. Live, instrumented
+conversion inside the loaded pipeline averages approximately 0.25-0.31 ms.
+Creating a NumPy ROI view costs less than one microsecond. At about 13-14
+secondary frames/s, conversion consumes only a few milliseconds of wall time per
+second. A full secondary work item averages roughly 44-47 ms because it includes
+object-driven NPU inference and preprocessing.
+
+OpenVINO's `GPU_QUEUE_THROTTLE=LOW` was then tested because Intel documents it as
+a way to reduce GPU-driver CPU polling. The measured comparison was:
+
+| Setting | Central CPU | Whole service CPU | Primary delivery | Average latency |
+|---|---:|---:|---:|---:|
+| `MEDIUM`, baseline | ~3.0 cores | ~4.0 cores | ~192 FPS | ~18.1 ms |
+| `LOW`, tested | ~1.8 cores | ~2.7 cores | ~170 FPS | ~24-25 ms |
+
+`LOW` saved substantial host CPU but lost roughly 11-12% primary throughput and
+raised latency by about 35-40%. It was rejected because this deployment's stated
+priority is maximum inference rate. The property remains configurable and the
+active value is explicitly `MEDIUM`.
+
+Two safe frame-handling improvements were retained:
+
+1. NV12-to-BGR conversion was removed from the GPU inference completion
+   callback. The callback now publishes the existing NV12 array to the bounded
+   secondary queue and returns promptly, allowing the inference request to be
+   reused.
+2. The secondary thread converts a frame only when a scheduled plate,
+   person/gait, or scene stage needs pixels. Frames with no pixel-consuming work
+   remain NV12 and are released without conversion. Conversion and total
+   secondary processing time are exported as metrics.
+
+True decoded-surface zero-copy was not implemented because it is not a local
+crop-function change. OpenVINO GPU remote tensors can wrap a `VASurfaceID`, but
+the application must keep the `VADisplay` and surface alive until every
+asynchronous request has finished. In the current design, VA decode occurs in
+four worker processes and inference occurs in a fifth process. A numeric
+`VASurfaceID` is not a safe cross-process payload.
+
+A genuine zero-copy design would require one of these architectures:
+
+- move decode and GPU inference into the same process/VA context, weakening the
+  current five-camera failure isolation;
+- run a GPU model instance in every ingest worker, reintroducing the model and
+  scheduler duplication already shown to reduce throughput; or
+- export DMA-BUF file descriptors from each worker, transfer them with Unix
+  descriptor passing, import them into a central VA/OpenCL context, and maintain
+  explicit surface lifetime/fence accounting. This is a significant native
+  media-runtime project, not a Python crop optimization.
+
+It would also not make the NPU stages end-to-end zero-copy. The GPU can consume
+VA surfaces through its remote-tensor API, but the NPU models require their own
+prepared tensors. GPU ROI preprocessing would still need a synchronized
+GPU-to-NPU or GPU-to-host handoff. Given the measured 0.25 ms conversion cost,
+that complexity is not justified by the present bottleneck.
+
 ## 6. Current deployed architecture
 
 ```text
