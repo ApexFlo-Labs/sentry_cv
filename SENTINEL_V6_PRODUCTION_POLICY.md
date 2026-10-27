@@ -1,7 +1,7 @@
 # Sentinel V6.0 Production Event Policy
 
 Status: proposed production policy for V6.0 runtime hardening
-Date: 2026-10-09  
+Date: 2026-10-09
 Scope: adaptive gates, presence continuity, event emission, evidence selection,
 embeddings, ANPR, dwell support, scene sampling, health, and timestamp semantics.
 
@@ -660,4 +660,3 @@ Guardrails:
 6. Add timestamp source fields and ensure event/evidence/embedding times refer
    to the selected source frame.
 7. Keep count logic as-is except policy telemetry.
-
