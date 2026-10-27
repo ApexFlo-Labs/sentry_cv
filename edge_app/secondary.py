@@ -1,11 +1,14 @@
 """CPU crop/preparation with shared NPU embedding inference."""
 from __future__ import annotations
 
+from collections import deque
+import json
 import logging
 import os
 from pathlib import Path
 import queue
 import threading
+import time
 from types import SimpleNamespace
 
 import cv2
@@ -265,7 +268,7 @@ class SecondaryPipeline:
         return crops, track_ids
 
     def _run(self) -> None:
-        while not self.stop_event.is_set() or not self.queue.empty():
+        while not self.stop_event.is_set():
             try:
                 result = self.queue.get(timeout=0.25)
             except queue.Empty:
@@ -275,16 +278,80 @@ class SecondaryPipeline:
             except Exception:
                 log.exception("secondary inference failed camera=%s", result.camera_id)
 
-    def close(self) -> None:
+    def close(self, timeout: float = 10.0) -> bool:
+        """Stop accepting backlog and wait for the active inference to finish."""
         self.stop_event.set()
-        self.thread.join(timeout=10)
+        while True:
+            try:
+                self.queue.get_nowait()
+            except queue.Empty:
+                break
+        self.thread.join(timeout=timeout)
+        if self.thread.is_alive():
+            log.error("secondary inference did not stop within %.1f seconds", timeout)
+            return False
+        return True
 
 
 class DiscardSink:
-    """Explicit terminal sink for generated inference results."""
+    """Explicit terminal sink for primary, smoke/fire and secondary results."""
 
-    def __init__(self):
+    def __init__(self, metrics_path: Path | None = None):
         self.generated = 0
+        self.primary = 0
+        self.smoke_fire = 0
+        self.started_at = time.time()
+        self._samples = deque()
+        self._camera_samples: dict[str, deque] = {}
+        self._camera_counts: dict[str, dict[str, int]] = {}
+        self._last_write = 0.0
+        self._lock = threading.Lock()
+        self._metrics_path = metrics_path or Path(f"/run/user/{os.getuid()}/sentry-cv-metrics.json")
 
-    def consume(self, _payload: dict) -> None:
-        self.generated += 1
+    def consume(self, payload: dict) -> None:
+        now = time.time()
+        with self._lock:
+            self.generated += 1
+            if "smoke_fire" in payload:
+                self.smoke_fire += 1
+                result_type = "smoke_fire"
+            else:
+                self.primary += 1
+                result_type = "primary"
+            self._samples.append(now)
+            camera_id = str(payload.get("camera_id", "unknown"))
+            camera_samples = self._camera_samples.setdefault(camera_id, deque())
+            camera_samples.append((now, result_type))
+            counts = self._camera_counts.setdefault(
+                camera_id, {"primary_results": 0, "smoke_fire_results": 0}
+            )
+            counts[f"{result_type}_results"] += 1
+            cutoff = now - 10.0
+            while self._samples and self._samples[0] < cutoff:
+                self._samples.popleft()
+            camera_metrics = {}
+            for identifier, samples in self._camera_samples.items():
+                while samples and samples[0][0] < cutoff:
+                    samples.popleft()
+                primary_rate = sum(1 for _, kind in samples if kind == "primary") / 10.0
+                smoke_rate = sum(1 for _, kind in samples if kind == "smoke_fire") / 10.0
+                camera_metrics[identifier] = {
+                    **self._camera_counts[identifier],
+                    "primary_results_per_second": round(primary_rate, 2),
+                    "smoke_fire_results_per_second": round(smoke_rate, 2),
+                }
+            if now - self._last_write < 1.0:
+                return
+            metrics = {
+                "generated_results": self.generated,
+                "primary_results": self.primary,
+                "smoke_fire_results": self.smoke_fire,
+                "results_per_second": round(len(self._samples) / 10.0, 2),
+                "uptime_seconds": round(now - self.started_at, 1),
+                "updated_at": now,
+                "cameras": camera_metrics,
+            }
+            temporary = self._metrics_path.with_suffix(".tmp")
+            temporary.write_text(json.dumps(metrics), encoding="utf-8")
+            temporary.replace(self._metrics_path)
+            self._last_write = now

@@ -1,29 +1,177 @@
 {
   "settings": {
-    "model": "../models/traffic-v11/vehicle_yolo26n_fp16.xml",
+    "model": "../models/traffic-v11/vehicle_yolo26n_fp16_dynamic.xml",
     "model_proc": "vehicle_yolo26_model_proc.json",
-    "model_instance_id": "vehicle-primary",
-    "fps": 5,
-    "nireq": 6,
+    "model_instance_id": "vehicle-primary-dynamic-batch4",
+    "primary_backend": "openvino",
+    "direct_input_format": "NV12",
+    "device": "GPU",
+    "batch_size": 1,
+    "input_width": 640,
+    "input_height": 640,
+    "fps": 10,
+    "nireq": 1,
+    "pre_process_backend": "ie",
+    "scheduling_policy": "throughput",
     "confidence": 0.3,
-    "rtsp_latency_ms": 200
+    "rtsp_latency_ms": 200,
+    "mux": {
+      "sync_mode": "pipeline",
+      "max_wait_time_ns": 40000000,
+      "pts_tolerance_ns": 100000000,
+      "max_queue_size": 2
+    }
+  },
+  "runtime": {
+    "worker_group_size": 5,
+    "worker_startup_stagger_seconds": 2.0,
+    "camera_startup_stagger_seconds": 0.5,
+    "worker_restart_backoff_seconds": 3.0
   },
   "cameras": [
     {
       "id": "camera-01",
-      "uri": "rtsp://USER:PASSWORD@CAMERA_IP:554/STREAM_PATH",
-      "enabled": true
+      "uri": "rtsp://127.0.0.1:8654/cam01",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-02",
+      "uri": "rtsp://127.0.0.1:8654/cam02",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-03",
+      "uri": "rtsp://127.0.0.1:8654/cam03",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-04",
+      "uri": "rtsp://127.0.0.1:8654/cam04",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-05",
+      "uri": "rtsp://127.0.0.1:8654/cam05",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-06",
+      "uri": "rtsp://127.0.0.1:8654/cam06",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-07",
+      "uri": "rtsp://127.0.0.1:8654/cam07",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-08",
+      "uri": "rtsp://127.0.0.1:8654/cam08",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-09",
+      "uri": "rtsp://127.0.0.1:8654/cam09",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-10",
+      "uri": "rtsp://127.0.0.1:8654/cam10",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-11",
+      "uri": "rtsp://127.0.0.1:8654/cam01",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-12",
+      "uri": "rtsp://127.0.0.1:8654/cam02",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-13",
+      "uri": "rtsp://127.0.0.1:8654/cam03",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-14",
+      "uri": "rtsp://127.0.0.1:8654/cam04",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-15",
+      "uri": "rtsp://127.0.0.1:8654/cam05",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-16",
+      "uri": "rtsp://127.0.0.1:8654/cam06",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-17",
+      "uri": "rtsp://127.0.0.1:8654/cam07",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-18",
+      "uri": "rtsp://127.0.0.1:8654/cam08",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-19",
+      "uri": "rtsp://127.0.0.1:8654/cam09",
+      "enabled": true,
+      "generation": 1793078903641543888
+    },
+    {
+      "id": "camera-20",
+      "uri": "rtsp://127.0.0.1:8654/cam10",
+      "enabled": true,
+      "generation": 1793078903641543888
     }
   ],
+  "direct_openvino": {
+    "nireq": 4,
+    "smoke_nireq": 1,
+    "performance_hint": "THROUGHPUT"
+  },
   "smoke_fire_gpu": {
     "model": "../models/traffic-v11/openvino/smoke_fire.xml",
     "model_proc": "smoke_fire_model_proc.json",
     "model_instance_id": "smoke-fire-primary",
-    "fps": 1,
-    "nireq": 2,
+    "backend": "openvino",
+    "direct_input_format": "NV12",
+    "input_width": 320,
+    "input_height": 320,
+    "fps": 2,
+    "nireq": 1,
+    "device": "GPU",
+    "pre_process_backend": "ie",
+    "scheduling_policy": "throughput",
     "confidence": 0.35
   },
   "secondary": {
+    "enabled": false,
     "plate_model": "../models/traffic-v11/openvino/license_plate.xml",
     "ocr_model": "../models/traffic-v11/openvino/ocr.xml",
     "face_detector_model": "../models/traffic-v11/face/openvino/scrfd_500m.onnx",

@@ -5,16 +5,22 @@ Minimal bare-metal computer-vision runtime for Intel Core Ultra 9 285H.
 ## Pipeline
 
 ```text
-RTSP -> VA-API decode -> NV12 VAMemory
-  -> shared vehicle/person GPU model at 5 FPS
-  -> shared smoke/fire GPU model at 1 FPS
-  -> CPU BGR download, tracking, cropping and alignment
-  -> CPU plate/OCR and face detection
-  -> NPU face, body ReID, gait and scene embeddings
-  -> discard sink
+Supervisor
+  -> four ingest workers, five cameras each
+     -> independent RTSP ingest and VA-API decode per camera
+     -> primary frames selected at 10 FPS and smoke/fire at 2 FPS
+     -> system-memory NV12 latest-frame slots (bounded, no backlog)
+  -> one central OpenVINO GPU scheduler
+     -> one vehicle/person model with four asynchronous requests
+     -> one smoke/fire model with one asynchronous request
+     -> fair round-robin camera scheduling and Python metadata sink
 ```
 
-No management server, Redis, MQTT, Kafka or cloud delivery is used.
+Secondary analytics code remains available but is currently disabled in the
+configuration. The legacy DL Streamer primary path remains available by setting
+`settings.primary_backend` to `dlstreamer`. The direct path deliberately uses
+system-memory NV12: it avoids the unstable VA-surface inference path while also
+avoiding BGR conversion and halving shared-frame bandwidth.
 
 ## Run
 
@@ -24,10 +30,12 @@ driver. Then:
 
 ```bash
 bash edge_app/preflight.sh
-python3 -m edge_app.main --config edge_app/config.json
+edge_app/run.sh
 ```
 
-Configure cameras and inference intervals in [`edge_app/config.json`](edge_app/config.json).
+Configure cameras, worker group size and inference settings in
+[`edge_app/config.json`](edge_app/config.json). The supervisor restarts only a
+failed five-camera worker and replaces all workers when the configuration changes.
 
 
 

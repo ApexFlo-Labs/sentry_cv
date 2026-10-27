@@ -33,6 +33,11 @@ class OpenVINOSceneExtractor:
         model = core.read_model(str(path))
         if len(model.inputs) != 1:
             raise ValueError("scene image encoder must expose exactly one image input")
+        # The exported SigLIP IR has fully dynamic input dimensions.  NPU
+        # compilation needs static spatial dimensions (in particular for the
+        # model's position-embedding Tile operation), and embed() always
+        # supplies a single 224x224 image.
+        model.reshape({model.input(0): [1, 3, 224, 224]})
         # Resize remains explicit because callers may submit arbitrary zone
         # shapes.  Color conversion, type conversion, normalization and layout
         # conversion are graph operations and therefore execute with the GPU

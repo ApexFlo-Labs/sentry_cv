@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SentryCV Control Plane</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div><p class="eyebrow">APEXFABRIC · EDGE OPERATIONS</p><h1>SentryCV Control Plane</h1></div>
+      <div id="serviceBadge" class="badge"><span></span>Connecting</div>
+    </header>
+
+    <section class="hero-grid">
+      <article class="panel generator">
+        <div class="panel-title"><div><p class="eyebrow">STREAM FOUNDRY</p><h2>Generate RTSP replicas</h2></div><span class="step">01</span></div>
+        <label>RTSP server port<input id="port" class="port-input" type="number" min="1024" max="65535" value="8654"></label>
+        <div class="video-heading"><span>Video sources</span><div><button id="selectAll" class="text-button" type="button">Select all</button><button id="deselectAll" class="text-button" type="button">Deselect all</button></div></div>
+        <div id="videoRows" class="video-rows"></div>
+        <button id="generate">Stop previous &amp; generate</button>
+        <p class="hint">Validates the port, replaces active publishers, waits for every stream, then restarts the CV pipeline.</p>
+        <div id="actionMessage" class="message" hidden></div>
+      </article>
+
+      <article class="panel overview">
+        <div class="panel-title"><div><p class="eyebrow">LIVE SYSTEM</p><h2>Hardware pulse</h2></div><span id="updated" class="muted">—</span></div>
+        <div class="metric-grid">
+          <div class="metric"><span>RAM</span><strong id="ram">—</strong><div class="bar"><i id="ramBar"></i></div><small id="ramDetail">—</small></div>
+          <div class="metric"><span>System CPU</span><strong id="cpu">—</strong><div class="bar"><i id="cpuBar"></i></div><small id="cpuDetail">—</small></div>
+          <div class="metric"><span>SentryCV CPU</span><strong id="appCpu">—</strong><div class="bar"><i id="appCpuBar"></i></div><small id="appCpuDetail">—</small></div>
+          <div class="metric"><span>iGPU compute</span><strong id="gpu">—</strong><div class="bar"><i id="gpuBar"></i></div><small>Normalization + inference</small></div>
+          <div class="metric"><span>iGPU decode</span><strong id="media">—</strong><div class="bar"><i id="mediaBar"></i></div><small>VCS0 + VCS1 capacity</small></div>
+          <div class="metric"><span>NPU</span><strong id="npu">—</strong><div class="bar"><i id="npuBar"></i></div><small>Embeddings activity</small></div>
+          <div class="metric"><span>Output rate</span><strong id="rate">—</strong><div class="bar"><i id="rateBar"></i></div><small id="resultCount">—</small></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="lower-grid">
+      <article class="panel"><div class="panel-title"><div><p class="eyebrow">ACTIVE FABRIC</p><h2>RTSP endpoints</h2></div><strong id="streamCount">—</strong></div><div id="streams" class="streams"></div></article>
+      <article class="panel"><div class="panel-title"><div><p class="eyebrow">COMPUTE MAP</p><h2>Pipeline placement</h2></div></div><div id="placement" class="placement"></div></article>
+      <article class="panel health"><div class="panel-title"><div><p class="eyebrow">HEALTH</p><h2>Runtime integrity</h2></div></div><div class="health-grid"><div><span>Restarts</span><strong id="restarts">—</strong></div><div><span>Disconnects · 10m</span><strong id="disconnects">—</strong></div><div><span>Errors · 10m</span><strong id="errors">—</strong></div></div><p id="warning" class="warning">No warnings reported.</p></article>
+    </section>
+  </main>
+  <script src="/app.js"></script>
+</body>
+</html>
