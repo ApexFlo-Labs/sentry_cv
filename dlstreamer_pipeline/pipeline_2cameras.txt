@@ -1,0 +1,71 @@
+gst-launch-1.0 -e  urisourcebin uri=rtsp://127.0.0.1:8654/cam01 !
+  decodebin3 !
+  vapostproc !
+  video/x-raw(memory:VAMemory),format=NV12 !
+  videorate drop-only=true !
+  video/x-raw(memory:VAMemory),framerate=10/1 !
+  tee name=t0 !
+  queue leaky=downstream max-size-buffers=4 !
+  gvadetect model=/home/admin1/chandana_optimization/cascade/models/vehicle_v11_static.xml model-proc=/home/admin1/chandana_optimization/cascade/v11_model_proc.json device=GPU pre-process-backend=va-surface-sharing   model-instance-id=det-shared nireq=6  threshold=0.3 !
+  queue max-size-buffers=8 max-size-bytes=0 max-size-time=0 !
+  gvatrack tracking-type=zero-term-imageless !
+  queue max-size-buffers=8 max-size-bytes=0 max-size-time=0 !
+  tee name=s0 !
+  queue max-size-buffers=8 max-size-bytes=0 max-size-time=0 !
+  gvadetect model=/home/admin1/chandana_optimization/cascade/models/scrfd_top1x_u8.xml model-proc=/home/admin1/chandana_optimization/cascade/scrfd_top1_proc.json device=GPU pre-process-backend=va-surface-sharing nireq=8   inference-region=roi-list object-class=person inference-interval=43 threshold=0.55 model-instance-id=scrfd1-shared !
+  queue max-size-buffers=8 max-size-bytes=0 max-size-time=0 !
+  gvaclassify model=/home/admin1/chandana_optimization/cascade/models/face_align_u8.xml device=NPU pre-process-backend=opencv nireq=8 object-class=face  model-instance-id=ada-shared !
+  queue max-size-buffers=8 max-size-bytes=0 max-size-time=0 !
+  gvafpscounter interval=10 !
+  fakesink sync=false async=false t0. !
+  queue leaky=downstream max-size-buffers=2 !
+  videorate drop-only=true max-rate=2 !
+  vapostproc add-borders=true !
+  video/x-raw,format=BGRx,width=320,height=320 !
+  videoconvert !
+  video/x-raw,format=BGR !
+  gvadetect model=/home/admin1/chandana_optimization/sentinel_img13/rootfs/models/traffic/openvino/smoke_fire.xml model-proc=/home/admin1/chandana_optimization/cascade/fire_rgb_model_proc.json device=GPU pre-process-backend=opencv   threshold=0.35 model-instance-id=fire-shared !
+  gvafpscounter interval=10 !
+  fakesink sync=false async=false s0. !
+  queue leaky=downstream max-size-buffers=2 !
+  videorate drop-only=true max-rate=1 !
+  gvapython module=/home/admin1/chandana_optimization/cascade/secondary_branch.py class=Stash function=process kwarg={"key":0} !
+  vapostproc !
+  video/x-raw,format=BGRx,width=640,height=360 !
+  gvapython module=/home/admin1/chandana_optimization/cascade/secondary_branch.py class=Secondary function=process kwarg={"key":0} !
+  fakesink sync=false async=false urisourcebin uri=rtsp://127.0.0.1:8654/cam02 !
+  decodebin3 !
+  vapostproc !
+  video/x-raw(memory:VAMemory),format=NV12 !
+  videorate drop-only=true !
+  video/x-raw(memory:VAMemory),framerate=10/1 !
+  tee name=t1 !
+  queue leaky=downstream max-size-buffers=4 !
+  gvadetect model=/home/admin1/chandana_optimization/cascade/models/vehicle_v11_static.xml model-proc=/home/admin1/chandana_optimization/cascade/v11_model_proc.json device=GPU pre-process-backend=va-surface-sharing   model-instance-id=det-shared nireq=6  threshold=0.3 !
+  queue max-size-buffers=8 max-size-bytes=0 max-size-time=0 !
+  gvatrack tracking-type=zero-term-imageless !
+  queue max-size-buffers=8 max-size-bytes=0 max-size-time=0 !
+  tee name=s1 !
+  queue max-size-buffers=8 max-size-bytes=0 max-size-time=0 !
+  gvadetect model=/home/admin1/chandana_optimization/cascade/models/scrfd_top1x_u8.xml model-proc=/home/admin1/chandana_optimization/cascade/scrfd_top1_proc.json device=GPU pre-process-backend=va-surface-sharing nireq=8   inference-region=roi-list object-class=person inference-interval=43 threshold=0.55 model-instance-id=scrfd1-shared !
+  queue max-size-buffers=8 max-size-bytes=0 max-size-time=0 !
+  gvaclassify model=/home/admin1/chandana_optimization/cascade/models/face_align_u8.xml device=NPU pre-process-backend=opencv nireq=8 object-class=face  model-instance-id=ada-shared !
+  queue max-size-buffers=8 max-size-bytes=0 max-size-time=0 !
+  gvafpscounter interval=10 !
+  fakesink sync=false async=false t1. !
+  queue leaky=downstream max-size-buffers=2 !
+  videorate drop-only=true max-rate=2 !
+  vapostproc add-borders=true !
+  video/x-raw,format=BGRx,width=320,height=320 !
+  videoconvert !
+  video/x-raw,format=BGR !
+  gvadetect model=/home/admin1/chandana_optimization/sentinel_img13/rootfs/models/traffic/openvino/smoke_fire.xml model-proc=/home/admin1/chandana_optimization/cascade/fire_rgb_model_proc.json device=GPU pre-process-backend=opencv   threshold=0.35 model-instance-id=fire-shared !
+  gvafpscounter interval=10 !
+  fakesink sync=false async=false s1. !
+  queue leaky=downstream max-size-buffers=2 !
+  videorate drop-only=true max-rate=1 !
+  gvapython module=/home/admin1/chandana_optimization/cascade/secondary_branch.py class=Stash function=process kwarg={"key":1} !
+  vapostproc !
+  video/x-raw,format=BGRx,width=640,height=360 !
+  gvapython module=/home/admin1/chandana_optimization/cascade/secondary_branch.py class=Secondary function=process kwarg={"key":1} !
+  fakesink sync=false async=false
