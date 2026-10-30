@@ -65,6 +65,22 @@ def _report():
     _last[0], _last[1] = now, {k: v for k, v in _count.items() if k != "cams"} | {"cams": set()}
 
 
+def _prune_gait():
+    """The SentryCV gait step (OpenVINOGaitExtractor) keeps per-track buffers and last centers forever; drop the ones for tracks that are gone.
+    Track ids are never reused, so this cannot change any later gait result."""
+    g = _pipeline.models.gait
+    if g is None:
+        return
+    live = {(cam, tid) for cam, tracks in _pipeline.track_state.items() for tid in tracks}
+    for key in [k for k in g.centers if k not in live]:
+        del g.centers[key]
+    live_keys = {f"{cam}:{tid}" for cam, tid in live}
+    for key in [k for k in g.buffers if k not in live_keys]:
+        g.buffers.pop(key, None)
+        g.buffer_times.pop(key, None)
+        g.cache.pop(key, None)
+
+
 def _pts(frame):
     """Frame timestamp (the GStreamer buffer's PTS; the shrink keeps it)."""
     buffer = frame.buffer() if hasattr(frame, "buffer") else getattr(frame, "_VideoFrame__buffer")
@@ -115,6 +131,7 @@ class Secondary:
         with _lock:
             started = time.perf_counter()
             payload = _pipeline._process(result)
+            _prune_gait()
             _count["ms"] += (time.perf_counter() - started) * 1000
             _count["frames"] += 1
             _count["cams"].add(self.key)
