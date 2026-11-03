@@ -1,0 +1,11 @@
+--- /home/admin1/voyager-sdk-latest/operators/src/AxDecodeYolo8.cpp	2026-04-14 15:46:28.000000000 +0530
++++ operators_patched/src/AxDecodeYolo8.cpp	2026-11-03 13:33:50.123187417 +0530
+@@ -257,7 +257,7 @@
+           tensor_pair{ conf_idx, box_idx, -1, -1, mask_idx, prototype_idx });
+     }
+   } else {
+-    auto swap = num_classes < 64;
++    auto swap = num_classes < box_channels;
+     int tensors_per_level = has_extra_tensor ? 3 : 2;
+ 
+     for (auto i = size_t{}; i != indices.size(); i += tensors_per_level) {
