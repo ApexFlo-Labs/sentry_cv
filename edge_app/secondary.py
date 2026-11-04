@@ -146,9 +146,8 @@ class SecondaryModels:
         scores = np.asarray(self.ocr([tensor])[self.ocr_output], dtype=np.float64)
         if scores.ndim == 3:
             scores = scores[0]
-        shifted = scores - scores.max(axis=-1, keepdims=True)
-        probabilities = np.exp(shifted)
-        probabilities /= probabilities.sum(axis=-1, keepdims=True)
+        # The OCR model already ends in SoftMax, so these scores are probabilities.
+        probabilities = scores
         indices = np.argmax(probabilities, axis=-1)
         keep = indices != ALPHABET.index("_")
         text = _indian_plate_text(indices)
