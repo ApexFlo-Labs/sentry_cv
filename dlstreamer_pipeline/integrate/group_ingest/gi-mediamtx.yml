@@ -1,0 +1,12 @@
+# Test RTSP server for the pipeline tests: RTSP only on port 8655, no other protocols.
+logLevel: warn
+rtspAddress: :8655
+rtpAddress: :18000
+rtcpAddress: :18001
+rtmp: no
+hls: no
+webrtc: no
+srt: no
+api: no
+paths:
+  all_others:

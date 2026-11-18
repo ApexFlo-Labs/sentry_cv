@@ -152,7 +152,7 @@ def main():
         n = c["n"]
         parts.append(f"queue name=min{n} leaky=downstream max-size-buffers=4 ! gvadetect model={os.getenv("VEH_MODEL") or M + "/vehicle_v11_static.xml"} model-proc={P}/v11_model_proc.json "
                      f"device=GPU pre-process-backend=va-surface-sharing model-instance-id=det-shared nireq=6 threshold=0.3 ! {Q} ! identity name=vd{n} silent=true ! {Q} ! "
-                     f"gvatrack tracking-type=zero-term-imageless ! {Q} ! tee name=s{n} ! {Q} ! gvadetect model=/home/admin1/chandana_optimization/integrate/facecmp/models/scrfd_top1lm_u8.xml model-proc=/home/admin1/chandana_optimization/integrate/facecmp/scrfd_top1lm_proc.json "
+                     f"gvatrack tracking-type=zero-term-imageless ! {Q} ! tee name=s{n} ! {Q} ! gvadetect model={HERE}/facecmp/models/scrfd_top1lm_u8.xml model-proc={HERE}/facecmp/scrfd_top1lm_proc.json "
                      f"{SCRFD_DEV} nireq=8 inference-region=roi-list object-class=person "
                      f"inference-interval={FACE_INTERVAL} threshold=0.55 model-instance-id=scrfdlm-shared ! {Q} ! identity name=lm{n} silent=true ! {Q} ! identity name=fs{n} silent=true ! {Q} ! identity name=hp{n} silent=true ! {Q} ! identity name=ae{n} silent=true "
                      f"! {Q} ! gvametaconvert name=mc{n} add-tensor-data={TENSORS} add-empty-results=true ! tee name=et{n} ! "
@@ -191,7 +191,7 @@ def main():
         strip.strip_batch_meta(ctypes.c_void_p(hash(pipeline.get_by_name(f"mc{c['n']}").get_static_pad("sink"))))
         c["mux"], c["fmux"] = pipeline.get_by_name(f"min{c['n']}"), pipeline.get_by_name(f"fin{c['n']}")
         c["evt"], c["pix"], c["fevt"] = (pipeline.get_by_name(f"{k}{c['n']}") for k in ("evt", "pix", "fevt"))
-    cg = ctypes.CDLL("/home/admin1/chandana_optimization/integrate/gatesc/cgates.so")  # Option 6 engine steps
+    cg = ctypes.CDLL(os.path.join(HERE, "gatesc", "cgates.so"))  # Option 6 engine steps
     cg.cgates_attach_dedup_real.argtypes = [ctypes.c_void_p]
     cg.cgates_attach_face.argtypes = [ctypes.c_void_p, ctypes.c_int]
     cg.cgates_attach_pose_direct.argtypes = [ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p]
@@ -200,7 +200,7 @@ def main():
         src = lambda name: ctypes.c_void_p(hash(pipeline.get_by_name(f"{name}{c['n']}").get_static_pad("src")))
         cg.cgates_attach_dedup_real(src("vd"))  # really removes duplicates (rebuilds the analytics meta)
         cg.cgates_attach_face(src("fs"), int(os.getenv("GATE_FACE_MIN_PX", "28")))
-        if not cg.cgates_attach_pose_direct(src("hp"), b"/home/admin1/chandana_optimization/integrate/models/best_a0_fp16.xml", pose_device.encode(), None):
+        if not cg.cgates_attach_pose_direct(src("hp"), os.path.join(HERE, "models", "best_a0_fp16.xml").encode(), pose_device.encode(), None):
             log(f"FATAL head-pose model failed to load on {pose_device}")
             sys.exit(4)
     cg.cface_new.restype = ctypes.c_void_p

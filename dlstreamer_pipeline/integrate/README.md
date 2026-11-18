@@ -49,22 +49,40 @@ Engine alone (no V8) does 240/s, which is the ceiling. All runs below have V8's 
 - Kiranmai's own report marks QAFT as "not production-qualified" (GPU vs CPU confidence differs by up to
   0.199).
 
-## Layout and paths
+## Setup
 
-Paths are absolute for the test box and expect this layout:
+The code finds everything under `~/chandana_optimization` (= `$HOME/chandana_optimization`):
 
 ```
-~/chandana_optimization/integrate/            <- this folder
-~/chandana_optimization/group_ingest/app/     <- group_ingest_app/*.py (secondary branch: plates + OCR)
-~/chandana_optimization/group_ingest/models/  <- group_ingest_models/* + smoke_fire.xml/.bin (repo models/traffic-v11/openvino)
-~/chandana_optimization/group_ingest/secmodels/{traffic-v11,surveillance,scene}  <- repo models/ (LFS)
-~/chandana_optimization/sentrycv/venv         <- numpy / opencv / openvino site-packages used by the engine
-~/chandana_optimization/chandana_optimization_videos/*.mp4   <- test clips (run_integrate.sh streams them over RTSP)
+~/chandana_optimization/integrate/                      <- this folder (without group_ingest/)
+~/chandana_optimization/group_ingest/                   <- this folder's group_ingest/ (secondary branch: plates + OCR,
+                                                            strip_meta, model-procs, test RTSP config)
+~/chandana_optimization/group_ingest/edge_app/          <- the repo's edge_app/ (secondary code: plates + OCR, loaded by sec_shared.py)
+~/chandana_optimization/group_ingest/models/            <- + smoke_fire.xml/.bin from the repo's models/traffic-v11/openvino
+~/chandana_optimization/group_ingest/secmodels/{traffic-v11,surveillance,scene}  <- the repo's models/ (LFS)
 ```
 
-You also need DL Streamer 2026.2 (`/opt/intel/dlstreamer`) and OpenVINO 2026.2. Build the C gates once with
-`bash gatesc/build.sh`, and the frame exporter with `bash ufd/build_export.sh` if it is used. The static SigLIP
-model is generated from the dynamic one on first start.
+`setup_layout.sh` builds this layout from a checkout and compiles the C parts (`gatesc/build.sh` builds
+`cgates.so`, `group_ingest/app/build_strip_meta.sh` builds `strip_meta.so`):
+
+```bash
+git lfs pull                                        # real model files, not LFS pointers
+bash dlstreamer_pipeline/integrate/setup_layout.sh  # ROOT=/other/folder to put it elsewhere (then HOME=<parent of ROOT>)
+```
+
+Not code, so not in git. Provide these yourself:
+- `~/chandana_optimization/sentrycv/venv`: Python venv with `requirements-engine-venv.txt` (numpy, opencv-python-headless,
+  pillow). The engine runs `/usr/bin/python3` and adds this venv's site-packages.
+- `~/chandana_optimization/rtsp/mediamtx`: mediamtx v1.21.3 (test RTSP server; `run_integrate.sh` streams the clips through it).
+- `~/chandana_optimization/chandana_optimization_videos/`: the test clips `plate_clip_35-45min.mp4`, `PCR2_18h.mp4`,
+  `PCR2_10h.mp4`, `NVR_ch14.mp4`.
+- DL Streamer 2026.2 in `/opt/intel/dlstreamer` (GStreamer 1.28), OpenVINO 2026.2 (system Python), `ffmpeg`.
+
+The static SigLIP model is generated from the dynamic one on first start. Run `bash ufd/build_export.sh` only if you
+use the frame exporter (`EXPORT_EVERY` / `JPEG_GPU_RATE`, test only).
+
+Clean-room check: this folder was set up with `setup_layout.sh` into an empty folder on the test box, using only these
+git contents (with LFS) plus the three items above, and then run with `HOME=<that folder>`.
 
 ## Run
 

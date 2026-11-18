@@ -1,0 +1,132 @@
+{
+ "cameras": [
+  {
+   "name": "gi00",
+   "url": "rtsp://127.0.0.1:8655/gi00",
+   "width": 1920,
+   "height": 1080
+  },
+  {
+   "name": "gi01",
+   "url": "rtsp://127.0.0.1:8655/gi01",
+   "width": 1920,
+   "height": 1080
+  },
+  {
+   "name": "gi02",
+   "url": "rtsp://127.0.0.1:8655/gi02",
+   "width": 1920,
+   "height": 1080
+  },
+  {
+   "name": "gi03",
+   "url": "rtsp://127.0.0.1:8655/gi03",
+   "width": 2560,
+   "height": 1440
+  },
+  {
+   "name": "gi04",
+   "url": "rtsp://127.0.0.1:8655/gi04",
+   "width": 1920,
+   "height": 1080
+  },
+  {
+   "name": "gi05",
+   "url": "rtsp://127.0.0.1:8655/gi05",
+   "width": 1920,
+   "height": 1080
+  },
+  {
+   "name": "gi06",
+   "url": "rtsp://127.0.0.1:8655/gi06",
+   "width": 1920,
+   "height": 1080
+  },
+  {
+   "name": "gi07",
+   "url": "rtsp://127.0.0.1:8655/gi07",
+   "width": 2560,
+   "height": 1440
+  },
+  {
+   "name": "gi08",
+   "url": "rtsp://127.0.0.1:8655/gi08",
+   "width": 1920,
+   "height": 1080
+  },
+  {
+   "name": "gi09",
+   "url": "rtsp://127.0.0.1:8655/gi09",
+   "width": 1920,
+   "height": 1080
+  },
+  {
+   "name": "gi10",
+   "url": "rtsp://127.0.0.1:8655/gi10",
+   "width": 1920,
+   "height": 1080
+  },
+  {
+   "name": "gi11",
+   "url": "rtsp://127.0.0.1:8655/gi11",
+   "width": 2560,
+   "height": 1440
+  },
+  {
+   "name": "gi12",
+   "url": "rtsp://127.0.0.1:8655/gi12",
+   "width": 1920,
+   "height": 1080
+  },
+  {
+   "name": "gi13",
+   "url": "rtsp://127.0.0.1:8655/gi13",
+   "width": 1920,
+   "height": 1080
+  },
+  {
+   "name": "gi14",
+   "url": "rtsp://127.0.0.1:8655/gi14",
+   "width": 1920,
+   "height": 1080
+  },
+  {
+   "name": "gi15",
+   "url": "rtsp://127.0.0.1:8655/gi15",
+   "width": 2560,
+   "height": 1440
+  },
+  {
+   "name": "gi16",
+   "url": "rtsp://127.0.0.1:8655/gi16",
+   "width": 1920,
+   "height": 1080
+  },
+  {
+   "name": "gi17",
+   "url": "rtsp://127.0.0.1:8655/gi17",
+   "width": 1920,
+   "height": 1080
+  },
+  {
+   "name": "gi18",
+   "url": "rtsp://127.0.0.1:8655/gi18",
+   "width": 1920,
+   "height": 1080
+  },
+  {
+   "name": "gi19",
+   "url": "rtsp://127.0.0.1:8655/gi19",
+   "width": 2560,
+   "height": 1440
+  }
+ ],
+ "models_dir": "/home/admin1/chandana_optimization/group_ingest/models",
+ "procs_dir": "/home/admin1/chandana_optimization/group_ingest",
+ "max_group_size": 1,
+ "frozen_after_s": 60,
+ "min_free_gb": 5,
+ "publish": {
+  "method": "null"
+ }
+}
