@@ -5,7 +5,7 @@ cd ~/chandana_optimization/integrate
 if pgrep -f "[i]ntegrate[0-9]*.py" >/dev/null || ss -ltn | grep -q ":8655 "; then echo "busy: another run is active"; exit 1; fi
 CAMS=${CAMS:-20}; START=$(date "+%Y-%m-%d %H:%M:%S")
 MOCK_SAVE_EVERY=${MOCK_SAVE_EVERY:-20} CAMS=$CAMS DESIRED=desired_state_${CAMS}_anpr.json SCRIPT=${SCRIPT:-integrate9.py} CPU_OPT=threads CPU_OPT_THREADS=2 DROP_AT=${DROP_AT:-0} WARMUP_S=${WARMUP_S:-120} ./run_integrate.sh ${DUR:-420} > /tmp/full.txt 2>&1
-R=$(readlink -f run/latest); cp /tmp/full.txt $R/summary.txt
+R=$(readlink -f ${RUN_ROOT:-run}/latest); cp /tmp/full.txt $R/summary.txt
 echo "######## FULL $CAMS cams ${LABEL:-} ($R)"
 head -3 /tmp/full.txt | grep -a "busy\|already"
 grep -a "STEADY [0-9]* s\|STEADY latency_ms" $R/integrate.log | sed "s/^.*STEADY/STEADY/" | cut -c1-200

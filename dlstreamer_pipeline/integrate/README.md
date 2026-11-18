@@ -95,6 +95,66 @@ VEH_MODEL= ./run_best20.sh      # same, with the FP16 detector
 Results go to `run/<timestamp>/`: `integrate.log` (STEADY fps, PIXSTATS, handoff counters),
 `state/queues.txt` (queue fill/drops), and the mock delivery agent's packages (`mock_agent.py`, saves 1 in 20).
 
+## Desired-state changes while running, and /readyz (contract)
+
+`sentry-v8-contract.yaml` requires: a strictly increasing revision; validate the whole revision, then apply it
+atomically; an invalid revision keeps the last valid one and reports not ready. `runtime_supervisor.py` does this around
+`integrate9.py`, with the same behaviour as Kiranmai's `solution_image_entrypoint.py`:
+
+- Every 2 s (`DESIRED_STATE_RELOAD_INTERVAL`) it reads the desired-state file. A changed file is copied, the copy is
+  validated whole with her `DesiredStateValidator`, and its revision must be higher than the active one.
+- **Same cameras, sources, fps, apps and embedding profiles** (her `_hot_reload_signature`, in `desired_runtime.py`):
+  applied live. The engine sends each camera's new config to its V8 worker, which calls her
+  `V8EventPipeline.reconfigure()`. Zones, lines, bindings, object types and scene interval change without a restart.
+- **Anything else:** the engine is stopped cleanly and started with the new revision. If it does not start, the last
+  valid revision is started again.
+- **Rejected** (invalid file or revision not higher): the running revision stays, and `/readyz` returns 503 until a valid
+  revision arrives.
+- An engine that exits on its own is restarted with the active revision. The engine runs in its own process group, so
+  nothing is left behind when it stops.
+- Endpoints on `APEX_API_HOST:APEX_API_PORT` (default `0.0.0.0:8080`, as in `runtimeEndpoints`):
+  - `GET /readyz`: 200 or 503, with `ready`, `worker_running`, active revision, reload state, last error and
+    `per_camera_state`. Not-ready means the engine is not running, the engine heartbeat is silent, or the last revision
+    was rejected. It does not require every camera to be healthy.
+  - Per camera: `healthy` / `degraded` (`worker_starting`, `stale_frames`) / `unavailable` (`stream_disconnected`,
+    `heartbeat_silence`, `worker_not_running`), with `last_reliable_at`, `as_of`, `retrying`, reconnects, retry backoff, and
+    the requested and measured decoded / inference / events fps (10 s window).
+  - `GET /healthz`: always 200 while the process runs. Same details, plus recent events and `capacity`: requested vs
+    resolved aggregate fps, cameras below their requested fps, and `runtime_pressure`. This is the contract's
+    `capacityResponse`; the requested fps is never changed.
+  - `GET /metrics`: Prometheus text with her names (`apexfabric_runtime_ready/cameras/revision`,
+    `sentinel_camera_decoded_fps`, `_inference_fps`, `_last_frame_age_seconds`, `_reconnects_total`), plus requested and
+    resolved fps, pressure, camera state, and desired-state applied / hot / rejected / restart counts.
+
+Run it with `SCRIPT=runtime_supervisor.py` in `run_integrate.sh`. Without the supervisor, `integrate9.py` behaves as
+before: it reads the desired state once.
+
+Tests:
+- `run_reload_test.sh` (4 cameras, `rt_driver.py`): new zone (hot), broken JSON, lower revision, valid again,
+  fps change (restart), camera removed (restart). **8/8 passed**: hot changes applied by all workers with no restart,
+  and her rules used the new zone; rejected files left the old revision running with `/readyz` 503; the fps change
+  restarted the engine in 6 s with camera 1 at 5.0 events/s; 0 contract errors; no orphaned processes.
+- `run_sup20.sh` (20 cameras, one hot zone change in the middle): applied by 20/20 workers with no restart;
+  208.4 fps, the same as without the supervisor; 0 contract errors.
+- `run_health_test.sh` (4 cameras, `health_driver.py`): **7/7 passed**: all fields and `/metrics` present; capacity 40/40 fps,
+  pressure none; a camera's feed cut gives `unavailable/stream_disconnected` while `/readyz` stays 200; the camera
+  comes back healthy; an engine paused 8 s gives `/readyz` 503 with `heartbeat_silence`, then 200 again.
+- `run_pressure20.sh` (20 cameras): `/healthz` reports 200 fps requested against about 170 resolved, with
+  `runtime_pressure: high` and the cameras below 10 fps; `/readyz` stays 200.
+
+Still open against the contract:
+- `embeddingRules` asks for the exact face preprocessing for `adaface-ir101-v18.1`. Our one-SCRFD + C alignment
+  reaches cosine 0.942 median against her path (0.961 on faces she would embed); this needs her decision.
+- Container image (`resources`: uid 10001, mounts, devices) is not built yet. The test box has no Docker.
+
+Fixed:
+- "frame no longer held": the engine now holds 16 GPU frames per camera (`PIX_HELD`, was 8). 4 cameras: 0 errors (was
+  9-37 per camera). 20 cameras: 207.5 fps (unchanged), 2 errors, both in the first 5 s after start-up, 0 in steady
+  state.
+- Read-only code folder (`readOnlyRootFilesystem`): every write goes to a setting (`RUN_ROOT`, `INTEGRATE_SECRETS`,
+  `OV_CACHE_DIR`, `CV_CACHE_DIR`, `GST_REGISTRY`, `APEXFABRIC_STATE_ROOT`). Tested with the whole code folder read-only:
+  20 cameras, 207.5 fps, 0 write failures, 0 contract errors; the static SigLIP model was created in `CV_CACHE_DIR`.
+
 ## Switches (all off unless set; `run_best20.sh` sets the final ones)
 
 | Switch | Effect |
@@ -108,8 +168,9 @@ Results go to `run/<timestamp>/`: `integrate.log` (STEADY fps, PIXSTATS, handoff
 | `EVENTS_IDLE=1 NO_PIX=1 NO_IDENTITY=1` | diagnosis only (V8 parts off) |
 
 ## Known issues
-- Every run leaves 2 orphan `multiprocessing` processes (resource tracker + one spawn child, parent PID 1).
-  Kill them after each run; the root cause is not fixed yet.
+- Run without the supervisor, every run leaves 2 orphan `multiprocessing` processes (resource tracker + one spawn
+  child, parent PID 1); kill them after each run. Under `runtime_supervisor.py` they are stopped with the engine's
+  process group.
 - 0–6 "frame no longer held by the engine" errors per 5-minute run when V8 asks for a frame the engine has
   already released (8 frames are held).
 - Absolute paths: see Layout.

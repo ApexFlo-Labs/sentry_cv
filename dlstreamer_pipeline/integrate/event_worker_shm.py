@@ -490,6 +490,13 @@ def run(name, config, deployment_id, handoff_conn, inbox, stats, paths, face_int
             did = True
             if message[0] == "stop":
                 break
+            if message[0] == "reconfigure":  # new desired-state revision, same cameras: her V8 reconfigure (as her worker's hot config)
+                try:
+                    v8.reconfigure(message[1])
+                    config = message[1]
+                    print(f"{time.strftime('%T')} {name}: hot config applied, revision {v8.config['config_revision']}", flush=True)
+                except Exception as exc:  # noqa: BLE001
+                    print(f"{time.strftime('%T')} {name}: hot config FAILED: {type(exc).__name__}: {exc}", flush=True)
             if message[0] == "plates":  # our secondary branch's plate + OCR results (normalized boxes), used on the next main frame
                 pending_plates.extend((time.monotonic(), p) for p in message[1])
                 add("plates_in", len(message[1]))

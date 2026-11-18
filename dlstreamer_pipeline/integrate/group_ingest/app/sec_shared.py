@@ -46,7 +46,7 @@ CONFIG = {
     "face_enabled": False, "body_reid_enabled": True, "gait_enabled": True, "scene_enabled": True,
     "plate_size": 224, "plate_confidence": 0.35, "ocr_confidence": 0.4,
     "person_interval": 3, "plate_interval": 3, "track_iou_threshold": 0.1, "track_hold_frames": 3,
-    "scene_interval": 7, "queue_size": 32, "cache_dir": os.path.expanduser("~/chandana_optimization/ov_cache"),
+    "scene_interval": 7, "queue_size": 32, "cache_dir": os.getenv("OV_CACHE_DIR") or os.path.expanduser("~/chandana_optimization/ov_cache"),
 }
 _lock = threading.Lock()
 _pipeline = None

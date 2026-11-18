@@ -96,9 +96,22 @@ class HostSecretsValidator(DesiredStateValidator):
         return super()._validate_source(camera_id, host_path(value))
 
 
+def camera_config(camera):
+    """Her worker config for one desired-state camera (as her build_camera_config)."""
+    worker = _camera_to_worker(dataclasses.replace(camera, source=host_path(camera.source)))
+    config = {"camera_id": worker["camera_id"], "name": worker["name"], "enabled": True,
+              "processing": worker["processing"], "source": worker["source"], "analytics": worker["analytics"]}
+    config["runtime_analytics"] = normalize_runtime_analytics(config)
+    return worker, config
+
+
 def static_scene_model():
     """SigLIP on the NPU needs a fixed 1x3x224x224 input (her loader passes the model as is; her default device is GPU)."""
-    path = os.path.join(HERE, "models", "siglip2-base-patch16-224-static.xml")
+    path = os.path.join(HERE, "models", "siglip2-base-patch16-224-static.xml")  # pre-built (e.g. at image build)
+    if not os.path.exists(path):  # otherwise made once in a writable cache folder (the code folder may be read-only)
+        cache = os.getenv("CV_CACHE_DIR") or os.path.join(HERE, "models")
+        os.makedirs(cache, exist_ok=True)
+        path = os.path.join(cache, "siglip2-base-patch16-224-static.xml")
     if not os.path.exists(path):
         import openvino as ov
         model = ov.Core().read_model(f"{SEC}/scene/openvino/siglip2-base-patch16-224.xml")
@@ -134,10 +147,7 @@ def main():
     desired = HostSecretsValidator(SECRETS).load(Path(DESIRED))
     cams = []
     for n, camera in enumerate(desired.cameras):
-        worker = _camera_to_worker(dataclasses.replace(camera, source=host_path(camera.source)))
-        config = {"camera_id": worker["camera_id"], "name": worker["name"], "enabled": True,
-                  "processing": worker["processing"], "source": worker["source"], "analytics": worker["analytics"]}
-        config["runtime_analytics"] = normalize_runtime_analytics(config)  # as her build_camera_config
+        worker, config = camera_config(camera)
         cams.append({"n": n, "name": worker["camera_id"], "url": worker["source"]["uri"], "fps": int(round(worker["processing"]["fps"])),
                      "config": config, "deployment_id": config["analytics"]["v8_events"]["v8"]["deployment_id"],
                      "bin": None, "sink": None, "fsink": None, "rebuilds": 0, "wait": 1, "retry_at": 0, "last": 0, "seen": False,
@@ -233,7 +243,7 @@ def main():
         sinkpad = lambda name: ctypes.c_void_p(hash(pipeline.get_by_name(f"{name}{c['n']}").get_static_pad("sink")))
         if os.getenv("PIX_ON_DEMAND") == "1":  # keep 8 recent GPU frames, copy only the ones the V8 process asks for
             cg.creader_set_ondemand.argtypes = [ctypes.c_void_p, ctypes.c_int]
-            cg.creader_set_ondemand(c["creader"], int(os.getenv("PIX_HELD") or 8))
+            cg.creader_set_ondemand(c["creader"], int(os.getenv("PIX_HELD") or 16))
         export_every = int(os.getenv("EXPORT_EVERY") or 0)  # TEST: two-process image path (GPU frame handles -> image process)
         if JPEG_OD:  # before the on-demand thread starts, so every request goes to the GPU encoder
             cg.creader_set_jpeg_ondemand.argtypes = [ctypes.c_void_p] * 3
@@ -260,7 +270,7 @@ def main():
     ms_requests = ctx.Queue()
     ms_responses = {c["name"]: ctx.Queue() for c in cams}
     ms_ready = ctx.Queue()
-    ms_paths = {"body": paths["body"], "gait": paths["gait"], "scene": paths["scene"], "cache_dir": os.path.expanduser("~/chandana_optimization/ov_cache")}
+    ms_paths = {"body": paths["body"], "gait": paths["gait"], "scene": paths["scene"], "cache_dir": os.getenv("OV_CACHE_DIR") or os.path.expanduser("~/chandana_optimization/ov_cache")}
     ms_proc = ctx.Process(target=model_server.serve, name="model-server", daemon=True,
                           args=(ms_paths, os.getenv("MODEL_SERVER_DEVICE", "NPU"), ms_requests, ms_responses, ms_ready))
     ms_proc.start()
@@ -719,6 +729,49 @@ def main():
     for r in readers:
         r.start()
     GLib.timeout_add_seconds(1, watchdog)
+    status_path = os.getenv("RUNTIME_STATUS_PATH")
+    if status_path:  # run by runtime_supervisor.py: contract desired-state handling (hot part) + status for /readyz
+        import desired_runtime
+        live = {"desired": desired, "revision": desired.revision, "mtime": os.stat(DESIRED).st_mtime_ns, "error": ""}
+        by_id = {c["name"]: c for c in cams}
+        frames_i = event_worker.STATS.index("frames")
+
+        def desired_watch():
+            try:
+                mtime = os.stat(DESIRED).st_mtime_ns
+            except OSError:
+                mtime = live["mtime"]
+            if mtime != live["mtime"]:
+                live["mtime"] = mtime
+                try:
+                    new = desired_runtime.load(DESIRED)  # whole file validated before anything is applied
+                    if new.revision <= live["revision"]:
+                        raise ValueError(f"revision {new.revision} must be greater than active revision {live['revision']}")
+                    if desired_runtime.hot_reload_signature(new) != desired_runtime.hot_reload_signature(live["desired"]):
+                        raise ValueError("cameras, sources, fps, apps or embedding profiles changed: needs a new engine")
+                    configs = [camera_config(camera)[1] for camera in new.cameras]  # all built first, then sent
+                    for cfg in configs:
+                        by_id[cfg["camera_id"]]["config"] = cfg
+                        send(by_id[cfg["camera_id"]], ("reconfigure", cfg), droppable=False)
+                    live.update(desired=new, revision=new.revision, error="")
+                    log(f"desired state revision {new.revision}: new config sent to {len(configs)} cameras (no restart)")
+                except Exception as exc:  # noqa: BLE001  the running revision stays
+                    live["error"] = str(exc)[:300]
+                    log(f"desired state change not applied, revision {live['revision']} stays: {live['error']}")
+            now = time.time()
+            st = {"pid": os.getpid(), "at": now, "revision": live["revision"], "error": live["error"],
+                  "cameras": {c["name"]: {"running": c["bin"] is not None, "seen": bool(c["seen"]),
+                                          "last_frame_at": c["last"] or None,
+                                          "last_frame_age_s": round(now - c["last"], 3) if c["last"] else None,
+                                          "requested_fps": c["fps"], "frames_in": int(c["hdr"][3]), "main_out": int(c["hdr"][0]),
+                                          "retry_in_s": round(max(0.0, c["retry_at"] - now), 1) if c["bin"] is None else 0.0,
+                                          "rebuilds": c["rebuilds"], "frames_done": int(c["stats"][frames_i])} for c in cams}}
+            tmp = status_path + ".tmp"
+            with open(tmp, "w") as f:
+                json.dump(st, f)
+            os.replace(tmp, status_path)
+            return True
+        GLib.timeout_add_seconds(1, desired_watch)
     GLib.timeout_add_seconds(REPORT, report)
     if DURATION:
         GLib.timeout_add_seconds(DURATION, loop.quit)
