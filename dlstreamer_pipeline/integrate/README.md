@@ -154,6 +154,25 @@ Fixed:
 - Read-only code folder (`readOnlyRootFilesystem`): every write goes to a setting (`RUN_ROOT`, `INTEGRATE_SECRETS`,
   `OV_CACHE_DIR`, `CV_CACHE_DIR`, `GST_REGISTRY`, `APEXFABRIC_STATE_ROOT`). Tested with the whole code folder read-only:
   20 cameras, 207.5 fps, 0 write failures, 0 contract errors; the static SigLIP model was created in `CV_CACHE_DIR`.
+- Blank plate evidence frames (`REGION_DECODE=1`): her ANPR code keeps `packet.frame.copy()` as the plate frame, and a
+  copy of the lazy placeholder was all black. The placeholder is now an array type whose `copy()` returns the real
+  pixels (`event_worker_shm.py`, `_LazyFrame`). 20 cameras: 0 black of 1,705 plate frames (was 158 of 170).
+- Plate boxes on the wrong vehicle: plates from the plate branch were matched to a vehicle in a later frame by box
+  overlap (accepted down to 0.2). The branch now sends the frame it used (`pts`), and the worker finds the same
+  vehicle on that frame and its track id, then places the plate on that track now. 4 cameras: 100% matched by track,
+  boxes off the plate 8.7% -> 5.7% (plates older than 0.3 s: 70% -> 0%); the rest are mostly plate-model boxes.
+
+Full run with both fixes (20 cameras under `runtime_supervisor.py`, 15 min measured, every package saved):
+205.2 fps total, 7.5-9.1 fps per camera, latency median 356 ms, 140,638 packages, 0 contract errors, `/readyz`
+healthy throughout. All 97,725 evidence images decode and none is blank; all 12,168 crops whose source frame was
+saved match it pixel for pixel (offset 0,0).
+
+Known, not pipeline faults:
+- Plate OCR reads few plates: the plate branch works on 640x360, where plates on these wide views are 6-25 px.
+- Fire/smoke: all 122 alarms in the full run are "smoke" on hazy clips (score 0.75-0.87), with no smoke in view. The
+  fire branch input matches the model (320 letterbox, RGB, 0-1); to be checked with the model owner.
+- About one "frame no longer held" per 1.5 min at 20 cameras (10 in 15 min); each skips one frame's events.
+- The engine can crash on shutdown after all results are delivered (seen since 17 Nov); results are not affected.
 
 ## Switches (all off unless set; `run_best20.sh` sets the final ones)
 

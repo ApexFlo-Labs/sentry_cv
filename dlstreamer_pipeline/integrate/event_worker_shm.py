@@ -8,10 +8,11 @@ import os
 import sys
 import time
 import types
+import collections
 
 STATS = ["frames", "fire", "pixels", "geometry_only", "overwritten", "skipped", "face_frames", "errors",
          "ms_wait_pixels", "ms_tracker", "ms_faces", "ms_events", "ms_fire", "busy_ms",
-         "ms_parse", "missed_main", "missed_fire", "no_pixels", "steady_at", "plates_in", "plates_used", "plates_unmatched", "identity_frames", "pix_requests", "lazy_frames", "lazy_fetch", "lazy_miss", "jpeg_direct", "jpeg_decoded", "cpu_encoded", "lazy_stale", "region_decoded", "region_checked", "region_mismatch"]
+         "ms_parse", "missed_main", "missed_fire", "no_pixels", "steady_at", "plates_in", "plates_used", "plates_unmatched", "identity_frames", "pix_requests", "lazy_frames", "lazy_fetch", "lazy_miss", "jpeg_direct", "jpeg_decoded", "cpu_encoded", "lazy_stale", "region_decoded", "region_checked", "region_mismatch", "lazy_copy", "copy_miss", "plates_exact", "plates_fallback"]
 LAYOUT = {"ps": 6, "pb": 3840 * 2160 * 3 // 2, "js": 16, "jb": 512 * 1024, "fs": 8, "fb": 64 * 1024}
 VEHICLE_CLASS_NAMES = {0: "bus", 1: "car", 2: "minivan", 3: "motorcycle", 4: "rickshaw", 5: "truck", 6: "bicycle", 7: "pedestrian"}
 
@@ -240,6 +241,18 @@ def run(name, config, deployment_id, handoff_conn, inbox, stats, paths, face_int
                 return frame
             return arr
 
+        class _LazyFrame(np.ndarray):
+            """Placeholder frame (size only, no pixels). copy() returns the REAL pixels: her ANPR code keeps
+            packet.frame.copy() as the plate evidence frame and encodes it seconds later, when the placeholder
+            can no longer be recognised (a plain copy of the placeholder would be an all-black image)."""
+            def copy(self, order="C"):
+                real = _materialize(self)
+                if real is self:  # a slice/view of a placeholder, not the frame itself: no real pixels known
+                    add("copy_miss", 1)
+                    return np.array(self, order=order, subok=False)
+                add("lazy_copy", 1)
+                return np.array(real, order=order, subok=False)
+
         def _lazy_evidence(self, event, frame_id, image, kind, bounds, frame_shape, now, *, content_key=None):
             if (pix_jpeg or no_pix) and kind == "frame" and image is not None and (image is lazy_state["placeholder"] or image is lazy_state["frame"]):
                 body = tiny_jpeg if no_pix else current_jpeg()
@@ -427,6 +440,14 @@ def run(name, config, deployment_id, handoff_conn, inbox, stats, paths, face_int
         return out
 
     pending_plates = []
+    vehicle_history = collections.OrderedDict()  # pts -> [(normalized detector box, track id)] of recent frames
+
+    def iou_n(a, b):
+        ix = max(0.0, min(a[2], b[2]) - max(a[0], b[0]))
+        iy = max(0.0, min(a[3], b[3]) - max(a[1], b[1]))
+        inter = ix * iy
+        union = (a[2] - a[0]) * (a[3] - a[1]) + (b[2] - b[0]) * (b[3] - b[1]) - inter
+        return inter / union if union > 0 else 0.0
 
     def plates_for(dets, width, height):
         """Her plate input: license_plate detections with parent_id = vehicle track id and OCR text in metadata.
@@ -434,9 +455,26 @@ def run(name, config, deployment_id, handoff_conn, inbox, stats, paths, face_int
         position relative to the vehicle box. Unmatched plates are kept 1.5 s, then dropped (counted)."""
         out, keep, now_m = [], [], time.monotonic()
         vehicles = [d for d in dets if d.model_name == "vehicle" and d.class_name != "pedestrian" and d.metadata.get("track_id") is not None]
-        for t_in, (vb, pb, text, ocr_conf, det_conf, oid) in pending_plates:
+        for t_in, item in pending_plates:
+            vb, pb, text, ocr_conf, det_conf, oid = item[:6]
+            spts = item[6] if len(item) > 6 else None
             best, best_iou = None, 0.0
-            for d in vehicles:
+            track = None
+            if spts is not None and spts in vehicle_history:  # the plate's own frame: its vehicle box is one of that frame's boxes
+                seen = [(iou_n(box, vb), tid) for box, tid in vehicle_history[spts]]
+                if seen and max(seen)[0] >= 0.7:
+                    track = max(seen)[1]
+            if track is not None:
+                best = next((d for d in vehicles if d.metadata["track_id"] == track), None)
+                if best is None:  # its vehicle is not in this frame (occluded or missed): wait for it
+                    if now_m - t_in < 1.5:
+                        keep.append((t_in, item))
+                    else:
+                        add("plates_unmatched", 1)
+                    continue
+                best_iou = 1.0
+                add("plates_exact", 1)
+            for d in (vehicles if track is None else []):
                 b = (d.bbox[0] / width, d.bbox[1] / height, d.bbox[2] / width, d.bbox[3] / height)
                 ix = max(0.0, min(b[2], vb[2]) - max(b[0], vb[0]))
                 iy = max(0.0, min(b[3], vb[3]) - max(b[1], vb[1]))
@@ -445,9 +483,11 @@ def run(name, config, deployment_id, handoff_conn, inbox, stats, paths, face_int
                 score = inter / union if union > 0 else 0.0
                 if score > best_iou:
                     best, best_iou = d, score
+            if track is None and best is not None and best_iou >= 0.2:
+                add("plates_fallback", 1)  # plate's frame not known (older sender or frame not processed): overlap match
             if best is None or best_iou < 0.2:
                 if now_m - t_in < 1.5:
-                    keep.append((t_in, (vb, pb, text, ocr_conf, det_conf, oid)))
+                    keep.append((t_in, item))
                 else:
                     add("plates_unmatched", 1)
                 continue
@@ -549,7 +589,7 @@ def run(name, config, deployment_id, handoff_conn, inbox, stats, paths, face_int
                         add("no_pixels", 1)
                     else:
                         if frame is None and lazy:
-                            frame = lazy_state["placeholder"] = np.broadcast_to(lazy_zero, (height, width, 3))  # size only, no pixels
+                            frame = lazy_state["placeholder"] = np.broadcast_to(lazy_zero, (height, width, 3)).view(_LazyFrame)  # size only, no pixels
                             rec = lazy_state["recent"]
                             rec[id(frame)] = (frame, pts)
                             if len(rec) > 8:
@@ -566,7 +606,12 @@ def run(name, config, deployment_id, handoff_conn, inbox, stats, paths, face_int
                         packet = FramePacket(index=n, name=name, frame=frame, frame_observed_at=observed, frame_received_at=observed)
                         packet.detections = detections
                         packet.analytics_state["fire_smoke_evaluated"] = False
+                        raw_boxes = [(d, (d.bbox[0] / width, d.bbox[1] / height, d.bbox[2] / width, d.bbox[3] / height))
+                                     for d in detections if d.model_name == "vehicle" and d.class_name != "pedestrian"]
                         tracker.process([packet])
+                        vehicle_history[pts] = [(box, d.metadata["track_id"]) for d, box in raw_boxes if d.metadata.get("track_id") is not None]
+                        while len(vehicle_history) > 64:  # ~6 s at 10 fps; plates arrive within ~0.1-1.5 s
+                            vehicle_history.popitem(last=False)
                         if pending_plates:
                             packet.detections.extend(plates_for(packet.detections, width, height))
                         t2 = time.perf_counter()

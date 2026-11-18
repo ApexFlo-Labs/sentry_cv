@@ -339,7 +339,8 @@ def main():
         w, h = float(payload["frame"]["width"]), float(payload["frame"]["height"])
         norm = lambda b: (b[0] / w, b[1] / h, b[2] / w, b[3] / h)
         items = [(norm(p["vehicle_bbox"]), norm(p["bbox"]), p.get("text") or "", float(p.get("ocr_confidence") or 0.0),
-                  float(p.get("detection_confidence") or 0.0), f"sec-{key}-{time.monotonic_ns()}-{i}") for i, p in enumerate(plates)]
+                  float(p.get("detection_confidence") or 0.0), f"sec-{key}-{time.monotonic_ns()}-{i}", payload.get("pts"))
+                 for i, p in enumerate(plates)]
         send(cams[int(key)], ("plates", items))
     plate_sink.append(forward_plates)
 

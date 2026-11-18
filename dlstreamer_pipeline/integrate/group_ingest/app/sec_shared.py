@@ -145,5 +145,6 @@ class Secondary:
             _count["gait"] += len(payload["gait"])
             _count["scene"] += payload["scene"] is not None
             _report()
+        payload["pts"] = _pts(frame)  # frame the plates were found on: the rules process matches them by track on this frame
         publish_shared.write(self.key, payload)
         return True
