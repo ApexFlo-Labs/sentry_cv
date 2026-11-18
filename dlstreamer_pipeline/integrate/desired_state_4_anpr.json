@@ -1,0 +1,649 @@
+{
+ "contract": "sentry-v8",
+ "schema_version": "8.0",
+ "edge_id": "chandana-integrate",
+ "deployment_id": "chandana-integrate",
+ "revision": 2,
+ "cameras": [
+  {
+   "camera_id": "cam00",
+   "source": "file:/run/secrets/sentinel/cameras/cam00.url",
+   "fps": 10,
+   "geometry": {
+    "zones": [
+     {
+      "id": "cam00-road",
+      "name": "Road",
+      "poly": [
+       [
+        0.02,
+        0.35
+       ],
+       [
+        0.98,
+        0.35
+       ],
+       [
+        0.98,
+        0.98
+       ],
+       [
+        0.02,
+        0.98
+       ]
+      ]
+     },
+     {
+      "id": "cam00-centre",
+      "name": "Centre",
+      "poly": [
+       [
+        0.3,
+        0.3
+       ],
+       [
+        0.7,
+        0.3
+       ],
+       [
+        0.7,
+        0.9
+       ],
+       [
+        0.3,
+        0.9
+       ]
+      ]
+     }
+    ],
+    "counting_lines": [
+     {
+      "id": "cam00-line",
+      "name": "Middle line",
+      "a": [
+       0.05,
+       0.6
+      ],
+      "b": [
+       0.95,
+       0.6
+      ],
+      "direction_mapping": {
+       "left_to_right": "out",
+       "right_to_left": "in"
+      }
+     }
+    ]
+   },
+   "bindings": [
+    {
+     "use_case_id": "cam00-vehicle-count",
+     "app": "vehicle_counting",
+     "scope": "geometry",
+     "geometry_ids": [
+      "cam00-road"
+     ],
+     "object_types": [
+      "vehicle"
+     ]
+    },
+    {
+     "use_case_id": "cam00-vehicle-presence",
+     "app": "vehicle_presence",
+     "scope": "geometry",
+     "geometry_ids": [
+      "cam00-road",
+      "cam00-centre"
+     ],
+     "object_types": [
+      "vehicle"
+     ]
+    },
+    {
+     "use_case_id": "cam00-vehicle-crossing",
+     "app": "vehicle_entry_exit_counts",
+     "scope": "geometry",
+     "geometry_ids": [
+      "cam00-line"
+     ],
+     "object_types": [
+      "vehicle"
+     ]
+    },
+    {
+     "use_case_id": "cam00-person-presence",
+     "app": "person_presence",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": [
+      "person"
+     ]
+    },
+    {
+     "use_case_id": "cam00-person-identity",
+     "app": "person_identity",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": [
+      "person"
+     ],
+     "embedding_profile_ids": [
+      "adaface-ir101-v18.1",
+      "transreid-ssl-v18.1",
+      "gaitbase-v18.1"
+     ]
+    },
+    {
+     "use_case_id": "cam00-scene",
+     "app": "scene_search",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": [],
+     "embedding_profile_ids": [
+      "siglip2-base-v1"
+     ],
+     "sample_interval_seconds": 30,
+     "scene_trigger_use_case_ids": [
+      "cam00-vehicle-presence"
+     ]
+    },
+    {
+     "use_case_id": "cam00-fire",
+     "app": "fire_smoke",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": []
+    },
+    {
+     "use_case_id": "cam00-anpr",
+     "app": "anpr",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": [
+      "vehicle"
+     ]
+    }
+   ]
+  },
+  {
+   "camera_id": "cam01",
+   "source": "file:/run/secrets/sentinel/cameras/cam01.url",
+   "fps": 10,
+   "geometry": {
+    "zones": [
+     {
+      "id": "cam01-road",
+      "name": "Road",
+      "poly": [
+       [
+        0.02,
+        0.35
+       ],
+       [
+        0.98,
+        0.35
+       ],
+       [
+        0.98,
+        0.98
+       ],
+       [
+        0.02,
+        0.98
+       ]
+      ]
+     },
+     {
+      "id": "cam01-centre",
+      "name": "Centre",
+      "poly": [
+       [
+        0.3,
+        0.3
+       ],
+       [
+        0.7,
+        0.3
+       ],
+       [
+        0.7,
+        0.9
+       ],
+       [
+        0.3,
+        0.9
+       ]
+      ]
+     }
+    ],
+    "counting_lines": [
+     {
+      "id": "cam01-line",
+      "name": "Middle line",
+      "a": [
+       0.05,
+       0.6
+      ],
+      "b": [
+       0.95,
+       0.6
+      ],
+      "direction_mapping": {
+       "left_to_right": "out",
+       "right_to_left": "in"
+      }
+     }
+    ]
+   },
+   "bindings": [
+    {
+     "use_case_id": "cam01-vehicle-count",
+     "app": "vehicle_counting",
+     "scope": "geometry",
+     "geometry_ids": [
+      "cam01-road"
+     ],
+     "object_types": [
+      "vehicle"
+     ]
+    },
+    {
+     "use_case_id": "cam01-vehicle-presence",
+     "app": "vehicle_presence",
+     "scope": "geometry",
+     "geometry_ids": [
+      "cam01-road",
+      "cam01-centre"
+     ],
+     "object_types": [
+      "vehicle"
+     ]
+    },
+    {
+     "use_case_id": "cam01-vehicle-crossing",
+     "app": "vehicle_entry_exit_counts",
+     "scope": "geometry",
+     "geometry_ids": [
+      "cam01-line"
+     ],
+     "object_types": [
+      "vehicle"
+     ]
+    },
+    {
+     "use_case_id": "cam01-person-presence",
+     "app": "person_presence",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": [
+      "person"
+     ]
+    },
+    {
+     "use_case_id": "cam01-person-identity",
+     "app": "person_identity",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": [
+      "person"
+     ],
+     "embedding_profile_ids": [
+      "adaface-ir101-v18.1",
+      "transreid-ssl-v18.1",
+      "gaitbase-v18.1"
+     ]
+    },
+    {
+     "use_case_id": "cam01-scene",
+     "app": "scene_search",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": [],
+     "embedding_profile_ids": [
+      "siglip2-base-v1"
+     ],
+     "sample_interval_seconds": 30,
+     "scene_trigger_use_case_ids": [
+      "cam01-vehicle-presence"
+     ]
+    },
+    {
+     "use_case_id": "cam01-fire",
+     "app": "fire_smoke",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": []
+    },
+    {
+     "use_case_id": "cam01-anpr",
+     "app": "anpr",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": [
+      "vehicle"
+     ]
+    }
+   ]
+  },
+  {
+   "camera_id": "cam02",
+   "source": "file:/run/secrets/sentinel/cameras/cam02.url",
+   "fps": 10,
+   "geometry": {
+    "zones": [
+     {
+      "id": "cam02-road",
+      "name": "Road",
+      "poly": [
+       [
+        0.02,
+        0.35
+       ],
+       [
+        0.98,
+        0.35
+       ],
+       [
+        0.98,
+        0.98
+       ],
+       [
+        0.02,
+        0.98
+       ]
+      ]
+     },
+     {
+      "id": "cam02-centre",
+      "name": "Centre",
+      "poly": [
+       [
+        0.3,
+        0.3
+       ],
+       [
+        0.7,
+        0.3
+       ],
+       [
+        0.7,
+        0.9
+       ],
+       [
+        0.3,
+        0.9
+       ]
+      ]
+     }
+    ],
+    "counting_lines": [
+     {
+      "id": "cam02-line",
+      "name": "Middle line",
+      "a": [
+       0.05,
+       0.6
+      ],
+      "b": [
+       0.95,
+       0.6
+      ],
+      "direction_mapping": {
+       "left_to_right": "out",
+       "right_to_left": "in"
+      }
+     }
+    ]
+   },
+   "bindings": [
+    {
+     "use_case_id": "cam02-vehicle-count",
+     "app": "vehicle_counting",
+     "scope": "geometry",
+     "geometry_ids": [
+      "cam02-road"
+     ],
+     "object_types": [
+      "vehicle"
+     ]
+    },
+    {
+     "use_case_id": "cam02-vehicle-presence",
+     "app": "vehicle_presence",
+     "scope": "geometry",
+     "geometry_ids": [
+      "cam02-road",
+      "cam02-centre"
+     ],
+     "object_types": [
+      "vehicle"
+     ]
+    },
+    {
+     "use_case_id": "cam02-vehicle-crossing",
+     "app": "vehicle_entry_exit_counts",
+     "scope": "geometry",
+     "geometry_ids": [
+      "cam02-line"
+     ],
+     "object_types": [
+      "vehicle"
+     ]
+    },
+    {
+     "use_case_id": "cam02-person-presence",
+     "app": "person_presence",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": [
+      "person"
+     ]
+    },
+    {
+     "use_case_id": "cam02-person-identity",
+     "app": "person_identity",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": [
+      "person"
+     ],
+     "embedding_profile_ids": [
+      "adaface-ir101-v18.1",
+      "transreid-ssl-v18.1",
+      "gaitbase-v18.1"
+     ]
+    },
+    {
+     "use_case_id": "cam02-scene",
+     "app": "scene_search",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": [],
+     "embedding_profile_ids": [
+      "siglip2-base-v1"
+     ],
+     "sample_interval_seconds": 30,
+     "scene_trigger_use_case_ids": [
+      "cam02-vehicle-presence"
+     ]
+    },
+    {
+     "use_case_id": "cam02-fire",
+     "app": "fire_smoke",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": []
+    },
+    {
+     "use_case_id": "cam02-anpr",
+     "app": "anpr",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": [
+      "vehicle"
+     ]
+    }
+   ]
+  },
+  {
+   "camera_id": "cam03",
+   "source": "file:/run/secrets/sentinel/cameras/cam03.url",
+   "fps": 10,
+   "geometry": {
+    "zones": [
+     {
+      "id": "cam03-road",
+      "name": "Road",
+      "poly": [
+       [
+        0.02,
+        0.35
+       ],
+       [
+        0.98,
+        0.35
+       ],
+       [
+        0.98,
+        0.98
+       ],
+       [
+        0.02,
+        0.98
+       ]
+      ]
+     },
+     {
+      "id": "cam03-centre",
+      "name": "Centre",
+      "poly": [
+       [
+        0.3,
+        0.3
+       ],
+       [
+        0.7,
+        0.3
+       ],
+       [
+        0.7,
+        0.9
+       ],
+       [
+        0.3,
+        0.9
+       ]
+      ]
+     }
+    ],
+    "counting_lines": [
+     {
+      "id": "cam03-line",
+      "name": "Middle line",
+      "a": [
+       0.05,
+       0.6
+      ],
+      "b": [
+       0.95,
+       0.6
+      ],
+      "direction_mapping": {
+       "left_to_right": "out",
+       "right_to_left": "in"
+      }
+     }
+    ]
+   },
+   "bindings": [
+    {
+     "use_case_id": "cam03-vehicle-count",
+     "app": "vehicle_counting",
+     "scope": "geometry",
+     "geometry_ids": [
+      "cam03-road"
+     ],
+     "object_types": [
+      "vehicle"
+     ]
+    },
+    {
+     "use_case_id": "cam03-vehicle-presence",
+     "app": "vehicle_presence",
+     "scope": "geometry",
+     "geometry_ids": [
+      "cam03-road",
+      "cam03-centre"
+     ],
+     "object_types": [
+      "vehicle"
+     ]
+    },
+    {
+     "use_case_id": "cam03-vehicle-crossing",
+     "app": "vehicle_entry_exit_counts",
+     "scope": "geometry",
+     "geometry_ids": [
+      "cam03-line"
+     ],
+     "object_types": [
+      "vehicle"
+     ]
+    },
+    {
+     "use_case_id": "cam03-person-presence",
+     "app": "person_presence",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": [
+      "person"
+     ]
+    },
+    {
+     "use_case_id": "cam03-person-identity",
+     "app": "person_identity",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": [
+      "person"
+     ],
+     "embedding_profile_ids": [
+      "adaface-ir101-v18.1",
+      "transreid-ssl-v18.1",
+      "gaitbase-v18.1"
+     ]
+    },
+    {
+     "use_case_id": "cam03-scene",
+     "app": "scene_search",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": [],
+     "embedding_profile_ids": [
+      "siglip2-base-v1"
+     ],
+     "sample_interval_seconds": 30,
+     "scene_trigger_use_case_ids": [
+      "cam03-vehicle-presence"
+     ]
+    },
+    {
+     "use_case_id": "cam03-fire",
+     "app": "fire_smoke",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": []
+    },
+    {
+     "use_case_id": "cam03-anpr",
+     "app": "anpr",
+     "scope": "full_frame",
+     "geometry_ids": [],
+     "object_types": [
+      "vehicle"
+     ]
+    }
+   ]
+  }
+ ]
+}
