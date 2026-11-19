@@ -143,14 +143,26 @@ def install_shared_memory(cameras_file=None):
         stdlib_shm.SharedMemory = FileSharedMemory
 
 
-def relax_camera_tls(_urisourcebin, source):
-    """Camera TLS without CA matching (user decision 2026-11-18): rtsps:// and https:// sources accept any certificate."""
+def camera_source_setup(_urisourcebin, source):
+    """Every camera source, before it connects.
+    RTSP: only the camera's video tracks are set up, over TCP. Cameras that also send audio or ONVIF metadata otherwise
+    give decodebin3 extra outputs (site report 2026-11-19: "not-linked" on two cameras that FFmpeg read fine; a data
+    track listed first was even decoded instead of the video in our test), and UDP is often blocked between networks.
+    TLS without CA matching (user decision 2026-11-18): rtsps:// and https:// sources accept any certificate."""
     names = {p.name for p in source.list_properties()}
+    if "protocols" in names and source.get_factory().get_name() == "rtspsrc":
+        from gi.repository import Gst
+        Gst.util_set_object_arg(source, "protocols", "tcp")
+        source.connect("select-stream", _video_track_only)
     if "tls-validation-flags" in names:  # rtspsrc (rtsps://)
         from gi.repository import Gio
         source.set_property("tls-validation-flags", Gio.TlsCertificateFlags(0))
     if "ssl-strict" in names:  # souphttpsrc (https://)
         source.set_property("ssl-strict", False)
+
+
+def _video_track_only(_rtspsrc, _num, caps):
+    return caps.get_structure(0).get_string("media") == "video"
 
 
 def mark_ready(camera_id):

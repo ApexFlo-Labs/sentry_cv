@@ -7,6 +7,7 @@ setup_dls_env.sh + her switches (run_best20.sh / run_full9.sh / run_integrate.sh
 """
 import json
 import os
+import resource
 import sys
 
 ROOT = os.environ["DLS_INTEGRATE_ROOT"]  # .../chandana_optimization (her layout, setup_layout.sh)
@@ -58,6 +59,9 @@ def main():
     os.makedirs(env["TMPDIR"], exist_ok=True)
     os.chdir(os.path.dirname(ENGINE))
     sys.stdout.flush()
+    # No core files: a crash of the engine (or one of its processes) wrote 5-6 GB cores to the host through apport
+    # and filled its disk (.64, 2026-11-19). Inherited by the engine and all its child processes.
+    resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
     os.execve("/usr/bin/python3", ["/usr/bin/python3", "-u", "-s", ENGINE, os.environ["CAMERAS_FILE"], "0"], env)
 
 

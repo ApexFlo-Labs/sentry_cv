@@ -131,8 +131,8 @@ patch(root / "integrate9.py", [
      "        log(f\"FATAL from {path}: {err.message} | {debug}\")\n"),
     ("        cam[\"bin\"] = Gst.parse_bin_from_description(desc, False)\n",
      "        cam[\"bin\"] = Gst.parse_bin_from_description(desc, False)\n"
-     "        if cam[\"bin\"].get_by_name(\"usrc\") is not None:  # camera TLS without CA matching (rtsps/https)\n"
-     "            cam[\"bin\"].get_by_name(\"usrc\").connect(\"source-setup\", contract_glue.relax_camera_tls)\n"),
+     "        if cam[\"bin\"].get_by_name(\"usrc\") is not None:  # video tracks only, RTSP over TCP, TLS without CA matching\n"
+     "            cam[\"bin\"].get_by_name(\"usrc\").connect(\"source-setup\", contract_glue.camera_source_setup)\n"),
     ("    def stream_ready(url):\n        u = urlparse(url)\n        try:\n",
      "    def stream_ready(url):\n        u = urlparse(url)\n"
      "        if u.scheme.lower() != \"rtsp\":  # CONTRACT: tcp/http/rtsps sources (adapter allows them) - her check speaks plain RTSP\n"

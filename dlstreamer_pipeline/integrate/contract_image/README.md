@@ -34,7 +34,8 @@ in the image but not used: the V8 supervisor runs instead (it also handles per-c
 | 6 | V8's decoder/supervisor status files + V8 CameraTelemetry per camera; requested vs delivered fps and engine drops as gauges | `contract_glue.CameraStatus` | capacityResponse, cameraHealth |
 | 7 | `tcp://` sources (tcpclientsrc, as V8); non-RTSP reachability check | patch | adapter source types |
 | 8 | Camera down at start, or added while unreachable: reported unavailable and retried; its idle branch's errors are not fatal | patch | runtimeAvailability, cameraIsolation |
-| 9 | Camera TLS without CA matching (rtsps/https), user decision 2026-11-18 | `contract_glue.relax_camera_tls` | — |
+| 9 | Camera sources: RTSP sets up only video tracks, over TCP (site report 2026-11-19: cameras with audio/metadata tracks failed "not-linked"); TLS without CA matching (rtsps/https), user decision 2026-11-18 | `contract_glue.camera_source_setup` | adapter source types |
+| 16 | No core files (RLIMIT_CORE 0): crashes filled the host disk with 5-6 GB cores through apport | shim | resources |
 | 10 | Shared memory as V8: /dev/shm when it holds every camera's blocks, else files in /tmp/sentinel/shm | `contract_glue.install_shared_memory` | resources (writable mounts) |
 | 11 | OpenVINO caches in /tmp/sentinel, one shared cache with compiles taking turns (file lock) | `contract_glue.child`, shim | resources |
 | 12 | A dead camera event process is restarted alone (max 5); near-zero output for 60 s (GPU hang) stops the worker; a worker that exits is restarted with the last valid revision (5 s .. 300 s backoff) | patch, `dls_entrypoint.py` | cameraIsolation, recovery |
