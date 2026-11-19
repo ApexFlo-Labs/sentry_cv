@@ -39,6 +39,9 @@ ENV HANDOFF_PROCESS=1 HANDOFF_QUEUE=64 PIX_VIA_MAP=1 CFACES=1 POLICY_OURS=1 \
     WARMUP_S=120 T_GAIT_SCALE=1
 
 LABEL org.opencontainers.image.title="sentinel-cv-dls-integrate" \
+      org.opencontainers.image.source="https://github.com/ApexFlo-Labs/sentry_cv" \
+      org.opencontainers.image.revision="${SRC_COMMIT}" \
+      org.opencontainers.image.description="Integrated DL Streamer pipeline (branch dlstreamer-pipeline) as a Sentry V8 contract CV image" \
       io.apexfabric.image.role="cv-runtime" \
       io.apexfabric.contract.version="8.0" \
       io.apexfabric.contract.status="development" \

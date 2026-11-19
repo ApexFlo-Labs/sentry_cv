@@ -1,7 +1,7 @@
 # Chandana's DL Streamer integrate pipeline as a V8-contract image
 
-Image: `localhost/sentinel-cv-dls-integrate:v1`, pushed as `ghcr.io/kiranmaibattu-cyber/sentinel-cv-dls-integrate:<tag>`
-(separate package from the `sentinel-cv-runtime` builds).
+Image: `localhost/sentinel-cv-dls-integrate:v1`, pushed as `ghcr.io/apexflo-labs/sentinel-cv-dls-integrate:<tag>`
+(linked to this repo through the `org.opencontainers.image.source` label; separate from the `sentinel-cv-runtime` builds).
 Source: this repo (ApexFlo-Labs/sentry_cv, branch `dlstreamer-pipeline`) at the commit checked out:
 `dlstreamer_pipeline/integrate/` + `edge_app/` + `models/{traffic-v11,surveillance,scene}`.
 Contract: `runtime/image_schema/sentry-v8-contract.yaml` (sentry_cv b645c04, identical to her `v8code/image_schema` copy).
