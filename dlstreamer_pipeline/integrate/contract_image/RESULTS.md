@@ -230,3 +230,12 @@ Not re-run on this commit: faces (vectors 53/53 vs V8 reference on 5322afcff3da;
 limits. Her plate fix is in the image but was not measured here (no plate fixture in these tests).
 Open before production: face count vs T2, GPU hang of the shared detector at 20–32 cameras on .92 (auto-recovers),
 ~30 cameras in 14Gi, no run on .64, no real delivery agent.
+
+## 2026-11-19: RTSP video tracks only over TCP, no core files (commit 2b71cc4)
+
+Site report: two cameras failed in GStreamer with "not-linked" (FFmpeg read them); on-site fix was video streams only + TCP.
+Image 5419f89ed000, pushed as `ghcr.io/apexflo-labs/sentinel-cv-dls-integrate:v1-2026-11-19-2b71cc4` (registry digest `sha256:3ab2c8516e027047129c904c20ebfd6c942a80e41af9bce1c703e20bbb144ca2`).
+- 4 cameras with extra tracks (AAC audio, G.711 audio, audio listed first, data track listed first): all healthy, 7.99/8 fps,
+  no not-linked, no FATAL (`~/Documents/dls-audio-fix-2026-11-19/e2e.sh`). The previous image decoded the data track
+  instead of the video on the last one (1 fps). The exact site error was not reproduced locally.
+- Core file limit 0 in the engine. Contract 12/12, camera types 10/10.
