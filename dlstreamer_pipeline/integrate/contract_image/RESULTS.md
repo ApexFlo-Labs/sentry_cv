@@ -220,7 +220,7 @@ Open before production: face count ~40 % of T2 (FACE_INTERVAL=43 likely), GPU ha
 ## Image from this repo: her 4d563b5 (plate evidence fix, her runtime work) + contract_image, 2026-11-19, .92
 Built with `contract_image/build.sh` from commit 12c13e2 (b3ba3b94048e) and, with only the OCI source/revision labels
 added, from b5dd408 (be38cf854b63, pushed as `ghcr.io/apexflo-labs/sentinel-cv-dls-integrate:v1-2026-11-19-b5dd408`,
-digest sha256:6fe263f5a3b06f1b5b54cb7677c82be236c968f909d71a480af94e46588221c4).
+registry digest sha256:1b00c590f46adc0db64eaf1f937614df2c1446d61f72e8ebd4ca346e275e963c).
 | Test | Result |
 |---|---|
 | Contract C0–C9 incl. C5b (all cameras unreachable -> applied, unavailable, retrying, rejoin) | **12/12 PASS** |
