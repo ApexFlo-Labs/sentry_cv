@@ -216,3 +216,17 @@ revision). C5b rewritten to check that, plus that the cameras rejoin by themselv
 Tagged for push: ghcr.io/kiranmaibattu-cyber/sentinel-cv-dls-integrate:v1-2026-11-19 (separate package, user choice).
 Open before production: face count ~40 % of T2 (FACE_INTERVAL=43 likely), GPU hang of her shared detector at 20–32 cams on .92
 (auto-recovers), ~30 cams in 14Gi, no .64 run, no real delivery agent.
+
+## Image from this repo: her 4d563b5 (plate evidence fix, her runtime work) + contract_image, 2026-11-19, .92
+Built with `contract_image/build.sh` from commit 12c13e2 (b3ba3b94048e) and, with only the OCI source/revision labels
+added, from b5dd408 (be38cf854b63, pushed as `ghcr.io/apexflo-labs/sentinel-cv-dls-integrate:v1-2026-11-19-b5dd408`,
+digest sha256:6fe263f5a3b06f1b5b54cb7677c82be236c968f909d71a480af94e46588221c4).
+| Test | Result |
+|---|---|
+| Contract C0–C9 incl. C5b (all cameras unreachable -> applied, unavailable, retrying, rejoin) | **12/12 PASS** |
+| Per-camera changes + live add/remove (`revision_per_camera_test.py`, R2–R10) | **9/9 PASS**, same worker throughout |
+| Camera types rtsp / rtsps / http / https / tcp, outage and rejoin | **10/10 PASS** (run on be38cf854b63) |
+Not re-run on this commit: faces (vectors 53/53 vs V8 reference on 5322afcff3da; count ~40 % of T2), delivery faults,
+limits. Her plate fix is in the image but was not measured here (no plate fixture in these tests).
+Open before production: face count vs T2, GPU hang of the shared detector at 20–32 cameras on .92 (auto-recovers),
+~30 cameras in 14Gi, no run on .64, no real delivery agent.
