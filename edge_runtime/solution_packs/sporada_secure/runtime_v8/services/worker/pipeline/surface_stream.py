@@ -12,6 +12,11 @@ frames enter the BGR converter, retaining their exact source timestamp.
 """
 from __future__ import annotations
 
+import sys as _t2_sys, os as _t2_os
+if _t2_os.getenv('SENTINEL_PY_SWITCH_INTERVAL'):
+    # T2-B3: Python thread hand-over interval (scheduling only; default 0.005 s).
+    _t2_sys.setswitchinterval(float(_t2_os.environ['SENTINEL_PY_SWITCH_INTERVAL']))
+
 import ctypes
 import json
 import logging
@@ -628,6 +633,83 @@ def _map_bgr_any(sample):
         buf.unmap(info)
 
 
+
+def _t2_body_meta(sample):
+    """{track_id: (vector float32[dim], (x1, y1, x2, y2))} from sentinelbody's SentinelBodyMeta."""
+    import numpy as np
+    meta = sample.get_buffer().get_custom_meta('SentinelBodyMeta')
+    if meta is None:
+        return {}
+    st = meta.get_structure()
+    n = int(st.get_value('count'))
+    if n <= 0:
+        return {}
+    tids = np.frombuffer(st.get_value('track_ids').get_data(), np.uint64)
+    boxes = np.frombuffer(st.get_value('boxes').get_data(), np.int32).reshape(n, 4)
+    vecs = np.frombuffer(st.get_value('vectors').get_data(), np.float32).reshape(n, -1)
+    return {int(t): (vecs[i].copy(), tuple(int(v) for v in boxes[i])) for i, t in enumerate(tids)}
+
+
+
+def _t2_gait_meta(sample):
+    """None if this is not a gait frame; else {track_id: (silhouette 64x44 uint8 or None, (x1, y1, x2, y2))}."""
+    import numpy as np
+    meta = sample.get_buffer().get_custom_meta('SentinelGaitMeta')
+    if meta is None:
+        return None
+    st = meta.get_structure()
+    n = int(st.get_value('count'))
+    tids = np.frombuffer(st.get_value('track_ids').get_data(), np.uint64)
+    boxes = np.frombuffer(st.get_value('boxes').get_data(), np.int32).reshape(n, 4)
+    valid = np.frombuffer(st.get_value('valid').get_data(), np.uint8)
+    masks = np.frombuffer(st.get_value('masks').get_data(), np.uint8).reshape(n, 64, 44)
+    return {int(t): (masks[i].copy() if valid[i] else None, tuple(int(v) for v in boxes[i]))
+            for i, t in enumerate(tids)}
+
+
+
+class _NativeRateGate:
+    """Shim with DlsPtsRateGate's interface backed by a sentinelrategate element (T2-B7)."""
+
+    def __init__(self, interval):
+        self.interval = int(interval)
+        self.element = None
+
+    def bind(self, element):
+        self.element = element
+
+    def reset(self):
+        if self.element is not None:
+            self.element.emit('reset')
+
+    @property
+    def accepted(self):
+        return int(self.element.get_property('accepted')) if self.element is not None else 0
+
+    @property
+    def dropped(self):
+        return int(self.element.get_property('dropped')) if self.element is not None else 0
+
+
+
+def _t2_plate_meta(sample):
+    """{track_id: (vehicle_box, has_plate, plate_box, plate_conf, logits[15,37])} from SentinelPlateMeta."""
+    import numpy as np
+    meta = sample.get_buffer().get_custom_meta('SentinelPlateMeta')
+    if meta is None:
+        return {}
+    st = meta.get_structure()
+    n = int(st.get_value('count'))
+    tids = np.frombuffer(st.get_value('track_ids').get_data(), np.uint64)
+    vb = np.frombuffer(st.get_value('vehicle_boxes').get_data(), np.int32).reshape(n, 4)
+    has = np.frombuffer(st.get_value('has_plate').get_data(), np.uint8)
+    pb = np.frombuffer(st.get_value('plate_boxes').get_data(), np.int32).reshape(n, 4)
+    pc = np.frombuffer(st.get_value('plate_conf').get_data(), np.float32)
+    lg = np.frombuffer(st.get_value('logits').get_data(), np.float32).reshape(n, 15, 37)
+    return {int(t): (tuple(int(v) for v in vb[i]), bool(has[i]), [int(v) for v in pb[i]], pc[i], lg[i].copy())
+            for i, t in enumerate(tids)}
+
+
 def _geometry_only_frame(sample):
     """Return a zero-byte ndarray carrying only source H/W geometry."""
     import numpy as np
@@ -787,7 +869,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
     face_extractor = None
     if enable_face:
         from pipeline.face_samples import FaceSamplePipeline
-        if dls_authoritative:
+        if dls_authoritative and os.getenv("SENTINEL_FACE_PLAIN", "1") == "0":
             from pipeline.dlstreamer_bridge import DlsFaceExtractor
             face_extractor = DlsFaceExtractor(
                 os.path.join(sf.FACE_MODELS_DIR, "best_a0_fp16.xml")
@@ -822,7 +904,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                     os.path.join(sf.REID_MODELS_DIR, "transreid_ssl_int8.xml"), sf.BODY_REID_DEVICE)
             body_extractor.warmup()
         if "gaitbase-v18.1" in enabled_profiles:
-            if dls_secondaries:
+            if dls_secondaries and os.getenv('SENTINEL_GAIT_PLAIN', '1') == '0':
                 from pipeline.dls_secondary import DlsGaitExtractor
                 gait_extractor = DlsGaitExtractor(
                     os.path.join(
@@ -896,7 +978,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
         )
     if gait_extractor is not None:
         telemetry_devices["gait_embedding"] = (
-            gait_extractor.actual_device
+            getattr(gait_extractor, "actual_device", sf.GAIT_DEVICE)
             if dls_secondaries else sf.GAIT_DEVICE
         )
     if scene_extractor is not None:
@@ -982,6 +1064,38 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
     # GStreamer 1.28's Python override no longer accepts ``None`` here.  An
     # empty argv works on both the historical 1.24 runtime and DL Streamer.
     Gst.init([])
+    plate_due_gate = bool(
+        plate is not None and dls_authoritative
+        and os.getenv('SENTINEL_PLATE_DUE_GATE', '0') == '1'
+        and Gst.ElementFactory.find('sentinelstate') is not None)
+    plate_due_tracks = frozenset()
+    t2_bgr_requested = bool(dls_authoritative and os.getenv('SENTINEL_T2_GRAPH_BGR', '0') == '1')
+    t2_native_gates = bool(dls_authoritative and os.getenv('SENTINEL_T2_NATIVE_GATES', '0') == '1'
+                           and Gst.ElementFactory.find('sentinelrategate') is not None)
+    t2_native_stamp = bool(t2_native_gates and os.getenv('SENTINEL_T2_NATIVE_STAMP', '0') == '1'
+                           and Gst.ElementFactory.find('sentinelstamp') is not None)
+    sf.log.info('cam[%s] T2 native decode stamp %s', name,
+                'enabled' if t2_native_stamp else 'disabled')
+    sf.log.info('cam[%s] T2 native rate gates %s', name,
+                'enabled' if t2_native_gates else 'disabled')
+    t2_body = bool(t2_bgr_requested and body_extractor is not None and os.getenv('SENTINEL_T2_BODY', '0') == '1'
+                   and Gst.ElementFactory.find('sentinelbody') is not None)
+    t2_gait = bool(t2_bgr_requested and gait_extractor is not None and os.getenv('SENTINEL_T2_GAIT', '0') == '1'
+                   and Gst.ElementFactory.find('sentinelgait') is not None)
+    sf.log.info('cam[%s] T2 in-graph exact gait silhouettes %s', name,
+                'enabled' if t2_gait else 'disabled')
+    t2_plate = bool(t2_bgr_requested and plate_due_gate and os.getenv('SENTINEL_T2_PLATE', '0') == '1'
+                    and Gst.ElementFactory.find('sentinelplate') is not None)
+    # In-graph full-frame BGR only when an in-graph pixel consumer is on for THIS camera.
+    t2_bgr = bool(t2_bgr_requested and (t2_body or t2_gait or t2_plate))
+    sf.log.info('cam[%s] T2 in-graph exact plate + OCR %s', name,
+                'enabled' if t2_plate else 'disabled')
+    sf.log.info('cam[%s] T2 in-graph exact body ReID %s', name,
+                'enabled' if t2_body else 'disabled')
+    sf.log.info('cam[%s] T2 in-graph BGR conversion %s', name,
+                'enabled' if t2_bgr else 'disabled')
+    sf.log.info('cam[%s] plate due gate %s', name,
+                'enabled' if plate_due_gate else 'disabled')
     if dls_authoritative:
         required_elements = (
             'gvafpsthrottle', 'gvamotiondetect', 'gvadetect', 'gvatrack',
@@ -1055,7 +1169,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
     dls_fire_fps_gate = None
     dls_face_interval = max(1, int(os.getenv("SENTINEL_GVA_FACE_INTERVAL", "3")))
     dls_face_metadata = None
-    if dls_authoritative and enable_face:
+    if dls_authoritative and enable_face and os.getenv("SENTINEL_FACE_PLAIN", "1") == "0":
         from pipeline.dlstreamer_bridge import DlsFaceMetadataBridge
         dls_face_metadata = DlsFaceMetadataBridge(dls_face_interval)
     dls_fire_state = {
@@ -1166,6 +1280,51 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                     f'nireq={face_nireq} '
                     f'model-instance-id={json.dumps(dlstreamer_model_instance_id("face-embed", name))} ! '
                 )
+            plate_gate_chain = ""
+            if plate_due_gate:
+                # Metadata-only element: marks vehicles whose plate read is due.
+                plate_gate_chain = ('sentinelstate name=sentinelstate plate-enabled=true '
+                                    + os.getenv('SENTINEL_PLATE_DUE_GATE_OPTIONS', '') + ' ! ')
+            # T2-FIX2: optional queue after GVA inference elements + scheduling policy (default off).
+            _pdq = int(os.getenv('SENTINEL_T2_POSTDET_QUEUE', '0') or 0)
+            postdet_queue = (f'queue max-size-buffers={_pdq} max-size-bytes=0 max-size-time=0 ! ' if _pdq > 0 else '')
+            _pol = os.getenv('SENTINEL_GVA_SCHEDULING_POLICY', '').strip()
+            sched_policy = (f'scheduling-policy={_pol} ' if _pol in ('latency', 'throughput') else '')
+            if face_chain:
+                face_chain = face_chain.replace('pre-process-backend=va-surface-sharing inference-region=roi-list', sched_policy + 'pre-process-backend=va-surface-sharing inference-region=roi-list', 1) + postdet_queue
+            # T2-B2: same elements as VAMemorySelectiveBgrConverter, inside the graph.
+            t2_bgr_chain = (
+                'queue max-size-buffers=2 max-size-bytes=0 max-size-time=0 ! '
+                'vapostproc ! video/x-raw,format=BGRx ! '
+                f"videoconvert n-threads={int(os.getenv('SENTINEL_T2_CONVERT_THREADS', '1'))} ! "
+                'video/x-raw,format=BGR ! '
+            ) if t2_bgr else ''
+            if t2_gait:
+                if os.getenv('SENTINEL_T2_STAGE_QUEUES', '0') == '1':
+                    t2_bgr_chain += 'queue max-size-buffers=2 max-size-bytes=0 max-size-time=0 ! '
+                t2_bgr_chain += 'sentinelgait name=t2gait cadence=3 ! '
+            if t2_plate:
+                if os.getenv('SENTINEL_T2_STAGE_QUEUES', '0') == '1':
+                    t2_bgr_chain += 'queue max-size-buffers=2 max-size-bytes=0 max-size-time=0 ! '
+                t2_bgr_chain += (
+                    'sentinelplate name=t2plate '
+                    f'plate-model={json.dumps(openvino_model_path("license_plate"))} '
+                    f'ocr-model={json.dumps(openvino_model_path("ocr"))} '
+                    f'device={sf.PLATE_DEVICE} ocr-device={json.dumps(os.getenv("OCR_DEVICE", "MULTI:GPU,NPU"))} '
+                    f'confidence={float(os.getenv("PLATE_CONF", str(plate_config.get("confidence", 0.35))))} '
+                    f'min-width={int(os.getenv("PLATE_MIN_WIDTH", str(plate_config.get("min_width", 16))))} '
+                    f'min-height={int(os.getenv("PLATE_MIN_HEIGHT", str(plate_config.get("min_height", 5))))} '
+                    f'min-aspect={float(os.getenv("PLATE_MIN_ASPECT", str(plate_config.get("min_aspect_ratio", 0.8))))} '
+                    f'max-aspect={float(os.getenv("PLATE_MAX_ASPECT", str(plate_config.get("max_aspect_ratio", 12.0))))} ! '
+                )
+            if t2_body:
+                if os.getenv('SENTINEL_T2_STAGE_QUEUES', '0') == '1':
+                    t2_bgr_chain += 'queue max-size-buffers=2 max-size-bytes=0 max-size-time=0 ! '
+                t2_bgr_chain += (
+                    'sentinelbody name=t2body '
+                    f'model={json.dumps(os.path.join(sf.REID_MODELS_DIR, "transreid_ssl_int8.xml"))} '
+                    f'device={sf.BODY_REID_DEVICE} interval=1.0 ! '
+                )
             fire_branch = ""
             if dls_fire_enabled:
                 fire_model = openvino_model_path("smoke_fire")
@@ -1183,7 +1342,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                     # Put every decoder surface through VA post-processing so
                     # all camera branches negotiate the process-wide VA
                     # display context required by a shared GVA model instance.
-                    src + ' ! vapostproc name=postproc ! '
+                    src + (' ! sentinelstamp name=t2stamp' if t2_native_stamp else '') + ' ! vapostproc name=postproc ! '
                     'video/x-raw(memory:VAMemory),format=NV12 ! '
                     'tee name=source '
                 )
@@ -1191,7 +1350,8 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 fire_branch = (
                     ' source. ! queue leaky=downstream max-size-buffers=2 '
                     'max-size-bytes=0 max-size-time=0 ! '
-                    'identity name=firefpsgate ! '
+                    + (f'sentinelrategate name=firefpsgate interval={dls_fire_fps_gate.interval} ! '
+                       if t2_native_gates else 'identity name=firefpsgate ! ') +
                     # Keep fire/smoke off the shared VA preprocessor.  The
                     # qualified DL Streamer cascade uses this bounded 320x320
                     # system-memory branch; running primary, face and fire VA
@@ -1212,13 +1372,14 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 )
             else:
                 source_head = (
-                    src + ' ! vapostproc name=postproc ! '
+                    src + (' ! sentinelstamp name=t2stamp' if t2_native_stamp else '') + ' ! vapostproc name=postproc ! '
                     'video/x-raw(memory:VAMemory),format=NV12 ! '
                 )
                 primary_head = ''
             desc = (
                 source_head + primary_head +
-                'identity name=fpsgate ! '
+                (f'sentinelrategate name=fpsgate interval={dls_fps_gate.interval} ! '
+                 if t2_native_gates else 'identity name=fpsgate ! ') +
                 'gvamotiondetect name=motion pixel-diff-threshold=15 '
                 'motion-threshold=0.05 block-size=64 confirm-frames=1 '
                 'min-persistence=1 max-miss=0 min-rel-area=0.0005 ! '
@@ -1232,10 +1393,12 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 + gpu_compile_options +
                 'pre-process-backend=va-surface-sharing '
                 f'threshold={vehicle_confidence} nireq={nireq} '
-                'batch-size=1 '
-                f'model-instance-id={json.dumps(dlstreamer_model_instance_id("vehicle", name))} ! '
+                'batch-size=1 ' + sched_policy +
+                f'model-instance-id={json.dumps(dlstreamer_model_instance_id("vehicle", name))} ! ' + postdet_queue +
                 f'gvatrack name=objecttracker tracking-type={tracker_type} ! '
-                + face_chain +
+                + plate_gate_chain + face_chain + t2_bgr_chain
+                + ('queue max-size-buffers=2 max-size-bytes=0 max-size-time=0 ! '
+                   if t2_bgr and os.getenv('SENTINEL_T2_STAGE_QUEUES', '0') == '1' else '') +
                 f'appsink name=vasink sync=false async=false '
                 # Capacity is reserved upstream before inference, not inside
                 # GVA's shared completion callback. Never drop an admission.
@@ -1286,20 +1449,60 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                     return Gst.PadProbeReturn.OK
                 # Stamp once before primary/fire queues and inference. Media
                 # PTS is a frame key/cadence clock, not an absolute UTC source.
-                branch.get_by_name('decoder').get_static_pad('src').add_probe(
-                    Gst.PadProbeType.BUFFER, stamp_decoded
-                )
+                if t2_native_stamp:
+                    _unix_caps = Gst.Caps.from_string('timestamp/x-unix')
+                    def _t2_stamp_time(buffer):
+                        meta = buffer.get_reference_timestamp_meta(_unix_caps)
+                        if meta is None:
+                            telemetry.count('t2_stamp_meta_missing')
+                            return time.time()
+                        return meta.timestamp / 1e9
+                    def stamp_primary(_pad, info):
+                        buffer = info.get_buffer()
+                        if buffer is None:
+                            return Gst.PadProbeReturn.OK
+                        pts = int(buffer.pts)
+                        if pts == (1 << 64) - 1:
+                            telemetry.count('decoded_timestamp_missing')
+                            return Gst.PadProbeReturn.DROP
+                        source_clock.record_with_generation(pts, _t2_stamp_time(buffer))
+                        return Gst.PadProbeReturn.OK
+                    def stamp_fire(_pad, info):
+                        buffer = info.get_buffer()
+                        if buffer is None:
+                            return Gst.PadProbeReturn.OK
+                        pts = int(buffer.pts)
+                        if pts == (1 << 64) - 1:
+                            return Gst.PadProbeReturn.DROP
+                        clock = source_clock
+                        fire_frame_times.record(pts, clock, clock.generation, _t2_stamp_time(buffer))
+                        return Gst.PadProbeReturn.OK
+                    branch.get_by_name('fpsgate').get_static_pad('src').add_probe(
+                        Gst.PadProbeType.BUFFER, stamp_primary)
+                    if dls_fire_enabled:
+                        branch.get_by_name('firefpsgate').get_static_pad('src').add_probe(
+                            Gst.PadProbeType.BUFFER, stamp_fire)
+                else:
+                    branch.get_by_name('decoder').get_static_pad('src').add_probe(
+                        Gst.PadProbeType.BUFFER, stamp_decoded
+                    )
                 fps_gate_pad = branch.get_by_name('fpsgate').get_static_pad('sink')
-                fps_gate_pad.add_probe(Gst.PadProbeType.BUFFER, dls_fps_gate.probe)
+                if t2_native_gates:
+                    dls_fps_gate.bind(branch.get_by_name('fpsgate'))
+                else:
+                    fps_gate_pad.add_probe(Gst.PadProbeType.BUFFER, dls_fps_gate.probe)
                 gate_pad = branch.get_by_name('policygate').get_static_pad('sink')
                 gate_pad.add_probe(Gst.PadProbeType.BUFFER, dls_gate.probe)
                 if dls_fire_fps_gate is not None:
                     fire_fps_pad = branch.get_by_name(
                         'firefpsgate'
                     ).get_static_pad('sink')
-                    fire_fps_pad.add_probe(
-                        Gst.PadProbeType.BUFFER, dls_fire_fps_gate.probe
-                    )
+                    if t2_native_gates:
+                        dls_fire_fps_gate.bind(branch.get_by_name('firefpsgate'))
+                    else:
+                        fire_fps_pad.add_probe(
+                            Gst.PadProbeType.BUFFER, dls_fire_fps_gate.probe
+                        )
                 if dls_face_metadata is not None:
                     face_pad = branch.get_by_name('faceclass').get_static_pad('src')
                     face_pad.add_probe(
@@ -1492,14 +1695,19 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
     if dls_authoritative:
         from pipeline.dlstreamer_bridge import DlsMotionPolicyGate, DlsPtsRateGate
         dls_fps_gate = DlsPtsRateGate(fps, int(Gst.SECOND))
+        if t2_native_gates:
+            dls_fps_gate = _NativeRateGate(dls_fps_gate.interval)
         dls_gate = DlsMotionPolicyGate(
-            switch, telemetry, source_clock, fps, int(Gst.SECOND)
+            switch, telemetry, source_clock, fps, int(Gst.SECOND),
+                            maximum_pending=int(os.getenv('SENTINEL_DLS_MAX_PENDING', '3'))
         )
         if dls_fire_enabled:
             dls_fire_fps_gate = DlsPtsRateGate(
                 max(0.2, float(os.getenv("SENTINEL_GVA_FIRE_FPS", "2"))),
                 int(Gst.SECOND),
             )
+            if t2_native_gates:
+                dls_fire_fps_gate = _NativeRateGate(dls_fire_fps_gate.interval)
 
     def _consume_dls_quiet() -> int:
         if not dls_authoritative or dls_gate is None:
@@ -1601,12 +1809,12 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                     fmt = str(info.get_value('format'))
                     if dls_authoritative:
                         features = caps.get_features(0)
-                        if (fmt != 'NV12'
+                        if not t2_bgr and (fmt != 'NV12'
                                 or not features.contains('memory:VAMemory')):
                             raise UnsupportedSurfaceSource(
                                 'DL Streamer output must remain NV12 VAMemory after tracking'
                             )
-                        converter = VAMemorySelectiveBgrConverter(
+                        converter = None if t2_bgr else VAMemorySelectiveBgrConverter(
                             caps, stats, label="primary"
                         )
                         log.info(
@@ -1904,7 +2112,8 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                     else:
                         from pipeline.dlstreamer_bridge import DlsMotionPolicyGate
                         dls_gate = DlsMotionPolicyGate(
-                            switch, telemetry, source_clock, fps, int(Gst.SECOND)
+                            switch, telemetry, source_clock, fps, int(Gst.SECOND),
+                            maximum_pending=int(os.getenv('SENTINEL_DLS_MAX_PENDING', '3'))
                         )
                     if hasattr(tracker, 'clear'):
                         tracker.clear()
@@ -1959,13 +2168,23 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                         raw_vdets = detections_from_sample(
                             sv, sf.VEHICLE_CLASS_NAMES
                         )
+                        if plate_due_gate:
+                            plate_due_tracks = frozenset(
+                                int(item.metadata['track_id']) for item in
+                                detections_from_sample(sv, {0: 'plate_due'}))
                     pixels_required = (
                         not enable_v8
                         or v8_pipeline.primary_pixels_required(
                             frame_observed_at, raw_vdets
                         )
                     )
-                    if pixels_required:
+                    if pixels_required and t2_bgr:
+                        with telemetry.measure('frame_conversion.t2_graph_bgr_map'):
+                            frame = _map_bgr_any(sv)
+                        stats['bgr_for_inference'] += 1
+                        telemetry.count('primary_bgr_materialized_frames')
+                        telemetry.count('t2_graph_bgr_frames')
+                    elif pixels_required:
                         sample_info = sv.get_caps().get_structure(0)
                         if (converter is None
                                 or converter.width != int(sample_info.get_value('width'))
@@ -1999,7 +2218,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                         frame = _geometry_only_frame(sv)
                         stats['bgr_metadata_only_frames'] += 1
                         telemetry.count("primary_bgr_avoided_frames")
-                    if (pixels_required and raw_vdets
+                    if (pixels_required and raw_vdets and not t2_bgr
                             and os.getenv("SENTINEL_DLS_BGR_PREFETCH", "1") == "1"
                             and (frame_limit is None or fidx + 1 < frame_limit)
                             and (not enable_v8 or any(
@@ -2078,10 +2297,47 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 vdets = raw_vdets
                 vdets = deduplicate_vehicles(vdets)
                 dets = list(vdets)
-                if plate is not None:
+                if t2_plate:
+                    from pipeline.types import Detection as _T2Detection
+                    t2_plates = _t2_plate_meta(sv)
+                    for vd in vdets:
+                        if vd.class_name == 'pedestrian':
+                            continue
+                        if vd.metadata.get('track_id') not in plate_due_tracks:
+                            telemetry.count('anpr_plate_gate_not_due')
+                            continue
+                        telemetry.count('anpr_plate_gate_due')
+                        entry = t2_plates.get(int(vd.metadata['track_id']))
+                        if entry is None or entry[0] != tuple(int(v) for v in vd.bbox):
+                            telemetry.count('t2_plate_missing')
+                            continue
+                        _vbox, has_plate, pbox, pconf, logits = entry
+                        if not has_plate:
+                            continue
+                        pd = _T2Detection(bbox=list(pbox), class_id=0, class_name='license_plate',
+                                          confidence=float(pconf), model_name='license_plate')
+                        plate_crop = sf._crop(frame, pd.bbox)
+                        if not plate_crop_is_usable(
+                            plate_crop, width=pd.bbox[2] - pd.bbox[0], height=pd.bbox[3] - pd.bbox[1],
+                            min_width=int(os.getenv("PLATE_MIN_WIDTH", str(plate_config.get("min_width", 16)))),
+                            min_height=int(os.getenv("PLATE_MIN_HEIGHT", str(plate_config.get("min_height", 5)))),
+                            min_sharpness=float(os.getenv("PLATE_MIN_SHARPNESS", str(plate_config.get("min_sharpness", 0.0)))),
+                            min_aspect_ratio=float(os.getenv("PLATE_MIN_ASPECT", str(plate_config.get("min_aspect_ratio", 0.8)))),
+                            max_aspect_ratio=float(os.getenv("PLATE_MAX_ASPECT", str(plate_config.get("max_aspect_ratio", 12.0)))),
+                        ):
+                            continue
+                        pd.metadata['t2_ocr_logits'] = logits
+                        dets.append(pd)
+                        telemetry.count('t2_plates_used')
+                elif plate is not None:
                     for vd in vdets:
                         if vd.class_name == "pedestrian":
                             continue
+                        if plate_due_gate:
+                            if vd.metadata.get('track_id') not in plate_due_tracks:
+                                telemetry.count('anpr_plate_gate_not_due')
+                                continue
+                            telemetry.count('anpr_plate_gate_due')
                         x1, y1, x2, y2 = vd.bbox
                         crop = frame[y1:y2, x1:x2]
                         if native_trace is not None:
@@ -2161,10 +2417,15 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                     'edge_received_at' if dls_authoritative else 'source_pts'
                 )
                 packet.analytics_state["motion_gate"] = gate_state
+                if t2_body:
+                    packet.analytics_state['t2_body'] = _t2_body_meta(sv)
+                if t2_gait:
+                    packet.analytics_state['t2_gait'] = _t2_gait_meta(sv)
                 packet.analytics_state['fire_smoke_evaluated'] = smoke_evaluated
                 packet.detections = dets
                 with telemetry.measure("tracking_geometry_and_ocr_submit"):
-                    sf.consume_packet(packet, geo, tracker, analytics_stage, stab, async_ocr)
+                    sf.consume_packet(packet, geo, tracker, analytics_stage, stab,
+                                      None if t2_plate else async_ocr)
                 if crossing_pipeline is not None:
                     crossing_pipeline.process(packet)
                 tracked_people = [
@@ -2184,6 +2445,13 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                         native_trace.phase("event_policy")
                     with telemetry.measure("event_policy.active_frame"):
                         v8_pipeline.process(packet, face_samples)
+                    if plate_due_gate and v8_pipeline.plate_gate_confirmed:
+                        gate_element = pipeline.get_by_name('sentinelstate')
+                        for gate_track in v8_pipeline.plate_gate_confirmed:
+                            if gate_element is not None:
+                                gate_element.emit('report', gate_track, 'plate', 'confirmed')
+                                telemetry.count('anpr_plate_gate_confirmed_reports')
+                        v8_pipeline.plate_gate_confirmed.clear()
                 if not enable_v8:
                     analytics.publish_packets([packet])
                 stats['packets'] += 1

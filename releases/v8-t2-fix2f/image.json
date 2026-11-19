@@ -1,0 +1,16 @@
+{
+  "image": "localhost/sentinel-cv:v8-t2-fix2f",
+  "image_id": "sha256:aaa353d1b490b91a90df5db0a3a248f17253214d7adc2084b186fea261b1da92",
+  "built_on": "192.168.1.64 (docker), 2026-11-18 06:39 IST",
+  "parent": "localhost/sentinel-cv:v8-t2-full-dls (sha256:14978d1b8f9047be2d5817013ea4fe149e3fd5be8f3c15f61aaf384b39045dc3)",
+  "parent_of_parent": "localhost/sentinel-cv:v8-c18-plate-admission",
+  "dockerfile": "docker/Dockerfile.sentinel-v8-t2-fix2f (T2: docker/Dockerfile.sentinel-v8-t2)",
+  "runtime_source": "edge_runtime/solution_packs/sporada_secure/runtime_v8 (the 7 changed worker files are byte-identical to the image)",
+  "native_elements_source": "native/t2_elements (built .so files byte-identical to /opt/sentinel-gst-plugins in the image, see SHA256SUMS.built)",
+  "contract": "sentry-v8",
+  "models_changed": false,
+  "models_in_use_note": "plain model files only; graph face chain (scrfd_top1x_u8, face_align_u8) and gait montage wrapper no longer used by default",
+  "image_published": false,
+  "production_deployed": false,
+  "git_branch": "v8-t2-fix2f"
+}

@@ -1,0 +1,6 @@
+sequences 40 cosine min 1.000000 median 1.000000 max abs diff 0 identical 40
+  File "/w/mod/person_reid.py", line 16, in <module>
+    from .gait_morphology import clean_person_regions
+ImportError: attempted relative import with no known parent package
+shared compiled model: True
+16 concurrent calls identical to direct plain model: True

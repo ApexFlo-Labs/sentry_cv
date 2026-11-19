@@ -1,0 +1,4 @@
+MOT17-02-SDP {'people': 982, 'no_face_detected': 646, 'face_lt_28': 178, 'lt28_but_square_ge_28': 177, 'lt28_square_pose_ok': 53, 'face_ge_28': 158, 'ge28_pose_ok_real': 31, 'ge28_pose_ok_square': 61}
+face width percentiles (real px) 10/25/50/75/90: [20.7, 23.7, 27.5, 37.6, 45.0]
+MOT17-09-SDP {'people': 1042, 'no_face_detected': 505, 'face_ge_28': 278, 'ge28_pose_ok_real': 154, 'ge28_pose_ok_square': 175, 'face_lt_28': 259, 'lt28_but_square_ge_28': 249, 'lt28_square_pose_ok': 112}
+face width percentiles (real px) 10/25/50/75/90: [15.1, 19.9, 28.6, 45.6, 65.1]

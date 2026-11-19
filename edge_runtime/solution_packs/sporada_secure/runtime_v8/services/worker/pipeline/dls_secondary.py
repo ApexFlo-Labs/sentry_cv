@@ -110,9 +110,11 @@ class DlsRawImageInferencer:
         self._closed = False
         # Experimental execution knob only; never changes collection/emission
         # policy. Separate sinks prevent concurrent callers stealing results.
-        self._lane_count = min(2, max(1, int(os.getenv(
-            "SENTINEL_DLS_PLATE_LANES", "1"
-        )))) if name == "plate-detector" else 1
+        # T2-B3: parallel inference lanes per secondary model (execution only; same model,
+        # same preprocessing, same outputs). Defaults keep C18 behaviour (plate 1, others 1).
+        _lane_env = {"plate-detector": "SENTINEL_DLS_PLATE_LANES", "body-reid": "SENTINEL_DLS_BODY_LANES",
+                     "scene-siglip": "SENTINEL_DLS_SCENE_LANES", "gaitbase-montage": "SENTINEL_DLS_GAIT_LANES"}
+        self._lane_count = min(4, max(1, int(os.getenv(_lane_env[name], "1")))) if name in _lane_env else 1
         self._maximum_pending_per_owner = max(1, int(os.getenv(
             "SENTINEL_DLS_SECONDARY_PENDING_PER_CAMERA", "1"
         )))

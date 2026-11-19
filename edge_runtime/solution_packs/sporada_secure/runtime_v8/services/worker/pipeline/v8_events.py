@@ -6,6 +6,7 @@ from contextlib import nullcontext
 from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 import hashlib
+import json
 import logging
 import math
 import os
@@ -109,6 +110,9 @@ class V8EventPipeline:
         self.hazard_min_confidence = float(self.policy.section("fire_smoke")["event_min_confidence"])
         self.feature_cooldown = float(self.policy.section("identity")["feature_cooldown_seconds"])
         self.plate_outcome_delay = float(os.getenv("SENTINEL_PLATE_OUTCOME_DELAY_SECONDS", "3"))
+        # Plate due gate feedback (native sentinelstate): track IDs whose plate text is
+        # confirmed (admitted plate_read) or re-read with the same text. Internal only.
+        self.plate_gate_confirmed = []
         self.plate_confidence_improvement = float(os.getenv("SENTINEL_PLATE_CONFIDENCE_IMPROVEMENT", "0.10"))
         self.plate_update_cooldown = float(os.getenv("SENTINEL_PLATE_UPDATE_COOLDOWN_SECONDS", "5"))
         self.plate_change_min_confidence = float(os.getenv("SENTINEL_PLATE_CHANGE_MIN_CONFIDENCE", "0.90"))
@@ -587,12 +591,15 @@ class V8EventPipeline:
                 if binding["scope"] == "geometry" else [None]
             )
             interval = float(binding["sample_interval_seconds"]) * multiplier
-            if any(
-                now - self.last_scene.get((binding["use_case_id"], zone_id), 0)
-                >= interval
-                for zone_id in areas
-            ):
-                return True
+            grid = getattr(self, "_t2_scene_grid", None) or {}
+            for zone_id in areas:
+                key = (binding["use_case_id"], zone_id)
+                due, due_interval = grid.get(key, (None, None))
+                if due is not None and due_interval == interval:  # T2-FIX2e: pixels at the grid due time
+                    if now >= due:
+                        return True
+                elif now - self.last_scene.get(key, 0) >= interval:
+                    return True
         return False
 
     def primary_pixels_required(self, now: float, detections) -> bool:
@@ -775,7 +782,7 @@ class V8EventPipeline:
                     recovered_from = previous
                 self.tracks[key] = state
             elif state["lost"]:
-                recovered_from = track_id
+                recovered_from = state.pop("t2_plate_recovered_from", track_id)
             previous_last_seen = state["last_seen"]
             if not state.get("confirmed") and now - previous_last_seen > self.candidate_max_gap:
                 state["hits"] = 0
@@ -859,6 +866,9 @@ class V8EventPipeline:
     def _body_vectors(self, packet, detections, now):
         if self.body is None:
             return {}
+        graph = (getattr(packet, "analytics_state", {}) or {}).get("t2_body")
+        if graph is not None:
+            return self._t2_body_vectors(packet, detections, now, graph)
         people = [item for item in detections if item.class_name == "pedestrian"
                   and item.metadata.get("track_id") is not None]
         due = [item for item in people if now - self.tracks.get(("person", str(item.metadata["track_id"])), {}).get("last_body_at", 0) >= 1]
@@ -889,6 +899,39 @@ class V8EventPipeline:
             state = self.tracks.get(("person", track_id))
             if state:
                 state["last_body_at"] = now
+        return result
+
+    def _t2_body_vectors(self, packet, detections, now, graph):
+        """T2: vectors computed in-graph by sentinelbody (exact v8 preprocessing). Same v8 gates on the same pixels."""
+        identity_policy = self.policy.section("identity")
+        quality_floor = float(identity_policy["body_quality_floor"])
+        min_width = int(identity_policy["body_min_width_px"])
+        min_height = int(identity_policy["body_min_height_px"])
+        result = {}
+        for item in detections:
+            if item.class_name != "pedestrian" or item.metadata.get("track_id") is None:
+                continue
+            track_id = str(item.metadata["track_id"])
+            entry = graph.get(int(item.metadata["track_id"]))
+            if entry is None:
+                continue
+            state = self.tracks.get(("person", track_id))
+            if now - (state or {}).get("last_body_at", 0) < 0.9:
+                continue
+            vector, box = entry
+            if tuple(int(value) for value in item.bbox) != tuple(box):
+                if self.telemetry is not None:
+                    self.telemetry.count("t2_body_box_mismatch")
+                continue
+            crop, _ = self._crop(packet.frame, item.bbox)
+            if (crop is None or crop.shape[0] < min_height or crop.shape[1] < min_width
+                    or self._body_quality(crop) < quality_floor):
+                continue
+            result[track_id] = np.asarray(vector, np.float32)
+            if state:
+                state["last_body_at"] = now
+            if self.telemetry is not None:
+                self.telemetry.count("t2_body_vectors_used")
         return result
 
     @staticmethod
@@ -1070,7 +1113,9 @@ class V8EventPipeline:
             body_crop, _ = self._crop(packet.frame, item.bbox)
             quality = self._body_quality(body_crop) if body_crop is not None else 0.0
             candidates.append(("body", body_vector, quality, item.bbox, "transreid-ssl-v18.1", None))
-        if self.gait is not None and "gaitbase-v18.1" in profiles and packet.index % 3 == 0:
+        t2_gait = (getattr(packet, "analytics_state", {}) or {}).get("t2_gait", False)
+        gait_frame = (t2_gait is not None) if t2_gait is not False else packet.index % 3 == 0
+        if self.gait is not None and "gaitbase-v18.1" in profiles and gait_frame:
             self._remember_gait_center(state)
             worker = getattr(self, "_gait_worker", None)
             if worker is None:
@@ -1099,6 +1144,17 @@ class V8EventPipeline:
         # Collection includes CPU background subtraction and often no
         # inference at all. Attribute accelerator work only at the actual
         # model invocation inside collect().
+        precomputed = None
+        t2_gait = (getattr(packet, "analytics_state", {}) or {}).get("t2_gait")
+        if t2_gait is not None:
+            entry = t2_gait.get(int(state["track_id"]))
+            if entry is None or tuple(int(x) for x in item.bbox) != tuple(entry[1]):
+                if self.telemetry is not None:
+                    self.telemetry.count("t2_gait_missing")
+                return []
+            precomputed = [entry[0]]
+            if self.telemetry is not None:
+                self.telemetry.count("t2_gait_silhouettes_used")
         with self._measure("person_identity.gait_processing"):
             result = self.gait.collect(
                 packet.frame, [item], self.camera_id,
@@ -1106,6 +1162,7 @@ class V8EventPipeline:
                 accept_sequence=accept_gait_sequence,
                 observe=self.telemetry.observe_latency if self.telemetry is not None else None,
                 frame_key=(self.session_id, packet.index),
+                **({"precomputed_masks": precomputed} if precomputed is not None else {}),
             )
         if self.telemetry is not None and now - getattr(self, "_gait_stats_at", 0) >= 5:
             self._gait_stats_at = now
@@ -1334,6 +1391,7 @@ class V8EventPipeline:
                                     if item["use_case_id"] == use_case_id), None)
                     if binding is not None:
                         if self._emit_plate_read(state, binding, selected, None, now):
+                            self._plate_gate_confirm(state)
                             attempt["started"] = now
                             attempt["candidates"] = []
                             attempt["seen_ocr_observations"].clear()
@@ -1520,6 +1578,13 @@ class V8EventPipeline:
         )
         return True
 
+    def _plate_gate_confirm(self, state):
+        try:
+            self.plate_gate_confirmed.append(int(state["track_id"]))
+        except (TypeError, ValueError):
+            pass
+        del self.plate_gate_confirmed[:-256]
+
     def _emit_plate_outcome(self, state, use_case_id, attempt, outcome="unreadable"):
         pending = attempt.get("pending_outcome_package")
         if pending is None:
@@ -1545,6 +1610,34 @@ class V8EventPipeline:
         attempt.pop("pending_outcome_package", None)
         return True
 
+    def _t2_plate_recover(self, fresh, key, plate, now):
+        """T2-FIX2c: rejoin an unconfirmed new vehicle track to a lost presence with the same confirmed plate."""
+        text = re.sub(r"[^A-Z0-9? -]", "", str(plate.metadata.get("ocr_text") or "").upper()).strip()[:32]
+        if not text or "?" in text:
+            return
+        confidence = max(0.0, min(1.0, float(plate.metadata.get("ocr_confidence", plate.confidence))))
+        if confidence < float(self.policy.section("anpr")["ocr_emit_min_confidence"]):
+            return
+        owners = [state for state in self.presences.values()
+                  if state["kind"] == "vehicle" and state is not fresh and state.get("confirmed")
+                  and any(value[0] == text for value in state["plates"].values())]
+        if any(not state["lost"] for state in owners):
+            return  # same plate visible on an active vehicle: conflict, never merge
+        lost = [state for state in owners if now - state["last_seen"] <= self._presence_timeouts(state)[1]]
+        if len(lost) != 1:
+            return
+        old = lost[0]
+        self.tracks.pop(old["track_key"], None)
+        self.tracks.pop(key, None)
+        self.presences.pop(fresh["id"], None)
+        self._retire_gait_state(fresh["id"])
+        old["t2_plate_recovered_from"] = old["track_id"]
+        old["track_key"] = key
+        old["track_id"] = key[1]
+        self.tracks[key] = old
+        if self.telemetry is not None:
+            self.telemetry.count("t2_plate_recoveries")
+
     def _plates(self, packet, now, frame_id):
         height, width = packet.frame.shape[:2]
         frame_snapshot = None
@@ -1553,6 +1646,10 @@ class V8EventPipeline:
                 continue
             key = ("vehicle", str(plate.parent_id))
             state = self.tracks.get(key)
+            if (state is not None and not state.get("confirmed")
+                    and os.getenv("SENTINEL_PLATE_RECOVERY", "0") == "1"):
+                self._t2_plate_recover(state, key, plate, now)
+                state = self.tracks.get(key)
             if state is None or not state.get("confirmed"):
                 continue
             text = re.sub(r"[^A-Z0-9? -]", "", str(plate.metadata.get("ocr_text") or "").upper()).strip()[:32]
@@ -1600,9 +1697,13 @@ class V8EventPipeline:
                     )
                     attempt["candidates"] = attempt["candidates"][-24:]
                 previous = state["plates"].get(use_case_id)
+                if (previous is not None and text == previous[0] and confidence
+                        >= float(self.policy.section("anpr")["ocr_emit_min_confidence"])):
+                    self._plate_gate_confirm(state)
                 selected = self._plate_candidate_ready(attempt, previous, now)
                 if selected is not None:
                     if self._emit_plate_read(state, binding, selected, previous, now):
+                        self._plate_gate_confirm(state)
                         attempt["started"] = now
                         attempt["candidates"] = []
                         attempt["seen_ocr_observations"].clear()
@@ -1625,6 +1726,7 @@ class V8EventPipeline:
                                     if item["use_case_id"] == use_case_id), None)
                     if binding is not None:
                         if self._emit_plate_read(state, binding, selected, None, now):
+                            self._plate_gate_confirm(state)
                             attempt["started"] = now
                             attempt["candidates"] = []
                             attempt["seen_ocr_observations"].clear()
@@ -1731,6 +1833,36 @@ class V8EventPipeline:
             for zone_id in areas:
                 key = (binding["use_case_id"], zone_id)
                 interval = float(binding["sample_interval_seconds"]) * interval_multiplier
+                slot = None
+                if os.getenv("SENTINEL_SCENE_SPREAD", "0") == "1":
+                    try:  # T2-FIX2b/2d: even slot by camera order in the worker group, if known
+                        slot = json.loads(os.getenv("SENTINEL_SCENE_SLOTS", "{}")).get(str(self.camera_id))
+                        slot = None if slot is None else float(slot) % 1.0
+                    except (TypeError, ValueError):
+                        slot = None
+                if slot is not None and interval > 0:
+                    # T2-FIX2d: shared wall-clock grid t = (m + slot) * interval; advance by whole intervals.
+                    grid = getattr(self, "_t2_scene_grid", None)
+                    if grid is None:
+                        grid = self._t2_scene_grid = {}
+                    due, due_interval = grid.get(key, (None, None))
+                    if due is None or due_interval != interval:
+                        due = (int(now / interval - slot) + 1 + slot) * interval
+                        while due - interval >= now:
+                            due -= interval
+                    if now >= due:
+                        recent_event = now - self.last_scene.get(key, 0) < interval / 2
+                        if not recent_event:
+                            self._scene(packet, binding, zone_id, now, frame_id, "interval")
+                        if recent_event or self.last_scene.get(key) == now:
+                            while due <= now:  # T2-FIX2e: advance only after a sample (else retry next frame)
+                                due += interval
+                    grid[key] = (due, interval)
+                    continue
+                if key not in self.last_scene and os.getenv("SENTINEL_SCENE_SPREAD", "0") == "1":
+                    import zlib
+                    phase = (zlib.crc32(str(self.camera_id).encode()) % 1000) / 1000.0 * interval
+                    self.last_scene[key] = now - interval + phase
                 if now - self.last_scene.get(key, 0) >= interval:
                     self._scene(packet, binding, zone_id, now, frame_id, "interval")
 

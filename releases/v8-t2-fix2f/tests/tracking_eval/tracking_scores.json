@@ -1,0 +1,397 @@
+{
+ "raw": {
+  "combined": {
+   "HOTA": 37.4,
+   "IDF1": 45.64,
+   "MOTA": 33.31,
+   "IDSW": 393,
+   "Frag": 1013,
+   "GT_IDs": 541,
+   "pred_IDs": null,
+   "recall": 37.96,
+   "precision": 91.68
+  },
+  "per_seq": {
+   "MOT17-02-SDP": {
+    "HOTA": 27.61,
+    "IDF1": 28.5,
+    "MOTA": 17.48,
+    "IDSW": 26,
+    "Frag": 91,
+    "GT_IDs": 59,
+    "pred_IDs": null,
+    "recall": 20.35,
+    "precision": 89.68
+   },
+   "MOT17-04-SDP": {
+    "HOTA": 43.68,
+    "IDF1": 54.66,
+    "MOTA": 41.62,
+    "IDSW": 62,
+    "Frag": 326,
+    "GT_IDs": 83,
+    "pred_IDs": null,
+    "recall": 45.34,
+    "precision": 93.33
+   },
+   "MOT17-05-SDP": {
+    "HOTA": 25.86,
+    "IDF1": 32.87,
+    "MOTA": 23.95,
+    "IDSW": 66,
+    "Frag": 174,
+    "GT_IDs": 133,
+    "pred_IDs": null,
+    "recall": 29.61,
+    "precision": 88.12
+   },
+   "MOT17-09-SDP": {
+    "HOTA": 41.77,
+    "IDF1": 55.39,
+    "MOTA": 50.32,
+    "IDSW": 38,
+    "Frag": 71,
+    "GT_IDs": 26,
+    "pred_IDs": null,
+    "recall": 55.75,
+    "precision": 95.3
+   },
+   "MOT17-10-SDP": {
+    "HOTA": 34.28,
+    "IDF1": 43.86,
+    "MOTA": 32.09,
+    "IDSW": 71,
+    "Frag": 150,
+    "GT_IDs": 57,
+    "pred_IDs": null,
+    "recall": 38.32,
+    "precision": 90.2
+   },
+   "MOT17-11-SDP": {
+    "HOTA": 45.76,
+    "IDF1": 56.4,
+    "MOTA": 44.38,
+    "IDSW": 16,
+    "Frag": 57,
+    "GT_IDs": 73,
+    "pred_IDs": null,
+    "recall": 46.76,
+    "precision": 96.4
+   },
+   "MOT17-13-SDP": {
+    "HOTA": 29.37,
+    "IDF1": 35.56,
+    "MOTA": 23.2,
+    "IDSW": 114,
+    "Frag": 144,
+    "GT_IDs": 110,
+    "pred_IDs": null,
+    "recall": 32.05,
+    "precision": 84.69
+   }
+  },
+  "rule_stats": {},
+  "pred_IDs": 772
+ },
+ "recovery_balanced": {
+  "combined": {
+   "HOTA": 37.11,
+   "IDF1": 44.97,
+   "MOTA": 33.32,
+   "IDSW": 390,
+   "Frag": 1013,
+   "GT_IDs": 541,
+   "pred_IDs": null,
+   "recall": 37.96,
+   "precision": 91.68
+  },
+  "per_seq": {
+   "MOT17-02-SDP": {
+    "HOTA": 27.61,
+    "IDF1": 28.5,
+    "MOTA": 17.48,
+    "IDSW": 26,
+    "Frag": 91,
+    "GT_IDs": 59,
+    "pred_IDs": null,
+    "recall": 20.35,
+    "precision": 89.68
+   },
+   "MOT17-04-SDP": {
+    "HOTA": 43.74,
+    "IDF1": 54.92,
+    "MOTA": 41.63,
+    "IDSW": 60,
+    "Frag": 326,
+    "GT_IDs": 83,
+    "pred_IDs": null,
+    "recall": 45.34,
+    "precision": 93.33
+   },
+   "MOT17-05-SDP": {
+    "HOTA": 24.77,
+    "IDF1": 30.26,
+    "MOTA": 23.98,
+    "IDSW": 65,
+    "Frag": 174,
+    "GT_IDs": 133,
+    "pred_IDs": null,
+    "recall": 29.61,
+    "precision": 88.12
+   },
+   "MOT17-09-SDP": {
+    "HOTA": 41.77,
+    "IDF1": 55.39,
+    "MOTA": 50.32,
+    "IDSW": 38,
+    "Frag": 71,
+    "GT_IDs": 26,
+    "pred_IDs": null,
+    "recall": 55.75,
+    "precision": 95.3
+   },
+   "MOT17-10-SDP": {
+    "HOTA": 34.26,
+    "IDF1": 43.86,
+    "MOTA": 32.09,
+    "IDSW": 71,
+    "Frag": 150,
+    "GT_IDs": 57,
+    "pred_IDs": null,
+    "recall": 38.32,
+    "precision": 90.2
+   },
+   "MOT17-11-SDP": {
+    "HOTA": 44.27,
+    "IDF1": 52.82,
+    "MOTA": 44.38,
+    "IDSW": 16,
+    "Frag": 57,
+    "GT_IDs": 73,
+    "pred_IDs": null,
+    "recall": 46.76,
+    "precision": 96.4
+   },
+   "MOT17-13-SDP": {
+    "HOTA": 28.4,
+    "IDF1": 33.89,
+    "MOTA": 23.2,
+    "IDSW": 114,
+    "Frag": 144,
+    "GT_IDs": 110,
+    "pred_IDs": null,
+    "recall": 32.05,
+    "precision": 84.69
+   }
+  },
+  "rule_stats": {
+   "new_no_match": 512,
+   "new_no_vector": 206,
+   "lost": 211,
+   "rejoined": 54,
+   "ended": 50
+  },
+  "pred_IDs": 718
+ },
+ "recovery_tolerant": {
+  "combined": {
+   "HOTA": 37.1,
+   "IDF1": 44.96,
+   "MOTA": 33.32,
+   "IDSW": 390,
+   "Frag": 1013,
+   "GT_IDs": 541,
+   "pred_IDs": null,
+   "recall": 37.96,
+   "precision": 91.68
+  },
+  "per_seq": {
+   "MOT17-02-SDP": {
+    "HOTA": 27.61,
+    "IDF1": 28.5,
+    "MOTA": 17.48,
+    "IDSW": 26,
+    "Frag": 91,
+    "GT_IDs": 59,
+    "pred_IDs": null,
+    "recall": 20.35,
+    "precision": 89.68
+   },
+   "MOT17-04-SDP": {
+    "HOTA": 43.74,
+    "IDF1": 54.92,
+    "MOTA": 41.63,
+    "IDSW": 60,
+    "Frag": 326,
+    "GT_IDs": 83,
+    "pred_IDs": null,
+    "recall": 45.34,
+    "precision": 93.33
+   },
+   "MOT17-05-SDP": {
+    "HOTA": 24.67,
+    "IDF1": 30.18,
+    "MOTA": 23.98,
+    "IDSW": 65,
+    "Frag": 174,
+    "GT_IDs": 133,
+    "pred_IDs": null,
+    "recall": 29.61,
+    "precision": 88.12
+   },
+   "MOT17-09-SDP": {
+    "HOTA": 41.77,
+    "IDF1": 55.39,
+    "MOTA": 50.32,
+    "IDSW": 38,
+    "Frag": 71,
+    "GT_IDs": 26,
+    "pred_IDs": null,
+    "recall": 55.75,
+    "precision": 95.3
+   },
+   "MOT17-10-SDP": {
+    "HOTA": 34.26,
+    "IDF1": 43.86,
+    "MOTA": 32.09,
+    "IDSW": 71,
+    "Frag": 150,
+    "GT_IDs": 57,
+    "pred_IDs": null,
+    "recall": 38.32,
+    "precision": 90.2
+   },
+   "MOT17-11-SDP": {
+    "HOTA": 44.27,
+    "IDF1": 52.82,
+    "MOTA": 44.38,
+    "IDSW": 16,
+    "Frag": 57,
+    "GT_IDs": 73,
+    "pred_IDs": null,
+    "recall": 46.76,
+    "precision": 96.4
+   },
+   "MOT17-13-SDP": {
+    "HOTA": 28.39,
+    "IDF1": 33.89,
+    "MOTA": 23.2,
+    "IDSW": 114,
+    "Frag": 144,
+    "GT_IDs": 110,
+    "pred_IDs": null,
+    "recall": 32.05,
+    "precision": 84.69
+   }
+  },
+  "rule_stats": {
+   "new_no_match": 557,
+   "new_no_vector": 167,
+   "lost": 197,
+   "rejoined": 48,
+   "ended": 34
+  },
+  "pred_IDs": 724
+ },
+ "recovery_anyframe_tolerant": {
+  "combined": {
+   "HOTA": 36.44,
+   "IDF1": 43.64,
+   "MOTA": 33.21,
+   "IDSW": 427,
+   "Frag": 1013,
+   "GT_IDs": 541,
+   "pred_IDs": null,
+   "recall": 37.96,
+   "precision": 91.68
+  },
+  "per_seq": {
+   "MOT17-02-SDP": {
+    "HOTA": 27.6,
+    "IDF1": 28.5,
+    "MOTA": 17.46,
+    "IDSW": 27,
+    "Frag": 91,
+    "GT_IDs": 59,
+    "pred_IDs": null,
+    "recall": 20.35,
+    "precision": 89.68
+   },
+   "MOT17-04-SDP": {
+    "HOTA": 43.32,
+    "IDF1": 53.96,
+    "MOTA": 41.6,
+    "IDSW": 64,
+    "Frag": 326,
+    "GT_IDs": 83,
+    "pred_IDs": null,
+    "recall": 45.34,
+    "precision": 93.33
+   },
+   "MOT17-05-SDP": {
+    "HOTA": 22.56,
+    "IDF1": 27.27,
+    "MOTA": 23.72,
+    "IDSW": 75,
+    "Frag": 174,
+    "GT_IDs": 133,
+    "pred_IDs": null,
+    "recall": 29.61,
+    "precision": 88.12
+   },
+   "MOT17-09-SDP": {
+    "HOTA": 41.37,
+    "IDF1": 54.67,
+    "MOTA": 50.25,
+    "IDSW": 39,
+    "Frag": 71,
+    "GT_IDs": 26,
+    "pred_IDs": null,
+    "recall": 55.75,
+    "precision": 95.3
+   },
+   "MOT17-10-SDP": {
+    "HOTA": 33.53,
+    "IDF1": 42.55,
+    "MOTA": 31.95,
+    "IDSW": 76,
+    "Frag": 150,
+    "GT_IDs": 57,
+    "pred_IDs": null,
+    "recall": 38.32,
+    "precision": 90.2
+   },
+   "MOT17-11-SDP": {
+    "HOTA": 42.56,
+    "IDF1": 48.7,
+    "MOTA": 44.03,
+    "IDSW": 25,
+    "Frag": 57,
+    "GT_IDs": 73,
+    "pred_IDs": null,
+    "recall": 46.76,
+    "precision": 96.4
+   },
+   "MOT17-13-SDP": {
+    "HOTA": 27.72,
+    "IDF1": 33.07,
+    "MOTA": 23.01,
+    "IDSW": 121,
+    "Frag": 144,
+    "GT_IDs": 110,
+    "pred_IDs": null,
+    "recall": 32.05,
+    "precision": 84.69
+   }
+  },
+  "rule_stats": {
+   "new_no_match": 563,
+   "new_no_vector": 167,
+   "lost": 197,
+   "rejoined": 92,
+   "late_rejoin": 50,
+   "ended": 19
+  },
+  "pred_IDs": 730
+ }
+}

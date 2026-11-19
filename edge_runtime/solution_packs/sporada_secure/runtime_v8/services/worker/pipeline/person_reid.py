@@ -105,6 +105,27 @@ def opengait_pretreat(mask: np.ndarray, target_h: int = 64, target_w: int = 44):
     return (result > 0).astype(np.uint8) * 255
 
 
+_SHARED_GAIT = {}
+
+
+class _SharedGaitModel:
+    """One compiled plain GaitBase per (path, device); a new infer request per call (safe across camera threads)."""
+
+    def __init__(self, compiled):
+        self.compiled = compiled
+
+    def input(self, index=0):
+        return self.compiled.input(index)
+
+    def output(self, index=0):
+        return self.compiled.output(index)
+
+    def __call__(self, inputs):
+        request = self.compiled.create_infer_request()
+        request.infer(inputs)
+        return {port: request.get_tensor(port).data.copy() for port in self.compiled.outputs}
+
+
 class OpenVINOGaitExtractor:
     model_id = GAIT_MODEL_ID
     model_version = GAIT_MODEL_VERSION
@@ -127,7 +148,10 @@ class OpenVINOGaitExtractor:
         gait_path = Path(gait_model_path)
         if not gait_path.is_file():
             raise FileNotFoundError(f"GaitBase model is missing: {gait_path}")
-        self.gait = core.compile_model(core.read_model(str(gait_path)), gait_device)
+        key = (str(gait_path), str(gait_device))
+        if key not in _SHARED_GAIT:
+            _SHARED_GAIT[key] = _SharedGaitModel(core.compile_model(core.read_model(str(gait_path)), gait_device))
+        self.gait = _SHARED_GAIT[key]
         self.gait_output = self.gait.output(0)
         self.sequence_length = int(self.gait.input(0).shape[1])
         self.min_sequence = int(min_sequence)
@@ -145,10 +169,15 @@ class OpenVINOGaitExtractor:
 
     def collect(self, frame: np.ndarray, people: list[Any], camera_id: str,
                 keys: dict[int, str], captured_at: float | None = None,
-                accept_sequence=None, observe=None, frame_key=None) -> dict[int, np.ndarray]:
+                accept_sequence=None, observe=None, frame_key=None,
+                precomputed_masks=None) -> dict[int, np.ndarray]:
         started = time.perf_counter()
-        masks = (self._silhouettes(frame, people, camera_id) if frame_key is None else
-                 self._silhouettes(frame, people, camera_id, frame_key=frame_key))
+        if precomputed_masks is not None:
+            # T2: exact silhouettes from the sentinelgait element (same MOG2/morphology/pretreat).
+            masks = list(precomputed_masks)
+        else:
+            masks = (self._silhouettes(frame, people, camera_id) if frame_key is None else
+                     self._silhouettes(frame, people, camera_id, frame_key=frame_key))
         if observe is not None:
             observe("person_identity.gait_silhouette_preprocessing",
                     time.perf_counter() - started)

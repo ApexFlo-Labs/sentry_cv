@@ -1,0 +1,164 @@
+{
+ "per_sequence": {
+  "MOT17-02-SDP": {
+   "ground_truth": {
+    "unique": 52,
+    "cross_L2R": 15,
+    "cross_R2L": 4,
+    "zone_entries": 40
+   },
+   "raw": {
+    "unique": 53,
+    "cross_L2R": 10,
+    "cross_R2L": 1,
+    "zone_entries": 34
+   },
+   "recovery_tolerant": {
+    "unique": 52,
+    "cross_L2R": 10,
+    "cross_R2L": 1,
+    "zone_entries": 34
+   }
+  },
+  "MOT17-04-SDP": {
+   "ground_truth": {
+    "unique": 79,
+    "cross_L2R": 6,
+    "cross_R2L": 9,
+    "zone_entries": 55
+   },
+   "raw": {
+    "unique": 132,
+    "cross_L2R": 7,
+    "cross_R2L": 9,
+    "zone_entries": 81
+   },
+   "recovery_tolerant": {
+    "unique": 123,
+    "cross_L2R": 7,
+    "cross_R2L": 9,
+    "zone_entries": 75
+   }
+  },
+  "MOT17-05-SDP": {
+   "ground_truth": {
+    "unique": 121,
+    "cross_L2R": 16,
+    "cross_R2L": 10,
+    "zone_entries": 92
+   },
+   "raw": {
+    "unique": 140,
+    "cross_L2R": 13,
+    "cross_R2L": 8,
+    "zone_entries": 98
+   },
+   "recovery_tolerant": {
+    "unique": 123,
+    "cross_L2R": 13,
+    "cross_R2L": 10,
+    "zone_entries": 89
+   }
+  },
+  "MOT17-09-SDP": {
+   "ground_truth": {
+    "unique": 26,
+    "cross_L2R": 9,
+    "cross_R2L": 3,
+    "zone_entries": 16
+   },
+   "raw": {
+    "unique": 52,
+    "cross_L2R": 7,
+    "cross_R2L": 3,
+    "zone_entries": 32
+   },
+   "recovery_tolerant": {
+    "unique": 51,
+    "cross_L2R": 7,
+    "cross_R2L": 3,
+    "zone_entries": 31
+   }
+  },
+  "MOT17-10-SDP": {
+   "ground_truth": {
+    "unique": 57,
+    "cross_L2R": 11,
+    "cross_R2L": 10,
+    "zone_entries": 51
+   },
+   "raw": {
+    "unique": 135,
+    "cross_L2R": 8,
+    "cross_R2L": 6,
+    "zone_entries": 100
+   },
+   "recovery_tolerant": {
+    "unique": 129,
+    "cross_L2R": 8,
+    "cross_R2L": 6,
+    "zone_entries": 96
+   }
+  },
+  "MOT17-11-SDP": {
+   "ground_truth": {
+    "unique": 71,
+    "cross_L2R": 4,
+    "cross_R2L": 4,
+    "zone_entries": 33
+   },
+   "raw": {
+    "unique": 55,
+    "cross_L2R": 4,
+    "cross_R2L": 5,
+    "zone_entries": 38
+   },
+   "recovery_tolerant": {
+    "unique": 49,
+    "cross_L2R": 4,
+    "cross_R2L": 5,
+    "zone_entries": 33
+   }
+  },
+  "MOT17-13-SDP": {
+   "ground_truth": {
+    "unique": 106,
+    "cross_L2R": 4,
+    "cross_R2L": 31,
+    "zone_entries": 64
+   },
+   "raw": {
+    "unique": 205,
+    "cross_L2R": 2,
+    "cross_R2L": 18,
+    "zone_entries": 108
+   },
+   "recovery_tolerant": {
+    "unique": 197,
+    "cross_L2R": 2,
+    "cross_R2L": 18,
+    "zone_entries": 107
+   }
+  }
+ },
+ "total": {
+  "ground_truth": {
+   "unique": 512,
+   "cross_L2R": 65,
+   "cross_R2L": 71,
+   "zone_entries": 351
+  },
+  "raw": {
+   "unique": 772,
+   "cross_L2R": 51,
+   "cross_R2L": 50,
+   "zone_entries": 491
+  },
+  "recovery_tolerant": {
+   "unique": 724,
+   "cross_L2R": 51,
+   "cross_R2L": 52,
+   "zone_entries": 465
+  }
+ }
+}

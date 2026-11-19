@@ -1,6 +1,7 @@
 """Persistent RTSP video-pad wiring across source-only reconnections."""
 from __future__ import annotations
 
+import os
 import logging
 import threading
 
@@ -60,6 +61,12 @@ class RtspVideoLink:
                   source_generation=generation, pad_name=pad.get_name(),
                   codec=self.codec, link_result=str(result), linked=linked)
         if linked:
+            # T2-B9: count RTSP packets with the native pad counter (no Python per packet) when available.
+            trace = self.trace() if os.getenv("SENTINEL_T2_NATIVE_RTSP_TRACE", "0") == "1" else None
+            native = getattr(trace, "_native", None) if trace is not None else None
+            if native is not None:
+                native.attach(pad, "source.video")
+                return
             def observe(_pad, probe_info):
                 frame = probe_info.get_buffer()
                 trace = self.trace()

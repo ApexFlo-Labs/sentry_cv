@@ -93,6 +93,36 @@ def _pose_quality(pitch: float, yaw: float, roll: float,
     )
 
 
+_SHARED_COMPILED = {}
+_SHARED_LOCK = __import__("threading").Lock()
+
+
+class _SharedCompiled:
+    """Compiled model shared by all cameras of the process; a new infer request per call."""
+
+    def __init__(self, compiled):
+        self.compiled = compiled
+        self.outputs = compiled.outputs
+
+    def output(self, index=0):
+        return self.compiled.output(index)
+
+    def input(self, index=0):
+        return self.compiled.input(index)
+
+    def __call__(self, inputs):
+        request = self.compiled.create_infer_request()
+        request.infer(inputs)
+        return {port: request.get_tensor(port).data.copy() for port in self.compiled.outputs}
+
+
+def _shared_compile(key, factory):
+    with _SHARED_LOCK:
+        if key not in _SHARED_COMPILED:
+            _SHARED_COMPILED[key] = _SharedCompiled(factory())
+        return _SHARED_COMPILED[key]
+
+
 class OpenVINOHeadPoseEstimator:
     """SixDRepNet A0 FP16 head-pose inference with no CPU fallback."""
 
@@ -108,7 +138,8 @@ class OpenVINOHeadPoseEstimator:
         config = {"PERFORMANCE_HINT": "LATENCY"}
         if self.device.split(".", 1)[0] == "NPU":
             config["INFERENCE_PRECISION_HINT"] = "f16"
-        self._compiled = core.compile_model(model, self.device, config)
+        self._compiled = _shared_compile(("pose", model_path, self.device),
+                                         lambda: core.compile_model(model, self.device, config))
         self._output = self._compiled.output(0)
 
     def warmup(self) -> None:
@@ -177,10 +208,12 @@ class OpenVINOFaceExtractor:
         detector.reshape({detector.input(0): [1, 3, 320, 320]})
         detector_device = os.getenv("FACE_DETECTOR_DEVICE", "GPU")
         embedder_device = os.getenv("FACE_EMBEDDER_DEVICE", "NPU")
-        self._detector = core.compile_model(detector, detector_device, {"PERFORMANCE_HINT": "LATENCY"})
+        self._detector = _shared_compile(("face-det", detector_model, detector_device),
+                                         lambda: core.compile_model(detector, detector_device, {"PERFORMANCE_HINT": "LATENCY"}))
         self._detector_outputs = list(self._detector.outputs)
-        self._embedder = core.compile_model(core.read_model(embedder_model), embedder_device,
-                                            {"PERFORMANCE_HINT": "LATENCY"})
+        self._embedder = _shared_compile(("face-embed", embedder_model, embedder_device),
+                                         lambda: core.compile_model(core.read_model(embedder_model), embedder_device,
+                                                                    {"PERFORMANCE_HINT": "LATENCY"}))
         self._embedder_output = self._embedder.output(0)
         self._pose = OpenVINOHeadPoseEstimator(pose_model, telemetry=telemetry)
         self.detector_threshold = float(os.getenv("FACE_DETECTOR_CONF", "0.55"))

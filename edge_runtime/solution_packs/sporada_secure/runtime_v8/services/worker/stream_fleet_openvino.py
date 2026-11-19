@@ -332,7 +332,15 @@ def consume_packet(packet, geo, tracker, analytics_stage, stab, async_ocr):
             continue
         track_id = int(vehicle.metadata["track_id"])
         plate.parent_id = track_id
-        if async_ocr is not None and stab.should_ocr(packet.name, track_id):
+        t2_logits = plate.metadata.pop("t2_ocr_logits", None)
+        if async_ocr is None and t2_logits is not None and stab.should_ocr(packet.name, track_id):
+            # T2: OCR logits computed in-graph by sentinelplate (exact v8 preprocessing); same decode + stabilizer.
+            from detectors.backends.openvino_ocr_async import decode_logits
+            text, confidence = decode_logits(t2_logits[None])
+            stab.note_ocr_submit(packet.name, track_id)
+            stab.observe(packet.name, track_id, text, confidence, packet.index,
+                         plate_width=plate.bbox[2] - plate.bbox[0])
+        elif async_ocr is not None and stab.should_ocr(packet.name, track_id):
             crop = _crop(packet.frame, plate.bbox)
             if crop is not None and getattr(crop, "size", 0):
                 async_ocr.submit(
@@ -995,6 +1003,10 @@ def _camera_group_proc(
         camera["name"]: index // model_shard_size
         for index, camera in enumerate(cameras)
     }
+    # T2-FIX2b: even scene slots inside this worker group (camera order).
+    os.environ["SENTINEL_SCENE_SLOTS"] = json.dumps(
+        {camera["name"]: index / max(1, len(cameras)) for index, camera in enumerate(cameras)},
+        separators=(",", ":"), sort_keys=True)
     os.environ["SENTINEL_DLSTREAMER_CAMERA_MODEL_SHARDS"] = json.dumps(
         model_shards, separators=(",", ":"), sort_keys=True
     )

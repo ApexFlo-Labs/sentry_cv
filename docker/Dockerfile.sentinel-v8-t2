@@ -1,0 +1,18 @@
+# T2 = exact frozen C18 image + T2 full-DL-Streamer changes (all exact vs v8 preprocessing; parity results in
+# sentry_target_build/tests/parity). Python: surface_stream, v8_events, dls_secondary, person_reid, rtsp_source,
+# stream_fleet_openvino. Native: sentinelstate (plate due gate), sentinelbody, sentinelgait, sentinelplate,
+# sentinelrategate (+ sentinelstamp).
+FROM localhost/sentinel-cv:v8-c18-plate-admission
+USER 0
+COPY surface_stream.py v8_events.py dls_secondary.py person_reid.py rtsp_source.py /opt/traffic-pilot/services/worker/pipeline/
+COPY stream_fleet_openvino.py /opt/traffic-pilot/services/worker/stream_fleet_openvino.py
+COPY libgstsentinelstate.so libgstsentinelbody.so libgstsentinelgait.so libgstsentinelrategate.so libgstsentinelplate.so /opt/sentinel-gst-plugins/
+ENV SENTINEL_PLATE_DUE_GATE=1 SENTINEL_T2_GRAPH_BGR=1 SENTINEL_T2_BODY=1 SENTINEL_T2_GAIT=1 SENTINEL_T2_PLATE=1 \
+    SENTINEL_T2_NATIVE_GATES=1 SENTINEL_T2_NATIVE_STAMP=1 SENTINEL_T2_NATIVE_RTSP_TRACE=1 \
+    SENTINEL_DLS_MAX_PENDING=12 SENTINEL_T2_STAGE_QUEUES=1 SENTINEL_SCENE_SPREAD=1
+RUN D=/opt/traffic-pilot/services/worker && python3 -m py_compile $D/pipeline/surface_stream.py $D/pipeline/v8_events.py $D/pipeline/dls_secondary.py $D/pipeline/person_reid.py $D/pipeline/rtsp_source.py $D/stream_fleet_openvino.py \
+ && chmod 0755 /opt/sentinel-gst-plugins/*.so \
+ && for e in sentinelstate sentinelbody sentinelgait sentinelrategate sentinelstamp sentinelplate; do gst-inspect-1.0 $e >/dev/null || exit 1; done
+LABEL org.opencontainers.image.version="2026.11.16-v8-t2" sentinel.validation.candidate="true" \
+      sentinel.change="t2-full-dlstreamer-exact-conditional-elements" sentinel.parent="localhost/sentinel-cv:v8-c18-plate-admission"
+USER 10001:10001

@@ -1,0 +1,20 @@
+# v8-t2-fix2f (built on .64 2026-11-18, image id sha256:aaa353d1b490b91a90df5db0a3a248f17253214d7adc2084b186fea261b1da92).
+# Build context = the 5 files from edge_runtime/.../runtime_v8/services/worker (pipeline/surface_stream.py, v8_events.py,
+# person_reid.py; stream_fleet_openvino.py; detectors/backends/openvino_face.py -> placed under backends/).
+# Base v8-t2-full-dls = docker/Dockerfile.sentinel-v8-t2 on top of v8-c18-plate-admission.
+# Contents (later fixes than the comment lines below): gait telemetry crash fix; scene samples on a shared wall-clock
+# grid with pixels requested at the grid time (FIX2d+2e; replaces FIX2b). See releases/v8-t2-fix2f/README.md.
+# T2-FIX2 test image (local). On top of T2:
+#  FIX2  optional queue after GVA inference + scheduling policy (off unless env set)
+#  FIX2b even scene slots (with SENTINEL_SCENE_SPREAD=1, already on in T2)
+#  FIX2c plate-text recovery before publication (off unless SENTINEL_PLATE_RECOVERY=1)
+#  FIX3  gait on the plain gaitbase_int8 model (default; SENTINEL_GAIT_PLAIN=0 = old montage wrapper)
+#  FIX4  face on plain models via the production face path, shared compiled models (default; SENTINEL_FACE_PLAIN=0 = old)
+FROM localhost/sentinel-cv:v8-t2-full-dls
+COPY surface_stream.py v8_events.py person_reid.py /opt/traffic-pilot/services/worker/pipeline/
+COPY stream_fleet_openvino.py /opt/traffic-pilot/services/worker/stream_fleet_openvino.py
+COPY backends/openvino_face.py /opt/traffic-pilot/services/worker/detectors/backends/openvino_face.py
+USER 0
+RUN D=/opt/traffic-pilot/services/worker && python3 -m py_compile $D/pipeline/surface_stream.py $D/pipeline/v8_events.py $D/pipeline/person_reid.py $D/stream_fleet_openvino.py $D/detectors/backends/openvino_face.py
+LABEL sentinel.change="t2-fix2f (gait telemetry fix + scene grid, pixels at grid time): postdet queue/scheduling opt, even scene slots, plate recovery opt, plain gait, plain face" sentinel.parent="localhost/sentinel-cv:v8-t2-full-dls"
+USER 10001:10001

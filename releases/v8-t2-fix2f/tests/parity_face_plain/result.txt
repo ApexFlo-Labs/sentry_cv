@@ -1,0 +1,14 @@
+shared across instances: True
+faces 3 identical 3 non-identical cosines []
+12 frames in 12 threads at once identical: True
+== MOT17-09-SDP
+shared across instances: True
+faces 119 identical 119 non-identical cosines []
+12 frames in 12 threads at once identical: True
+== MOT17-11-SDP
+time="2026-11-18T00:44:06+05:30" level=error msg="Rolling back transaction to add exit code: cannot rollback - no transaction is active"
+time="2026-11-18T00:44:06+05:30" level=error msg="Rolling back transaction to add exit code: cannot rollback - no transaction is active"
+time="2026-11-18T00:44:06+05:30" level=error msg="Removing container 4a53122c51b72d858517dc3a4726f0bcca6e8c87be92da1839d1e4fbcd8ff5ee: adding container 4a53122c51b72d858517dc3a4726f0bcca6e8c87be92da1839d1e4fbcd8ff5ee exit code 0: database or disk is full"
+MOT17-11: shared across instances: True
+MOT17-11: faces 115 identical 115 non-identical cosines []
+MOT17-11: 12 frames in 12 threads at once identical: True
