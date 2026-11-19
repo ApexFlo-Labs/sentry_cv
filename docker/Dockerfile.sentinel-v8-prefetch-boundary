@@ -1,0 +1,10 @@
+# Qualification-only correction; parent models, SDK, schemas and gates retained.
+FROM localhost/sentinel-cv:v8-c13-bgr-prefetch
+USER 0:0
+COPY --chown=10001:10001 surface_stream.py /opt/traffic-pilot/services/worker/pipeline/surface_stream.py
+COPY --chown=10001:10001 test_surface_consumption.py /opt/traffic-pilot/tests/test_surface_consumption.py
+RUN python3 -m py_compile /opt/traffic-pilot/services/worker/pipeline/surface_stream.py
+LABEL org.opencontainers.image.version="v8-c14-prefetch-boundary" \
+      io.apexfabric.candidate.scope="unqualified-prefetch-consumption-boundary" \
+      io.apexfabric.candidate.parent="e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db"
+USER 10001:10001

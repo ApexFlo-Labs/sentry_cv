@@ -1,6 +1,8 @@
 # Capacity and use-case balance: 5, 8 and 10 FPS per camera
 
-This expands the capacity section of [PIPELINE_TEST_PLAN.md](PIPELINE_TEST_PLAN.md). It defines what to measure; it contains no new measured camera-capacity claim. Execution is `NOT_RUN` for this protocol. The frozen reference is the current `v8-qaft-int8-tlsfix2` image and digest recorded in the main matrix.
+This expands the capacity section of [PIPELINE_TEST_PLAN.md](PIPELINE_TEST_PLAN.md). It defines what to measure; it contains no new measured camera-capacity claim. Execution is partial; the full protocol is broader than the completed campaign cases. The historical reference is `v8-qaft-int8-tlsfix2`. The Nov10 resumed `.64` campaign uses the exact published `v8-r2` identity in [its runbook](REMOTE64_OPTIMIZATION_CAMPAIGN.md). No old passing result is transferred to that image.
+
+The current active candidate and exact image identities are recorded in [ACTIVE_CAMPAIGN.json](optimization_evidence/ACTIVE_CAMPAIGN.json). Fresh C17 measurements are in [RESULTS_CURRENT.md](optimization_evidence/2026-11-12-remote64-c17/RESULTS_CURRENT.md). The protocol remains broader than the completed execution: historical results are retained separately and unexecuted profile combinations remain unqualified.
 
 The test must answer two separate questions:
 
@@ -160,3 +162,15 @@ The completed report must provide these tables with actual run IDs; blanks remai
 **Stage/resource breakdown:** model/queue/policy/conversion/JPEG/handoff timing distributions and CPU/RAM/GPU/NPU/temperature/network timelines for each operating point. Identify whether the measured limit is source availability, decode, inference, CPU work, queueing, evidence or agent pressure; no guessed hardware bottleneck.
 
 This is planning only. Existing earlier4×8 or3×10 results are historical scoped evidence, not prefilled answers for every new profile,5FPS or the repaired image's maximum capacity.
+
+### Current campaign scene-count oracle
+
+Scene selection uses the first eligible processed frame after the configured
+interval. The count oracle allows one nominal selected-frame period per scene
+sample, then two observation-window boundary samples:
+`floor(window_seconds / (interval_seconds + 1 / camera_fps)) - 2` for active
+video. Quiet sweeps use their separate five-second target. This does not change
+runtime sampling or promise an exact two-second wall timer. Report actual source
+and API gaps alongside counts; independent source-to-API freshness remains a
+separate required capacity gate. Original reports made before this correction
+remain immutable and any reanalysis must identify the original report hash.

@@ -14,7 +14,6 @@ import cv2
 import numpy as np
 from PIL import Image
 from .gait_morphology import clean_person_regions
-from .parallel_background import create_gait_background
 
 BODY_MODEL_ID = "transreid_ssl_int8"
 BODY_MODEL_VERSION = "v1"
@@ -222,7 +221,9 @@ class OpenVINOGaitExtractor:
     def _silhouettes(self, frame: np.ndarray, people: list[Any], camera_id: str, frame_key=None):
         background = self.backgrounds.get(camera_id)
         if background is None:
-            background = create_gait_background()
+            background = cv2.createBackgroundSubtractorMOG2(
+                history=300, varThreshold=25, detectShadows=False
+            )
             self.backgrounds[camera_id] = background
         # The explicit key is (stream session, selected frame index). Never
         # infer frame identity from an array address, timestamp or track ID.
@@ -266,13 +267,22 @@ class OpenVINOGaitExtractor:
             self._foreground_cache.pop(camera_id, None)
 
     def close_backgrounds(self) -> None:
+        """Release per-camera foreground state during extractor teardown.
+
+        The native MOG2 objects release their storage when references go away.
+        DL Streamer gait teardown calls this method even on the accepted
+        whole-frame implementation; it must not depend on an experimental
+        parallel-background factory being integrated.
+        """
         backgrounds = getattr(self, 'backgrounds', {})
-        for background in backgrounds.values():
-            close = getattr(background, 'close', None)
-            if close is not None:
-                close()
-        backgrounds.clear()
-        getattr(self, '_foreground_cache', {}).clear()
+        try:
+            for background in list(backgrounds.values()):
+                close = getattr(background, 'close', None)
+                if callable(close):
+                    close()
+        finally:
+            backgrounds.clear()
+            getattr(self, '_foreground_cache', {}).clear()
 
     def close(self) -> None:
         self.close_backgrounds()

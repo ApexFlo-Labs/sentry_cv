@@ -40,6 +40,7 @@ from pipeline.person_reid import (
     _l2,
 )
 from pipeline.scene_embeddings import normalize_scene_embedding
+from pipeline.gva_inference_options import gpu_compilation_ie_config
 
 
 _ENGINE_REGISTRY_LOCK = threading.RLock()
@@ -125,6 +126,7 @@ class DlsRawImageInferencer:
             f"caps=video/x-raw,format=BGR,width={self.width},height={self.height},framerate=1/1 ! "
             f"gvainference name=infer model={json.dumps(str(model))} "
             f"model-proc={json.dumps(str(proc))} device={self.device} "
+            + gpu_compilation_ie_config(self.device) +
             f"model-instance-id={json.dumps(secondary_model_instance_id(name))} "
             f"pre-process-backend=opencv nireq={self._lane_count}"
             f"{reshape_options} ! "
@@ -287,9 +289,11 @@ class DlsRawImageInferencer:
         if sample is None:
             message = lane.pipeline.get_bus().pop_filtered(Gst.MessageType.ERROR)
             if message is not None:
-                error, _ = message.parse_error()
+                error, debug = message.parse_error()
+                from pipeline.structured_logging import sanitize_text
                 raise RuntimeError(
-                    f"DL Streamer secondary inference failed: {error.message}"
+                    "DL Streamer secondary inference failed: "
+                    + sanitize_text(f"{error.message}; {debug or ''}", limit=4096)
                 )
             raise TimeoutError("DL Streamer secondary inference timed out")
         from gstgva import VideoFrame

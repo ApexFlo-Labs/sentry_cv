@@ -1,6 +1,10 @@
 # Sentry optimization handoff — read before continuing
 
-**Current state (2026-11-05): RTSPS compatibility repair complete. User explicitly chose legacy-compatible TLS by default, matching dev3 (encrypted, no server certificate verification); strict mode remains available. New image v8-qaft-int8-tlsfix2 / dbae... published to personal GHCR. 96 regression tests and 15 native TLS cases passed, plus full VAAPI/DLStreamer execution through an untrusted live TLS relay. Models, V8 contract and analytics gates unchanged. Prior QAFT fidelity/UTC/memory/capacity limitations remain. Read model_updates/2026-11-05-rtsps-compatibility-fix/DEPLOYMENT.md and REPAIR_REPORT.md.**
+<!-- ACTIVE_CAMPAIGN_STATUS -->
+C10 local GPU-stack candidate04f2...: 80protectedartifacts unchanged;40samepixelGPUframes/328detections EXACT and8native-contextscenevectors BIT-EXACT. Unmodified12×10/S180s+independentfreshnessPASS(~575msworst p95),notmaximum.16×8GPU/NPU/throttlecontrols thermallyexcluded. Now600s12×10presoak guard815837; fullfrontiers/1h/allprofiles/faults unfinished. Disk~11GiBafterverifiedownbuilderdelta/cache cleanup; nohost/model/gate/tracker/V8change/push.
+<!-- /ACTIVE_CAMPAIGN_STATUS -->
+
+**Historical release checkpoint (2026-11-05): RTSPS compatibility repair complete. User explicitly chose legacy-compatible TLS by default, matching dev3 (encrypted, no server certificate verification); strict mode remains available. New image v8-qaft-int8-tlsfix2 / dbae... published to personal GHCR. 96 regression tests and 15 native TLS cases passed, plus full VAAPI/DLStreamer execution through an untrusted live TLS relay. Models, V8 contract and analytics gates unchanged. Prior QAFT fidelity/UTC/memory/capacity limitations remain. Read model_updates/2026-11-05-rtsps-compatibility-fix/DEPLOYMENT.md and REPAIR_REPORT.md.**
 
 
 Forward testing: PIPELINE_TEST_PLAN.md / PIPELINE_TEST_MATRIX.json / PIPELINE_TEST_LEDGER.csv now define282scenarios across28areas, all fresh execution statuses NOT_RUN. This planning update does not change the published image or close known failures.
@@ -35,7 +39,7 @@ Requirements retained from the conversation:
 - Work on the multi-box branch without disturbing single-box work. Do not push to the Apexflo organization unless explicitly asked. A later generic Git push follows the user's personal-repository preference; verify actual remotes/account before writing.
 - Handoff creation and the subsequent upstream-repository review made documentation changes only. No runtime fix, build, commit or push was performed in those steps.
 
-## 2. Current state — verified at handoff
+## 2. Historical Opt57 state — verified at original handoff
 
 Continuation update: section 14 records the subsequent upstream queue experiment and diagnostics. Opt57 remains the reference; opt58 failed qualification and its queue changes were removed. Opt59 is a diagnostic image, not a promoted replacement.
 
@@ -1842,3 +1846,4649 @@ Publication authorized by user "ok now push to repo". Published short image tag 
 
 
 Publication completed and verified: personal repositories `kiranmaibattu-cyber/sentry_cv` and `kiranmaibattu-cyber/PIPELINE` both received source commit `6643beb1592952cff4512907827dfb53960ba683` and immutable annotated Git tag `v8-r2` on branch `sentry_cv_multi`. Both GitHub prereleases exist and their validation archive/SHA256SUMS were downloaded from the server and checked: archive SHA256 `37ca5e22eb403e82ba8c4da9070c7178b94635eb4af7f0946f7ccc2b881908bc`; all30 contained evidence/source files matched the archive manifest. Registry short tag `ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:v8-r2` resolves to `sha256:e8baec1ad054312f0081deb4bf6d34c7c8cc3bfb38516a3582d3d2fed32b4629` and tested config e5ce6194581be39b0732ec4b8a486cfbea22bb32e76b82338bc1df92bc473bf7. Image anonymous access and a normal client pull by digest succeeded. Publication identity is Battu Kiranmai / active account kiranmaibattu-cyber. Release tag stays on the tested source commit; a subsequent documentation-only checkpoint records this verification on both branches. No ApexFlo remote was pushed and no deployment changed. Independent dirty worktree `/home/admin1/Documents/PIPELINE` was left untouched: its personal `sentry_cv_multi` remote branch was updated from the sentry_cv checkout, matching the established dual-repository workflow. Full publication data: `releases/v8-r2/publication-verification.json`.
+
+
+## Permanent incident regressions requested after v8-r2 publication
+
+User said repeated issues (TLS first, then queues/reconnection) should be caught while building/testing rather than after deployment. Clarified the queue reference means the EARLIER repaired issue, NOT a newly observed v8-r2 failure. Do not open a new runtime-failure diagnosis or rebuild another image based on this conversation. Current task is to make regression coverage cumulative and explicit in the existing validation Markdown/matrix, with issue-to-reproducer mappings and same-image release evidence. User also asked that this conversation and all progress be saved in the handoff.
+
+Implementation in progress: retain the original282-case catalog/ledger and historical scope; add a permanent incident-regression index linking actual tests and known missing tests; require fresh results bound to the candidate config digest; missing/failed/blocked/old-image results cannot count as release-qualified PASS. Fixed regressions (TLS modes, source-only reconnect, queue admission, worker hang, readiness, artifact/API associations) must be rerun together. Known open issues and missing native fixtures stay explicit rather than being implied solved. No long camera tests, new image build, runtime/model/contract change or publication is authorized/needed by this checklist update alone. Separate candidate/debug builds from qualified release claims. Current published image remains v8-r2 / e8baec1a... manifest, e5ce6194... config, with branch publication checkpoint b645c04.
+
+No new regression checklist changes are complete yet at this checkpoint; do not claim the runner or all required tests exist until implemented and checked. Continue the active validation-plan task after answering this status question.
+
+
+## Cumulative incident regression documentation completed — 2026-11-06T10:03:20.274965+00:00
+
+Goal and user clarification: stop shipping a fix tested only for the latest reported symptom. Every accumulated incident must remain in the validation checklist and be rerun on the same new candidate before a full qualification claim. The queue reference was to the earlier repaired incident, not a new failure on v8-r2. The user asked that this discussion and progress be saved in the handoff.
+
+Completed locally:
+- Updated PIPELINE_TEST_PLAN.md, the existing JSON matrix and CSV ledger, with 24 incident families mapped to the original 282 scenarios. Links identify actual saved tests, required behavioral assertions/evidence levels, limited historical evidence and missing fixtures/known defects. Updated README and historical isolated-plan links; removed misleading current-reference/plan-only wording. The 282 historical ledger rows and every original field/value were verified unchanged (canonical SHA256 1cfd902efad0ad018ce8a54e8de241b437fcb89ca72013b0cb9b94682e35de4e); only incident index links were added.
+- Added scripts/isolated_validation/check_regression_gate.py: creates an all-NOT_RUN checklist for the locally inspected image config digest, refuses overwriting it, and returns nonzero unless required results/command/run/time/assertions and hash-verified unit/native/deployment/load evidence are complete for that SAME image. It is an evidence audit, not a behavioral-test executor or CI/registry access restriction; trusted fixtures and assertion-level review remain necessary. Older image PASS records cannot qualify a different image.
+- Added scripts/isolated_validation/test_regression_gate.py. Fourteen offline tests passed: valid evidence, missing/duplicate/unknown results, old image identity, missing assertions, unit-only evidence, altered/missing files, timestamps/run metadata, invalid/blocked/failing outcomes, malformed inputs, empty registry and registry/link/historical-ledger consistency. Python compilation and git diff --check passed.
+- Exercised actual CLI initialization and audit against the local published v8-r2 config e5ce6194581be39b0732ec4b8a486cfbea22bb32e76b82338bc1df92bc473bf7. All 24 new candidate rows remain NOT_RUN; audit correctly returned exit2/BLOCKED with zero passing rows. Saved at optimization_evidence/2026-11-06-cumulative-regressions/. This proves checker behavior ONLY; no camera/native/production-policy suite was rerun in this task.
+
+Failed attempts/status: no runtime failure or new image was diagnosed from this discussion. A checker input/file-handle robustness improvement and test portability improvement were made before finishing; offline tests passed afterward. The earlier TLS/reconnect/native-hang passes stay scoped to the released r2 evidence, rather than being copied into the new all-NOT_RUN checklist.
+
+Remaining: implement the missing native/deployment/load fixtures listed by incident, repair/reproduce known inherited open defects, and collect fresh results on future candidates. In particular, slow/blocked secondary fairness, rejected-sample quality state, independent UTC markers, actual Secret/revision source switching, read-only/full telemetry storage and HTTP/native consistency are not closed. Full capacity at 5/8/10FPS requires its own busy/quiet, scene-on-every-camera and sustained/resource evidence. The older capacity harness still references ignored run/v8-live/mock_delivery_agent.py; the tracked scripts/isolated_validation/v8_capture_agent.py uses the corresponding CLI and should replace that dependency with an offline harness regression before claiming clean-clone capacity reproducibility. No such harness mutation was included in this documentation task.
+
+Runtime, models, V8 contract and production gates unchanged. No rebuild, deployment modification, live camera/load test, remote .64 work, commit or push for this task. Current published image stays ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:v8-r2 / registry sha256:e8baec1ad054312f0081deb4bf6d34c7c8cc3bfb38516a3582d3d2fed32b4629. Local checklist changes are not yet published.
+
+
+## Concrete required test list after user rejected generic testing guidance — 2026-11-06T10:20:24.355160+00:00
+
+User said we know what is being built but still have not supplied the actual required test list. This is a request for a concrete pipeline-specific checklist, not another general explanation, new image or test campaign. Added a prominent 'Required pipeline test suites — complete index' to the existing PIPELINE_TEST_PLAN.md. All 28 suites map exactly to the existing282 scenario IDs and enumerate what to exercise across release provenance, deployment, inputs/TLS, configuration, each model, scheduling, motion, tracking, every use case, artifacts, agent API, time, observability, resources, performance, site parity and adaptation. Existing detailed expected/forbidden/evidence definitions remain below.
+
+Read-only second review against actual runtime/contract found missing explicit SUBCASES; expanded existing definitions rather than inflating case counts: PRES-08 now explicitly tests optional subject-crop SigLIP768D vectors on person/vehicle presence, with and without scene_search and with the profile disabled; PRES-07 now tests binding priority, lexical tie-break, stable owner when a higher-priority binding is added, and reselection without another first_seen when owner disabled; SCENE-05 now tests configured/unconfigured triggers, zone/line events, source-event links, multiple scopes and cooldown boundaries. Clarified DWELL-03: do not require invented milestone events/configuration; test a milestone representation only if V8 actually supports it. Management derives dwell from episode facts. Current JSON/plan definitions are normative; original CSV fields remain the historical execution snapshot and were not reset.
+
+Contract-oracle concern surfaced during checklist review: canonical V8 operational-readiness wording versus r2 fresh-camera prerequisite needs direct DEP-06/OBS-01 evaluation when all sources are unavailable. Recorded as a review gap, not a confirmed new repair or a reason to silently rewrite V8. Binding-owner reconfiguration is likewise a newly explicit oracle to check, not a fix made here.
+
+Checks performed: all28 suites/all282 IDs present in index; registry/link consistency and original historical ledger verified by14 passing offline evidence-checker tests; git diff --check passed. This does not execute282 behavioral cases or qualify capacity. Existing24 incident families remain. No runtime/model/schema/policy change, image build, native-camera test, load run, remote .64 action, commit or push. Both handoffs updated. Required next work is to turn explicitly missing fixtures into executable regressions and collect honest same-image evidence; do not repeat broad architectural changes or claim the list itself fixes the pipeline.
+
+
+## 2026-11-10 — user resumes .64 testing and optimization
+
+User asks whether the full test list is gathered and explicitly authorizes the .64 testing/optimization campaign: track every test/change, wait for cooling and resume, keep going toward a measured optimized pipeline. This supersedes the previous request to leave remote tests deferred. The 28-suite/282-case list and24 incident families are gathered, but several native/deployment/load fixtures remain unimplemented and cannot count as passed. Current source has uncommitted documentation/checker work from Nov6; preserve it. Baseline selected for investigation is published v8-r2 config e5ce6194.../registry e8baec1a..., not legacy hardcodedOpt79/tlsfix2 scripts or unpromotedOpt80. No new image was built.
+
+Initial .64 SSH contact failed: No route to host; local route is via enp3s0 and neighbor resolution INCOMPLETE. Asked user asynchronously to check power/network or new address. No remote process was stopped and no .64 test was launched. Continue independent local preparation: reproducible current-image harness, owned-label thermal pause/cool/retry, fresh per-image ledger and evidence capture. Before load, verify identity, hardware/driver/firmware, thermal telemetry, disk/network and competing services; retain old freeze evidence, do not infer heat was the cause. Detailed active status: optimization_evidence/2026-11-10-remote64-v8-r2/STATUS.json. V8 contract, model and production gates are fixed during baseline and comparisons; optimize only evidence-backed bottlenecks, preserving semantics.
+
+
+## 2026-11-10 campaign preparation checkpoint — 2026-11-10T18:24:23.614316+00:00
+
+Remote blocker is still actual access: initial/repeated SSH No route to host, ping Destination Host Unreachable, neighbor FAILED; six additional bounded read-only retries saved in optimization_evidence/2026-11-10-remote64-v8-r2/connectivity.jsonl. No .64 test or workload stop has occurred. User question about checking power/network/new IP is pending. No remote optimization or capacity result is claimed. Old .64 deferral is revoked by the new user instruction; access, not permission, blocks execution.
+
+Local preparation completed and tested:
+- REMOTE64_OPTIMIZATION_CAMPAIGN.md defines the fixed v8-r2 baseline, sequence, full-scene per-camera capacity/use-case envelopes, conditional optimization acceptance, thermal cooling/retry, raw evidence and fault boundaries. Linked from README/current test-tool README; capacity descriptors retain historical baseline plus explicit new campaign reference. Do not run old Opt79/tlsfix2/QAFT/transition/prepare mutation controllers wholesale.
+- scripts/v8_capacity_probe.py now uses the tracked receiver instead of ignored run/v8-live code; resolves/runs by full local image config ID; saves image/hash/fixture/desired-state provenance; uses explicit Docker/Podman engine, exact CID/cidfile and run/case labels. Added validated uniform/per-camera profile, FPS and actual recording maps. SA now contains all11declared apps, including previously absent people entry/exit and generic line crossing; this is a deliberate TEST-workload change, so old9-app full-usecase results are not equivalent. All12profile descriptors render/validate, retain scene JPEG/vector, and preserve requested identity modalities.
+- Measurement checks reject camera membership changes, counter resets/rebound, new sessions/PIDs, missing health samples and invalid zero-age handling; use per-camera desired FPS and interval minima, not fleet totals. Selected surfaces, completed inference+quiet and active inference are separated. Full-throughput mean95percent/window90percent are preset test criteria, not changed production thresholds. A final failed health poll cannot pass using a cached earlier payload. Every camera's steady scene pairs are checked; optional independent expected event/profile oracles flag unexercised positive workloads. Generic throughput smoke explicitly does not set capacity_qualified; independent freshness/resources/workload/stability evidence must be joined.
+- Probe-owned cleanup runs even on early source/receiver setup failure, records/reaps exact children, independently attempts bounded cleanup and uses CIDfiles to recover owned engine timeout cases. No prefix-wide host cleanup was added.
+- v8_capture_agent.py retains existing API fields/ACK behavior and adds UTC/monotonic acceptance, per-camera output counts, richer vector-free association metadata, exact declared artifact-ID sets and optional bounded gallery. Duplicate retries do not double-log/save; ACK remains simulated durable, not actual filesystem/Management durability.
+- New run_guarded_case.py has sensor/pressure validation, default70C resume with15sec cool dwell, per-sensor abort min(90C,critical-10C),3hot samples at2sec intervals, owned run/case-label container stop plus owned process-group cleanup, fresh per-attempt evidence, cooldown then retry. Default3attempts/900sec cooldown cap produces explicit BLOCKED_THERMAL if unavailable rather than claiming image FAIL or endlessly stressing the host. No blind retry of unchanged nonthermal failures. Raw logs private0600; JSON command metadata sanitized.
+
+Validation:105offline fixture/audit/measurement tests passed, canonical V8 validator passed10schemas/16wireexamples, Python compilation and diff whitespace checks passed. Actual Linux-sensor/no-workload controller smoke also passed with roughly48–50C readings. This did not execute cameras, model inference or load; it is not105pipeline cases on .64. One transient misplaced health-observed field during tool editing was caught by source review and corrected before profile checks; all12profile schema checks and the full offline suite pass afterward. Existing282 historical ledger rows/fields remain unchanged.
+
+Current status saved as WAITING_FOR_REMOTE_ACCESS in the campaign STATUS.json, with tool hashes and LOCAL_TOOL_VALIDATION.json. Remaining native/deployment/marker/drain/capacity/stress work is explicit. Baseline runtime/model/V8schemas/production policy unchanged; no new image, remote service changes, firmware/power adjustments, commit/push/publication or ApexFlo writes. Both handoffs updated. Do not claim the pipeline is optimized or the full282cases passed from this tool work; resume with remote inventory as soon as access is actually restored.
+
+
+## 2026-11-10 — campaign redirected to current compute-a host
+
+User instructed "then use this system" after .64 access failed. Continue the same testing/optimization objective locally; no further remote access is needed. Preserve previous remote status as not run and do not combine hosts. New evidence root optimization_evidence/2026-11-10-local-v8-r2/. This is a nonisolated workstation (desktop, Kubernetes and host services running),16logicalCPUs, Intel GPU/NPU accessible, about20GiB RAM available and33GiB disk free. Baseline remains v8-r2 config e5ce6194... . Inventory/temperature/boot captured. Only owned test workloads may be stopped by thermal control; no instruction to kill local host services. Record contention and local conditional capacity. Next: bounded baked/device checks, actual1cam native baseline, then measured5/8/10FPS/profile frontiers and evidence-led fixes. V8 contract/model/policy unchanged while baseline is measured.
+
+
+## Local native baseline first results — 2026-11-10 UTC / Nov11 IST
+
+Guarded scene-only1x5 on quiet1920x1080/25fpsCamera12: PASS scoped, cumulative selected/completed5.01798FPS; model safety work0.1999FPS;12steady scene JPEG/vector pairs in60s and17total;8bounded gallery JPEGs decoded as1080x1920. Scene quiet sweeps are actually exercised; this is not busy capacity or recognition accuracy. Files in runs/baseline-r2/scene-quiet-1x5 with source artifact/tmp/sentry-v8-capacity-1.q7p8zbr5.
+
+Busy ANPR720p10 clip, SVX1x8: actual selected8.11570/completed+inferred8.09571FPS,30steady scenes,38plate_read andpositivepresence/crossing outputs, no fatal log lines, healthy final source andclean cleanup. The first checker result was FAIL solely because it required quiet_frames to be explicitly present at zero. Baked RuntimeTelemetry exports a sparse Counter, so zero quiet count is legitimately absent. Fixed test oracle (not runtime) to accept a missing one of the two disposition counters as zero ONLY when another completion counter exists; wholly absent completion telemetry remains blocked. Added regression and reanalyzed the preserved raw counters once; oracle-audit.json records corrected scoped PASS, original report SHA and analyzer hash. Original report/guard FAIL were not overwritten. This is not an image failure or a reason to rerun unchanged hardware. Source artifacts/tmp/sentry-v8-capacity-1.eak3i8on; ledger under vehicle-active-1x8.
+
+Both had no thermal exclusion. Actual1Hz host/device/health observer is now running under this campaign for up to2hours; nodeGPU includes Firefox and localresults remain conditional/sharedhost. Started2camera SVX8FPS for next capacity step. The crowd/MOT17 source and fire_smoke source validate; people_counting.mp4 is an invalid local fixture (moov atom missing), not an image error; use validated1920x1080/30fpsMOT17 replay instead. No runtime/schema/model/policy change or new image.
+
+
+## Local capacity and first bounded candidate — 2026-11-10 UTC / Nov11 IST
+
+SVX2x8FPS on independentTCPANPRreplays: per-camera cumulative completed8.1210 and8.1335FPS; every measured10s counter interval passed90percent and cumulative passed95percent;45steady scene JPEG/vector pairs per camera,56/57plate reads andpositivepresence/crossing output. Raw old harness verdict was FAIL only from a single rolling telemetrysnapshot ratio0.8914; rolling windows are~2s, not the protocol10s counter interval. Removed that invalid rolling-snapshot acceptance gate, preserved rawreport/guardFAIL, and saved oracle-audit.json reanalysis with exactSHA. No hardware rerun to hide the mismatch. Corrected checker still enforces per-camera cumulative95percent, actual10s interval90percent, current health, completion, positive output and no fatal logs.
+
+Genuine correctness finding: quiet16of17scene frames andbusy40of41scene frames had observed_at later than same-host agentaccepted_at (medianfuture~2.344s and1.914s). Wall-minus-monotonic differences varied onlymicroseconds. SourcePtsClock anchorsfirstreceive+mediaPTSdelta forever; initialmedia advance faster thanreceive yields permanentfutureoffset. Offline buffered-burst example reproduces2.5sfuture; a constantPTSoffset cancels. Capture cannotyetattribute theburst toFFmpeg versusdemux/decode/admission. Fireusesanotherclockatitsappsink, so merelyclampingeventsendtime isinvalid. Need commonpre-inferenceedge-receivefallback ortrustworthyabsolutemapping, candidate-time/lifecycle consistency andindependentPESmarkerproof. No timestampfix appliedyet.
+
+SA1x8on1080p30MOT17startup wasthermallyexcluded3times;temperatures reached100–105Cbeforeold3samples/2sabort. Eachownedcontainerstopped,cooledbelow70Cfor15s,andretried;no steadypass. Memorypressureabsent~20GiBavailable. Thisreproducestheknowncoldcompileload limitationonthishost;do notrerununbounded startupunchangedorraiseguard. Rawattemptsretained.
+
+Built LOCAL ONLY localhost/sentinel-cv:v8-c1, config3a66ef0df8ea341c8afc36c5600445a8d1ac8f5fdd0c82c3516cfac63b3ce3d9,fromexactr2base. ChangesONLYbound hostOpenVINOcompilationconcurrency(default2respectingCPUaffinity) in sharedCore andGVAprimary/face/fire/secondaryie-config. CurrentGPUandNPUbothadvertiseCOMPILATION_NUM_THREADS;actualSDKglobalset/getreturns2.OfficialOpenVINO2026GPU/NPUdocsdescribecompilerhostthreadcontrol;noFP32hint/device/model/gatechanges. Helper+3existingruntimefilescopiedthroughnetwork-offlinepatchDockerfile;all80model/config/schema/policyartifacthashesidenticalto r2. Sevenofflinecompiler-boundarytestspassed. No dependencyupgrade/Opt80promotion/registrypush. Moreaggressiveexternalguard(.5s,single90Csample)usedforc1;notanimagegate. StartedSA1x8sameMOT17workloadonc1toverifythermalhypothesis;resultpending. Timestampdefectstillunfixedinc1.
+
+Baked-r2unit runner attempts: firstpytestfixturefailedbeforecollection(inipathNone); readonlypytest.ini fixedthat. Secondgot167runtimePASS plus1unpromotedOpt80testFAILED becauseabsolute--deselectselector didnotmatchrelativePytestnodeID;policy30andallthreecontractvalidatorspassed. Runnerfixingselector;bothinvalidsetupskept.No bakedruntimefault establishedbytheseharnesserrors. Do notclaimentiresuitepassedbeforefinalfixturevalidates. Newfocusedregressionsforthemeasurementoracleswereadded.
+
+
+## Continuing local campaign: candidate and startup-condition findings
+
+C1 compilerbound2 alone DID NOTresolve thermalstartup; it hit105C and wasexcludedunderstricterexternalguard(.5s/single90Csample). Do notpromoteorcallthatoptimizationvalidated. Same80model/config/schema/policyartifacthashesremainunchanged. BakedbaselineandC1nowbothpassed167applicableruntimechecks(1Opt80gaitcasedeselected;repo-onlyparallelmoduleignored),30policycases,andall3contractvalidatorsusingcorrectedtestfixtures. Prior2invalidrunnerreports remain.
+
+Test-onlystartupCPUsetattempt failedbeforeCVlaunchedbecause rootlessPodmanhasno delegatedcpusetcontroller (actualtinyCLI:crun requestedcontrollercpusetnotavailable);notimagefailure. Separateinheritedtaskset14,15CPU-onlyfixtureprovedcontainerstartedwith{14,15} andownUID10001couldrestoretoall16cores. ItsfirstcleanupCLIexceeded10sec;ownedidlecontainerlaterended/cleanuptracked. ThenbaselineSAstartupunderLPcore14,15 avoidedheat(~51–55C)butrepeatedlyfailedNPUplateGVAwarmupbeforefirstframewithgenericbase_inferenceinitializationerror. Exactcausenotestablished;donotinventCPUISA/drivercause. Capturednativecheckpoint;terminatedonlythatownedguardedsupervisorafterrepeatedunchangedfailuresinsteadofwaitingretries. Classifyconditionunqualified,notimagecapacityceiling. Actualthreads/cgroupaffinityreleasewerenotreached. No hostpower/fan/driver/user-cgroupdelegation change. FutureCPUstartupcontrols mustrestore/verifyallCVthreadmasksbeforesteadywindow;conditionalcoldstartsremainexplicit.
+
+Currentnextactualcaseisbaselinevehicle-active-4x8(SVX,TCPANPR720p10,sceneeverycam),rootstatusand1HzobserverCURRENTupdated. No identityorfull-crowdcapacitysuccessyet. SourceUTCfuturedefectstillblockingcorrectness;newpureDecodedFrameClockhelper/testsbeingimplementedforcommondecodeingressUTCwithhonestedge_received_atfallback,primary/fire/candidateconsistency,boundedcacheandmissingstampdrops. No clockpatchhasbeenbuilt/validatedyet. KeepV8andemissiongatesfixed.
+
+
+## Timestamp-only candidate and thermal-controller correction in progress
+
+CandidateC1 compilerthread2failedthermalstartup; combinedC2 inheritedthatunprovenchange andalsowasexcludedbeforesteady. ArchivedexactbakedC1source(the4runtimefiles)plusbuild/testprototype under compilation-experiment-snapshot/. Removedcompiler experiment fromactive runtime(backends.shared_core,surface/DLS properties restored), removedunusednewmodel_compilation module/experimentaltest/buildrecipe afterarchiving. No model/gate change. Built ISOLATED timestamp-onlylocalhost/sentinel-cv:v8-c3 fromexactr2registrybase, configc92c80e86d324bec89bda332e1d977e413cea67ee8844c185cbbcd7cf83c2be3. Do notusethediscardedC2combinedimageaslatest.
+
+C3changes: freeze decoded-frame UTC beforequeues/inference usingboundedthreadsafe DecodedFrameClock; preservePTS forframes/cadence; explicitedge_received_atprovenancebecauseabsolutecameraclocknotavailable. Primaryusescachedstamp beforeinfer; fireconsumesboundedinputstamp/epochownershipledger anddropsmissing/stale/ambiguousresults asUNEVALUATED,nevernegativeclear. Pendingfeature/evidence retaincapturedstamp. LegacySourcePtsClockunchangedfornonnativecompatibility. V8events changeonlyexplicit timestamp-provenance selection,notquality/confirmation/emissionthresholds. SecondaryGVAerrornowretains sanitizeddebugcontext instead oflosingnativecause. Helper102offlinecasespassed;C2andC3baked269runtimePASS(1Opt80casedeselected),30policyPASS,allcontractvalidatorsPASS. Sourceclockcache is2048scalarentries,fireoutputhistory128; noVA/pixelretentionadded. NativefutureUTC repairisNOTyetqualified: C3quietstartupalsohittransientthermalguardbeforeoutput,so noC3nativePASS. Models/config/schema/policyartifactparityC3stillneedssaving(compareexpected80).
+
+Thermaldiagnostics: CPUquota2preservesfullaffinitybutstillhit104C;mixedstartupaffinity0,1,6,7hit100C;LPonly14,15avoidedheatbutGVAplatewarmupfailedgenericinitializationandnorecovery,sourcecaptured andownedcasestopped. RootlessPodmancpusetcontrollerunavailable wasseparateINVALIDSETUP. TinyinheritedaffinityfixtureprovedownUIDcanrestoreallthreads;itsinitialrmf10stimeoutexcluded,exactownedCIDlaterremovedwith--time1. DirectOpenVINONPUplateonEcores6,7PASSED(~0.795s,deviceNPU,shape1x300x6),so cannotclaimEcore/NPUunsupportedbasedonLP/GVAfailure. NeverclaimedISA/driverrootcause. No hostturbo/fans/power/firmwarechanged.
+
+Importanttestcontrollerproblem: abortandrestartlosescoldcompilationprogressandcanrepeatheatforever. Userrequestedwait/cool/continue. Implementing OPT-IN STARTUP-ONLY pause/cool/resume: freezeonlyownedrun/case-labeledcontainer+ownedtestchildgroup,supervisorkeepsmonitoring,unpauseaftercool; preserveattempt+progress. Steadythermalstillinvalidates/abortscontinuousmeasurement. Probealreadywritesstartup/warmup/steady/cleanupphasefileandonlysubtractsDECLAREDcoolingfromstartup/warmuptimers;allsourceUTC/APIreceipt/steadyclocksremainactualwall/monotonic. Supervisor workeraddingboundedpauses/cleanup/tests;NOTyetexecuted. Runtimewatchdogsarenotdisabled; freezesmustnotbeassumedfreeofrecoveryeffects.
+
+Tools nowalso enforce same-hostsourceUTCsanity over observation/evidence/embedding/episode timestamps; futuredatacannotpassgeneric throughput smoke. This iscausalvalidation,notindependentcamera/capturelatency. Missingclocksremainunmeasured.46capacity-harnessofflinecasespassedafternewchecks. Active1Hzobserverstillcapturingunderlocalroot/session35251(max2hours). Next: finish/validate/startstartup-onlycooling; obtainactualC3sceneUTCregression, thenbusySVX/identityand5/8/10FPSfrontiers. NeedindependentPES/markerlatency,sourceoutage/nativehang/APIbackpressurecasesandfullsteadysoak; all282scenariosnotexecutedyet. No commits,pushes,registrypublicationorproductiondeployment.
+
+
+## C3 first native timestamp regression and counter-clock audit — 2026-11-10T19:42:47.003171+00:00
+
+Timestamp-only C3 quiet1x5 native run completed: all42 checked observation/evidence/embedding timestamps passed causalUTC sanity, none future (minimum observation-to-API58.291ms). Nine steady scene JPEG/vector pairs, expected minimum7. One declared startup-only4.410903s pause preserved same process/compiler progress and resumed; steady ran continuously at roughly52C. Rawreport failed only from new test clock mismatch: APIpoll5s reads counters published every2s; dividing4/6seconds of actual counter progress by5seconds creates false4/6FPS. Corrected analyzer uses reporter uptime (future captures) or existing per-camera UTCpublication time (audit), with reset/membership guards unchanged. Original report preserved; counter-time-audit.json hashes original and analyzer. Reanalysis selected/completed4.992755FPS, minimum actualcounter interval ratio.993419, scoped PASS. This is not independent source latency, hardware maximum or all282cases passing.
+
+Added two regressions for stale/poll-vs-publication clocks; combined capacity/thermal harness88offline tests passed. Baked C3 already269runtime+30policy+3contractvalidators passed. Running next C3 busySVX2x8 ANPR720p10, independentTCPconnections, sceneeachcamera,90ssteady with external startup-onlycooling; no changes to V8, model or emission/tracker thresholds. C1/C2 remain unpromoted experiments. Currenthostshared, no unrelated programs stopped, no power/firmware changes, commit or push.
+
+
+## LocalC3 busy validation and remaining execution limit — 2026-11-10T19:51:16.866032+00:00
+
+C3 SVX2x8 passed90sec continuous steady: per-camera completed7.9973/7.9806FPS, minimum counter-window ratios.9878/.9699;43steady scene pairs each,61plate_read each. All5308UTCstamps passed, none future. Startup3coolingpauses total12.640sec; not excludedfromsteadybecauseallbeforemeasurement. Finalcontainer~2315MB,1.258CPUcores, handoff1834/1834durable at sampledendpoint/exhausted0; finalcapture1849packages later, so do not comparedifferentcutoffsasloss. Actualsavedreport/tmp/sentry-v8-capacity-2.q4r7gpi6; nohardwaremaxclaim.
+
+C3 SA1x8MOT17 reachedactive/warm/steady butthermallyabortedafter2samples;7startupcoolingpauses29.751sec andlatersteadyspike. EXCLUDED_RESOURCE_ABORT, notpassed/notcamera ceiling. Captured stoppedownedcontainer5c201c50b4b9logs plus30observerhealthsnapshots. Beforeabort:59body/13gait/12face embeddingsand18scene vectors. Executionprovenforpartialrun, notcontinuouscapacity/accuracy. Commandhadtypoexpecting transreid-ssl-v1 ratherthanactualv18.1; wouldfailthatpositiveoracleindependentofthermal. FixedTESTpreflighttorejectdisabled/unknownprofileexpectationsbeforehardwareandhonorminimumcounts;54capacity-harnessofflinecasespassed. Neverrenamewireprofilesormodelstomatchthetypo.
+
+C3 SVX4x8completed90secwithno fatal/nativeerrorandUTC10552checks/no future,43–44scene pairs percam; MEASUREMENTFAIL: means7.668–7.850FPS(95.9–98.1percent) but10secwindowminima81.4–86.6percentbelowpreset90percent. Final~2843MB. MeanFPSalonecannotpass. Snapshot duringdip:123.5ms lifetimeframeprocessing,plate~13.6mspervehicleincluding~7.17msqueue/4.88msexecutor,~6vehiclecrops/frame,13.6msselectivefullBGRconversion;finitehandoffnoexhaustion. Actualcausecomponentsmeasured,notproofallplate/GPU/NPUcausality. Existingplate-lanesexperimentalreadyfailedhistorically;doNOTblindlyrepeatit/increaselanesorqueues. Nextrefine3x8,2x10,4x5 then sceneandidentityfrontiers.
+
+Addedtest-onlyoptionaltrackedPESmarkersenderandharnesssnapshots;currentmarkedimageanalyzerextendedtoreadmetadata.json/currentuncompressedpackages,retainsolderformat. Offlinefixturebuilderpreservessourceresolution/FPSbutchangesbottommarker/re-encodes;separateworkload,labelclearly. Markerfreshnessfixturestillnotexecuted. ProductionV8/models/emissionqualitygatesunchanged;C3time-onlyrepairnotpublished. Alloldrawreportsremain.
+
+
+## Independent latency established; feature admission defect reproduced — 2026-11-10T20:03:40.652848+00:00
+
+C3 vehicle2x10SVXpassed90sec:completed9.99558/9.98473FPS,mincounterwindows97.93/98.24percent,44scene pairs each,no fatal and6310causalUTCstamps. C3marked2x10separate120s720p10fixturepassed60secsteady;78savedscenemarkersdecoded,no missing/ambiguous senderpackets,24steady latency samples percam. IndependentfirstvideoPESsubmittedtoTCPthroughcompleteJPEG/vectoragentacceptance p50=439/435ms,p95=554/661ms,p99=608/838ms,max621/886ms. This excludes capture/encoder/Management,notcameraclockaccuracyorlongtermSLA. Artifact/tmp/sentry-v8-capacity-2.go8oqsro;marker-latency.json undercase. Fixtureinitialunpaced2threadencodeitselfhit102C;excludednotimagefailure. Paced20frames/sencoderpreservessource10FPSandgeometry,completedwithoutpauseat~55C. Bothrawattemptsretained.
+
+BakedC3additionalchecks:actualdesired-state/Secretvalidator1/8/16/50andnegative/schemecasesPASS;bothactualstructuredformatterscredential-markerchecksPASS. Existingrejected_feature_diagnosticreproducedall3modalitiesmarkedsentdespiteadmissionFalse,blockinglater equalqualifiedsamples. Implementingseparateadmission-statefix: _persistreturnsactualadmission;sent-qualityupdatesonlyonTrue. Facecollectionalreadybacks offindependently,so retainitsselectedcrop/vector/identicalpackageIDsforbounded.25sretrywhilelocalpresenceexists;noadditionalfaceinferenceorqualitythresholdrelaxation. Config/sessionfinalflushandorphanfailuremustdiscardexplicitly;testsbeforebuildrequired. C3imagecontinuesfrozenforthisrun;sourceworknotbaked/publishedyet.
+
+C3all80bakedmodel/config/schema/policyartifacthashesidenticaltor2savedc3-artifact-parity.json;exact7time-repairsource/build/testfilesarchivedc3-frame-time-snapshotbeforeadmissionwork. Current6x5SVXfrontierunderway. ObserverCURRENTconveniencelabelwasstaleduring2x10,marked2x10andearly6x5;preserverawandcorrelateusingguardmonotonicboundsplusactualhealthdeployment/FPS/session,NOTCURRENTalone. Alignmentnote saved;noresourcezeroes/capacityclaimfromstaletag. No productionpolicy/model/contractchange,registrypublication,pushorhostpowersettingschange.
+
+
+## C4 admission repair, TLS and current capacity campaign — 2026-11-10T20:15:34.330682+00:00
+
+BuiltlocalONLYlocalhost/sentinel-cv:v8-c4, configa41641169d40a10467fe7275d13a8ca38a840a4b88a9fadab54324935f084205,fromexactpublishedr2base+sameC3timefiles+featureadmissionfix. Newdocker/Dockerfile.sentinel-v8-feature-admission,nonewdependencies/compilerknobs. All80model/config/schema/policyartifacthashesidenticaltor2(c4-artifact-parity.json). _persistreturnsadmissionbool;body/gaitlast_featureadvancesonlyonacceptedhandoff. Faceupstreamadaptivescheduleralreadybacks offaftergoodface,soV8holdsoneoriginalcrop/vector/packageperLIVEpresenceonFalse,reusesIDs/JPEG/vectorwithoutnewinference,andretriesno fasterthan.25s. Onfinalconfig/sessionflushororphanfailure,itdiscardsunadmittedcandidateexplicitly(counter),neverclaimsagentdurability;qualitythresholds/cooldownsunchanged. Existing3finalflushcalls markedfinal. PendingqualitystateisnotdurableACK;postadmissionACKexhaustionremainsseparatetestrequirement.
+
+FirstbakedC4unitrun273passed/1failed/1deselected:oldtest_gait_inference_admissiontestdoubleusedappend-only_persistlambda(returnNone)whileclaimingsuccessfuladmission;updatedTESTdoubletoexplicitTrue,noruntimefallbackacceptingNone. Originalfailedreportpreserved. CorrectedfixturebakedC4passed274applicableruntimecases(1unpromotedOpt80casedeselected),30policycasesandall3canonical/embeddedvalidators. New5featureadmissionregressionscheckFalse->restorationforface/body/gait,stablefaceIDs/byteswithNONEWFACE,originaltimestamp,andfinal/orphancleanup. Actualbakeddiagnosticnowall3acceptoneafterrestoration;previousC3all3suppressed.
+
+C4nativeTLSmatrix15/15PASS:legacydefault/hostname/expired/shared,trusted/untrusted/strictbadidentity/expired,invalidPEM,badleaderisolation,auth401,andactualpublicRTSPSRTPwithmountedextraCA. NoTLSrepairregressioninthiscandidate. Fullmedia/VAdecodeandmodelpathsarenotprovenbyconnection-onlyTLSmatrixalone.
+
+C4denseSA1x8MOT17warmup90/duration90againthermallyexcludedafterfirststeadywindowdespite8startupcoolingpauses;nofullidentitycapacityPASS. DoNOTrerununchangedorcallonecameraa hardwaremaximum. Stop-ownedlogcapture nowretainslast3000sanitizedlinesAFTERthermal loadstop;no waitforlogsdelaysthermalrelief. Firstquiet/vehicleC3nativepassesremain;C4notyetfullnativequalified.
+
+C3SVX6x5native90secFAIL:mean4.696–4.833FPS,windowmin79.1–90.2percent,2camerasbelow95percentmean;allhealthy,nofatal,UTCpassed,~3179.65MB. Scene42–43pairs;sourcequality/cadenceanalysisseparate. At3x8theonlyoriginalFAILwas42vs43scenes;auditedcountnowcorrectlyallowsfirsteligibleframeafterinterval(2+.125secondsat8FPS),maintainsrawFAILandSHA. scoped3x8rate+frameeligiblescenePASS;stillnofreshnessqualificationfor3camera originalunmarkedrun. Actual3camera sceneobsmedian2.09–2.10s,max2.30–2.40s,documentednottwo-secondwallguarantee. CAPACITY_TEST_PROTOCOLupdatedandtestrejects3secslowsampling. No runtimesamplingchange.
+
+CurrentC4S12x10busy720p10teststarted:sceneONLYbindingspercam,primarytrackingstillruns,sceneeverycam2starget,90secsteadyafter30warmup. ThisseparatesbaseDLStreamer/GPUexecutionfromper-vehicleNPUplate/identitycosts;doNOTcompareasfullSAcapacity. IndependentmarkerC3two10FPScamspassedp95sourcePES->agent554/661ms(24steadymarkers/cam). NewreceiverrecordsfiniteL2normstatswithoutvectorvalues,rejectsnonfinite/zero/nonnormalizedsamples;23receiverunitcasesplusmarker/capacity/guardgatechecksrunafterwards. Existingrunningchildloadedoldreceiver;onlyfuturerunsclaimnewnormaudit.
+
+PotentialtestconditioningissueUNDERINVESTIGATION:SIGSTOPstartupcoolingcanmakeFFmpeg-recatchupafterresumebecauserealclockadvances;C4SAfirststeadyselected10.7at8targetmayincludeaccumulatedmedia. Thisisnotyetprovenrootcauseofheat. InstalledFFmpeghasreadrate/initialburstbutNOreadrate_catchupoption. DoNOTinventthatoptionorclaimsourcepacingfixed. NeedindependentPESpacingtest/possiblyfreshsourceconditioningbeforequalifyingpaused-startupcapacity. No hostpower/fan/turbosettingschanged. Existing1Hzobserverends~20:31UTC;GPUengineobserver~20:39;extendfreshsegmentbeforehourstress. ROOTCURRENTisconveniencelabel;useguardtimeboundsforalignment. NoGitpush,publication,remote64orproductiondeployment.
+
+
+## Binding-aware pixels and same-native-frame metadata optimization — 2026-11-10T20:30:01.489259+00:00
+
+C4S12x10busy720p10FAIL:actualpercam~5.000–5.187FPS(total61.34vs120target),allhealthy/nofatal,scenecoverageandUTCpassed;~2322MB. Foundprimary_pixels_requiredreturnedTrueforANYdetectionevenwhenONLYscene/firebindings. BuiltlocalC5config38b744018fa364822a264f2b670d8a7f2d79e952e924ce0f93841a1063275302,changingonlypixeladmissionrelativeC4. Pure scene/fireonlynowmaterializesoriginalBGRwhenunchanged1secadaptivequalitysampleorconfiguredsceneisDUE. ANYsubjectbinding(includingcounts)keepsconservativeoldpixelbehavior;nochangestracker/detectioninputs,timinggatesorqualitythresholds. Testscoverall9subjectapps,scene/qualitydue. BakedC5passed284runtime+30policy+3validators. MatchedS12x10stillFAIL;~80percentfewerBGRmaterializationsbutmetadata_bridgewall~75msdominatedandthroughputdidnotreach120. No claimC5solvedcapacity.
+
+Inspectedactualimage /opt/intel/dlstreamer/python/gstgva/region_of_interest.py:everyRegionOfInterestconstructoreagerlytraversesrelationmeta/buildstensorwrappers;object_idagainiteratesmetadata. Primarybridgeonlyuseslabel/box/confidence/trackingID,notclassificationtensors. ReferencefakesinkbenchmarkdoesnotpaythisPythonbridgeeveryframe. ConsultedofficialGStreamerAnalyticsmetadata/gettersandIntel2026.2metadata docs (https://gstreamer.freedesktop.org/documentation/analytics/gstanalyticsobjectdetectionmtd.html and https://docs.openedgeplatform.intel.com/2026.2/edge-ai-libraries/dlstreamer/dev_guide/metadata_analytics.html). Addedgva_detection_metadata.pyreadingSAMEgetters/firstrelatedtrackingrulebutiteratingallmetadataoncewithoutunrelatedtensorwrappers.9offlineboundarytestscoverbox/class/confidence/order,unknownlabels,firsttrackingrelationandinvalidmetadata. NoROIremoval,gvatrackmodechangeornewassociationlogic. MotionROIcontaminationwasahypothesisonly,NOTconfirmed;doNOTclaimitcausedtheproblem.
+
+Beforeintegration:explicitdiagnostic--diagnostic-hookread-onlysitecustomizeshadowcomparedwholeDetectionvars(oldauthoritative)withnewextractoronSAMEGst.Sample. C5SVX2x8completed40secsteadypluswarmup:800nativeframes,5076detections,EXACTequality/nodomismatch. Per-threadlatesttimings~old2.19/2.11secondsfor350samplesvsnew.475/.437seconds;descriptive~4.6–4.8xmetadata-callimprovement,nothostcapacityclaim. Savedmetadata-parity-summary.json/logSHAandhook/moduleSHA. Hookisinjectedandmustnotbecitedasunmodifiedcapacity. Doesnotaltertracking/productionpolicy. AddedgenericexplicitdiagnostichookfixturemountthatpreservesfullbakedPYTHONPATHandhashes/marksreport;nohooksinproductionimage. Separate roi_diagnostic_hook.pyispreparedBUTNOTEXECUTED;donotclaimanyROIlabeldistributionresult.
+
+IntegratedleanmetadataasdefaultprimarybridgeAFTERnativeparity. BuiltlocalC6config4407e8be4e4245d7adf502f1a3299c8c47c113b25b325c574e1e7fdccc07e884,recipeDockerfile.sentinel-v8-native-metadata. C6includesC3clock+C4admission+C5bindingpixels+leanmetadatamodule;unchangedmodel/schema/policy/device/tracker/gatethresholds. BakedC6passed293runtime+30policy+all3validators. NativeunmodifiedC6S12x10matchedrunNOWINPROGRESS;performancegainstillunproven. Nativefaces-with-tensorssameframeparityandsubject/v8event/externalmarkerregressionsstillrequired. Neverpromoteuncheckedcandidateorusetagwithoutconfigdigest.
+
+Tooling:receivernewfiniteL2normcheckandnorm/dimsmetadata(nevervectors)23casespassed;scene-countframequantizationoracle55tests,rootprotocolupdated;rawpreviousscene-countFAILpreservedwithSHA-auditedscope. 1Hzobserverfirstsegmentclosedcleanlyatthischeckpoint;freshobserver-segment-2startedfor10800swith--current-fileglobalCURRENT,sessions54447. Original35251finished;oldSTOP_OBSERVERretained. GPUengineobserver96346stillrunninguntil~20:39UTC;extendfreshsegmentbeforelongstress. No old rawdata overwritten. ExternalFFmpeg-repause/catchuphypothesisanddensepersonthermalfailureremainOPEN;notfixedbymetadataexperimentwithoutproof. Need5/8/10profilefrontiers,independentfreshness,multi-camera/live/faults/onehourstress. Noactual.64work,registry/Gitpushorhostpowerchanges.
+
+
+## C6 throughput gain, C7 native counters, and 16-camera stall — 2026-11-10T21:13:52.722513+00:00
+
+C6 scene-only 12x10 completed 90s PASS: per-camera 9.940–9.984 FPS, worst counter-window ratio .96294, 2328 causal timestamps checked, scene JPEG/vector coverage passed; ~2344MB and 3.608 CPU cores. C4/C5 matched totals were ~61.34/~57.36 FPS versus C6 ~120. This establishes a metadata-boundary optimization benefit for this workload, not full-use-case capacity. Artifact /tmp/sentry-v8-capacity-12.0as4cq89. C6 scene20x10 failed at ~87.4 FPS aggregate, healthy/no fatal. Group-size10 experiment reached ~135 rolling FPS but thermally aborted, excluded. Node GPU-engine aligned audit shows Compute mean76.87% in12case /70.05% in20case; engine scopes overlap, not isolated process utilization. See gpu-engine-window-audit.json.
+
+Diagnostic-only disabling Python progress pad callbacks on C6 (PROBES=(), never a release configuration) completed20x10 at135.815 FPS, still failed200target; scene/UTC passed. Artifact /tmp/sentry-v8-capacity-20.fvpbcnug. This confirms considerable per-buffer observer overhead, not the sole bottleneck. Production tracing must remain complete.
+
+Built local C7 config231c2f11b6f72e5fd11326d78915216f8fca9af3f910d260f3ee0743938870b3. Read-only C11 GstPad probes now keep identical counts/PTS/monotonic times without entering Python per buffer. Python gets one bounded snapshot; C refcounted state and pad refs support removal/teardown. MAX64 stages, no buffer mapping/mutation/drop, unchanged media/model/policy graph. New native/src/gst_progress.c, build helper/provenance, native_pad_progress.py; production build requires native observer, no SDK upgrade. Target actual GStreamer1.28.2 fixture proves 20buffers/5pads exact counts+PTS, closed counts freeze with continued buffer passage, independent peer traces,100 attach/remove cycles. Baked C7:294 runtime tests+30 policy+3contract validators passed (unpromotedOpt80 test explicitly deselected). Local-only tag v8-c7, no publication. C7 scene20x10 reached~130–135 rolling FPS then105C thermal abort: EXCLUDED, not capacity.
+
+C7 scene16x8 DID NOT PASS. Artifact /tmp/sentry-v8-capacity-16.mbbxqg7j, guard candidate-c7/scene-active-16x8. One startup cooling pause4.440s; continuous steady subsequently stalled all16. At21:07:48UTC captured progress shows primarydet.sink352/src351, camera consumed351, pending admissions2, all stages stale~10s. Supervisor fenced graph and killed workerPID48 with-9 at21:07:51, then startedPID432. No segmentation fault/native allocation exception is established by this log. Replay senders were single-listen FFmpeg processes; their connections reset on worker replacement and they exited, so replacement subsequently received no source bytes. This TEST-SOURCE recovery limitation must be separated from the initial shared-stage stall. Initial blocked stage/root cause remains unconfirmed; no capacity claim, no masking watchdog or dropping tracing. Need reproduce with diagnostic thread state and reconnectable source fixture before fix.
+
+Outstanding: C7 artifact/model/schema/policy hashes, independent freshness and full-use-case regressions, 5/8/10 frontiers with scene everycam, live inputs and source/native recovery, agent admission/retry fault tests, selected one-hour stable-load run. All282 scenarios are NOT completed; unchanged production quality gates/tracker association/model weights/V8 wire. Local host shared; unrelated workloads not stopped. Preserve earlier failed reports and thermal exclusions. No commit/push/registry/remote64 or host power changes.
+
+
+## C7 stall reproduced, stronger diagnostics and placement experiment — 2026-11-10T21:23:41.008978+00:00
+
+C7GPUscene12x10 also stalled after startup; raw artifact /tmp/sentry-v8-capacity-12.gifjcsbu contains FAIL report, and subsequent replacement compilation triggered a thermal exclusion of the overall guarded attempt. Preserve both facts: native stall observed before exclusion, no continuous capacity PASS. Reproduced with reconnectable test source and diagnostic signal hook, /tmp/sentry-v8-capacity-12.0efdhewr. Private native-thread-stacks.txt under runs/diagnostic-c7/scene-12x10-stall-capture records nine GVA queue threads waiting in InferenceImpl::TransformFrameIp mutex and threads inside libigdrcl. This narrows blocked execution to native shared inference/OpenCL path, does NOT prove exact driver lock/root cause or blame observer C code. Thread capture itself perturbs execution; diagnostic run later thermally excluded during supervised replacement. No segmentation-fault evidence established. GDB limited to exact run/case-owned worker hostPID278909, detached; no unrelated process touched. Python SIGUSR1 capture was not retained in incomplete abort logs, do not claim it exists.
+
+Found separate TEST collector defect: guard.engine returned stdout only from podman logs while most runtime logs are stderr. Fixed explicit include_stderr only for log collection; inspect JSON stays stdout-only. New regression passed; guard suite41PASS. Historical stopped logs with only four oneDNN stdout lines remain incomplete. Added reconnecting_replay.py: per TCP connection new looped same-file MPEG-TS FFmpeg producer, accepts subsequent consumer after disconnect; child terminated/reaped on wrapper shutdown. Real two-consumer/TS/child-cleanup regression passed; capacity+source suite56PASS. Source stream resolution/rate and copy mode unchanged; connection restart begins new source epoch, not independent marker freshness proof. Marker sender still separate old single-epoch fixture. Source now included in per-run snapshot/hash. No runtime gate modified.
+
+C7 all80 baked model/config/schema/production-policy hashes exactly equal r2, native observer SO SHA saved separately (c7-artifact-parity.json). Added explicit tracing-overhead/count-PTS-lifetime/isolation/replay/stderr assertions to existing OBS-07/PERF-08/INC-024 plan; historical282CSV unchanged, regression gate14PASS. No all-case PASS claim.
+
+Testing explicit scene-device placement, not default promotion: separate baked DlsSceneExtractor GPU/NPU processes, same model/proc and five saved scene JPEGs, vectors768D finite/L2normalized. GPU call~13–14ms; NPU~25–45ms on this small fixture (not full-load SLA). GPU/NPU cosine [.999988,.999993,.999987,.999984,.999990], max component delta.0011603, preset minimumcosine.999 passed. Scope five similar ANPR scene images only; not labelled retrieval quality. First NPU cold compile aborted thermally, retained; startup-cooled retry passed (compile timing includes declared cooling). Current experiment C7 SCENE_EMBEDDER_DEVICE=NPU scene12x10, replay wrapper supports reconnection. No Docker default changed; must prove full-use-case and native recovery/freshness before adopting placement. C6 remains last demonstrated scene12x10 pass, C7 GPU scene is unqualified. No publish/commit/push, .64 or hostpower changes.
+
+
+## Native control establishes 20x10 capability; integration boundary diagnosis — 2026-11-10T21:41:51.439765+00:00
+
+IMPORTANT new evidence: native_primary_control.py ran baked C7 hardware VA H264 decoder, TCP feeder, same QAFT INT8/staticB1 model/proc, shared gvadetect GPU nireq8 and zero-term gvatrack with fakesink, 20 independent720p10 streams. Twelve measured10s windows across120s: aggregate196.402–202.792FPS, worst individual camera window9.68986FPS, no reported native stall/error. Controlled native graph has NO Sentinel policy, pixels, scene, identity, JPEG or agent; it proves the current detector/native path can sustain~200FPS in this scope, NOT complete-image20camcapacity. Detailed graph/report/image/source logs under native-primary-control-20x10/. This directs attention to downstream buffering/Python/secondary integration, though cannot rule out driver/native errors triggered only by full graph interaction.
+
+Control initially left guard phase startup for whole diagnostic; manually set steady after first two measured windows. Verified only cooling pause was3.928s at21:35:11–14 BEFORE native steady sampling, no measurement pause. Phase correction saved in guard attempt-1.phase.json. Improved script to forward native phase to host automatically for future cases; current process already loaded original module, reconstructed exact prior script saved script-used.py. This does not silently rewrite measured graph. Control is diagnostic, no V8 packages expected.
+
+C7GPU request-pool6 experiment also stalled/recovered/re-stalled; overall thermal exclusion during replacement. It is REJECTED, not a default change. Reconnecting replay successfully reopened source epochs after worker replacement, separating earlier source-fixture death from initial stall. NPUscene12x10 completed with per-camera9.968–10.019FPS, minimumwindow>=.9727, scene/UTC coverage passed, BUT oneDNN CL_OUT_OF_RESOURCES appeared so overall FAIL; no allowance added to hide this error. stdout+stderr concatenation in historical log means un-timestamped oneDNN error cannot be confidently assigned to startup based on ordering alone. Consulted exact oneDNN commit kernel.cpp source: enqueue error path; no evidence to dismiss as harmless autotuning. NPUscene20x10 initially~110–132FPS/200, then shared stage stalled and replacement triggered thermal exclusion; do NOT claim placement fixes stall.
+
+Metadata CPU diagnostic currently running C7,12x10,NPUscene,explicit hook preserving returned output. Read-only samples show~7–8ms wall vs~1.14–1.19ms threadCPU per metadata call,8–10subject detections. Normal relation sizes observed ODMtd9–11 / TrackingMtd9–11 / ClsMtd1, including ONE motion ROI. No evidence of runaway motion metadata; do NOT remove motion ROIs or change tracking. Difference wall/threadCPU establishes waiting/scheduling contribution, not exact GIL or native-lock root cause. Considering single native metadata-read call after component/same-frame parity, NOT yet implemented/enabled.
+
+All five supplied live RTSPS URLs answered codec probes (live-stream-availability.json): ch9/ch10/ch16=HEVC2560x1440@25, traffic1=H2641920x1080@18, traffic2=HEVC1920x1080 reported rate0/0. This is availability/headers only, NOT native decode/output validation or capacity. Recovery harness strengthened with exact immutable image ID, run/case labels and exact-CID cleanup, fresh-age None/future/stale rejection, explicit workload profile (defaultscene-onlyS), continuous peer progress threshold. Not executed yet; static freshness smoke passed. CAPACITY_TEST_MATRIX now explicitly currentR2 campaign IN_PROGRESS_NOT_QUALIFIED while retaining prior baseline provenance. No model/contract/policy threshold, SDK/hostpower change or publication. Still no one-hour soak, no full5/8/10 frontier or all282 tests passed.
+
+
+## User reiterated persistence; native boundary controls and replay pacing repair — 2026-11-10T22:04:53.375655+00:00
+
+User explicitly said do not stop until goal and save all values. Continue local compute-a only. Goal still V8/policy-preserving optimization, measured5/8/10 capacity/use-case balance, scenes everycam, independent latency, recovery/fault and selected1h steady stress. No goal completion or publication claim.
+
+At21:45:04UTC chat/tool interruption terminated the prior foreground observer and native-metadata control; guard statusCANCELLED. Its longjmp lines occurred in an interrupted attempt with no completed report; do not label it a qualified runtime crash or count it as capacity. Retained native-primary-metadata-20x10/ and guard metadata-20x10. Found control appsink configuration did not mirror production: async defaulttrue/maxbuffers1. Corrected to production asyncfalse/buffers2, added5s startup counts and froze each control script/source/helper in its output directory before launch. No production change from this fixture repair.
+
+Restarted measurements detached in owned process groups so chat interruption need not cancel capture: observer-segment-3 launch.json PID321776, GPU segment3 launch.json, guarded test launch manifests. Only named campaign process groups/labels; thermal watchdog remains active. Previous segment2 closedcleanly at21:45:04 after4547s; raw preserved. No unrelated workload stopped.
+
+Native control with20 metadata-consuming Python threads (same baked Detection extraction and GVATracker, NO pixels/policy/scene) PASSED scoped rate. Fixed-sink report under native-primary-metadata-20x10-fixedsink/. After excluding first interval for a control phase-clock bug, seven measured windows: minimum per-camera window9.5856FPS, minimum per-camera mean9.9602FPS. Metadata CPU~.43–.51ms/frame on representative threads. Raw report preserved; measurement-audit.json explains exclusion. Bug: new1s phase-propagation wait had baseline counters from before wait but clock after; future fixture re-snapshots counters after wait and records interval_seconds, mean95% andwindow90% criteria. This was a diagnostic-clock issue, not a runtime fix. Initialization GDB snapshot showed GVA compilation/driver threads; zero counters briefly during initial compilation do not by themselves establish permanent deadlock. Do not overinterpret that stack.
+
+Metadata+BGR once/source-second control20x10 completed9 windows/no native stall, rawFAIL due one camera8.79FPS window. Aggregate248/226/234/230 then~199–203FPS exposed FFmpeg-re catch-up after startup cooling. This is a producer-conditioning confound, not permission to claim>200 source capacity. native-primary-metadata-bgr-20x10/report.json and all outputs preserved; no fullimage capacity qualification. Control with metadata+BGR+GPU scene2s using NEW paced source also completed9 windows, aggregate~193–202FPS but individual minima6.69–9.49, soFAIL fairness/stability with NO reported native stall. Source decoding/inference counts agree within pendingbuffers; final sourcePTS/data retained. This isolates additional synchronous scene waits as a candidate source of per-camera timing variation, not proof sole cause of fullruntime stalls. No V8policy/JPEG/API in these controls.
+
+Replay fixture REPAIRED: mpegts_pacing.py groups exact original188-byte TS packets by videoPES, uses DTS (PTS fallback) preserving Bframe order/bytes, bounded8MiB group,33bit clockwrap handling, rejectsunsupported timestamp discontinuities. FramePacer anchors EACH interval to actual current send time, so SIGSTOP/slow socket cannot produce subsequent catch-up bursts. No reencoding/drop/codec/resolution/frame-selection or production policy change. Reconnecting sender no longer uses FFmpeg-re; producer runs copy-to-pipe under bounded backpressure. Marker sender uses same pacing, retains existing source_index/marker_index/transmitted_mono fields and logs extra timestamps. Marker fixtures now require real FPS/framecount instead of guessing1200. Every ordinary replay records per-frame PTS/DTS, producer/epoch/index, first/allbytes submissionmonotonic and bytes in *.frames.jsonl (future runs after feature introduction). Older raw captures are not rewritten. Independent source audit added; missing capture is not zero/no-burstPASS. Source tests including actual SIGSTOP/resume and byte-exact grouping passed75 checks (later audit-specific test adds one). Old independent C3marked2x10 latency remains its exact historical scope, not invalidated without evidence; old startup-paused source rates carry possible catchup qualification limitation.
+
+Current definitive recheck: unchanged C7 defaultGPUscene12x10 FULLruntime using paced source, candidate-c7-paced/scene-active-12x10-gpu,120s steady, all normal gates/weights/device placements unchanged. No async scene runtime modification or native C metadata reader has been implemented. Considering those only after paced baseline evidence; do not claim them implemented. Last rebuilt image stillC7 config231c...; all80 model/config/schema/policy hashes identical r2. No push/commit/default placement promotion. All values continue in raw per-camera API1Hz/guard0.5Hz/sourceframe logs/GPU1Hz and per-case reports, with temporary artifacts needing permanent archive.
+
+
+## Paced runtime results and admission-boundary reproducer — 2026-11-10T22:49:50.074773+00:00
+
+Unchanged C7 default GPU scene 12x10 fullruntime PASSED120s: means9.965906–10.008893FPS, minimum window ratio.968215, scene JPEG/vector coverage every camera,2871 UTC checks,2510.75MB/3.597CPUcores. Artifact /tmp/sentry-v8-capacity-12.eo_ggco2; all12 sender no-burst audits passed. Not maximum or longterm capacity. Paced marked16x8 FAILED shared native stall, /tmp/sentry-v8-capacity-16.9qm7d4kr: primary sink122/src120, pending2, watchdog replacement. Preserve failed marker source after replacement separately.
+
+Progressively added native motion, actual production coordinator, and per-camera telemetry to20x10 metadata/BGR/GPUscene control: no stall in these short controls, but fairness/window rates failed. Actual baked FPS/clock/admission probes added to16x8 reproduced stall WITHOUT V8 event policy/JPEG/API: all16 pending2 TRACKING. Artifact native-primary-admission-coordinator-motion-scene-gpu-16x8-fixedgraph. Earlier unary+ string fixture TypeError is INVALID_SETUP, not image failure. GI appsink GIL control allowed Python producer progress; do not assert emit holds GIL. Motion ROI tracking seen0 only firstframe, not proof allframes.
+
+Single-variable diagnostic nonblocking _reserve control16x8 completed 80.853s without native stall, but capacity FAIL: means 7.482701–7.655855, minimum window 6.923594; 819 selected inputs rejected BEFORE admission, accepted outputs retained. Exact values in nonblocking-admission-summary.json and full report. Blocking in stream pad probe is now an evidenced suspect, NOT exact native lock-cycle proof. No production nonblocking fix yet; next measure bounded3 pending with matching sink capacity to distinguish transient secondary waits from sustained overload.
+
+Prepared V8-only gait-retirement cleanup source,7focused tests pass, not built. Baked person_reid differs from Git HEAD unpromotedOpt80 parallel-background code; do NOT copy workingtree person_reid into candidate. Archived baked source/prototype. Cleanup only at existing retirement/session/profiledisable, preserves grace/reassociation histories, model/preprocessing unchanged. Need reconfigure/session tests and baked verification. No C8, no threshold/model/wire/tracker changes, no push. Native controls are not full pipeline capacity. All282 tests/frontiers/one-hour stress still incomplete.
+
+
+## Nonblocking admission candidate C8 — 2026-11-10T22:53:44.906003+00:00
+
+Three-slot single-variable control16x8 PASS scoped90s: percam means7.9256407–7.9750217FPS, minimum window7.5747169,107 rejected BEFORE admission versus819 in two-slot experiment; no native stall. This is not V8 capacity evidence. Runtime source now uses no-wait full-gate rejection with explicit counter, inferred=None (never quiet/negative), matching non-dropping appsink capacity3, immutable accepted records, independent monotonic pending-output deadline even when decoder progresses. Tests24PASS cover concurrent capacity, FIFO/duplicatePTS, unchanged timestamps, suspend/reset, overload unevaluated semantics, recovery watchdog and gait retirement/session/profile transitions. One initial gait test mutated same config object in place (fixture error), raw failure preserved and fixed to independent revisions.
+
+Built local-only C8 config6a35d007fc3cb9ecda5a01403b1b4452c59b5a9339472d8391ecca91bd8a68b1, Dockerfile.sentinel-v8-admission-nonblocking FROM immutable localC7 config, copying ONLY dlstreamer_bridge.py/surface_stream.py/v8_events.py. No unpromotedOpt80 person_reid copied; models/SDK/policy/contract/tracker unchanged. C8 baked checks now running; fullruntime16x8/other frontiers and faults unqualified. No registry/Git push.
+
+
+## C8 full-runtime stall: short control did not qualify the fix — 2026-11-10T23:02:11.366424+00:00
+
+C8 marked16x8 first attempt thermally excluded at two steady samples. Cooled retry /tmp/sentry-v8-capacity-16.b66o9xrx FAILED after initial~128FPS: at22:58:30UTC pending3, parser/decoder/postproc still fresh~.07s, primarydet output stale~10s. New independent output deadline correctly detected it, graph replaced47->500; marker sender singleepoch exited so subsequent reconnectrefused is fixture recovery limitation, separate from initial native stall. c8-native-stall-summary.json stores exact stage counts/ages. Do NOT claim nonblocking admission solves all native stalls. Native-only control90s PASS insufficient for that claim. Preserve runtime change as candidate with tested pre-admission/deadline behavior, not released optimization.
+
+Old diagnostic native stack contains a decisive additional boundary: queue2 waits in InferenceBackend::VaApiImagePool::AcquireBuffer via ImageInferenceAsync::SubmitImage, while other primary TransformFrameIp calls wait a mutex. Exact pool owner/release cycle remains unproven. Reading pinned upstream source next; no driver/library upgrade or another blind image change. Workingtree vsC8 audit found ONLY person_reid.py differs (unpromotedOpt80); all other runtime Python source matches bakedC8.80 schema/model/policy/config artifacts identical. Key historical runs permanently archived with per-file checksums; ephemeral socket explicitly excluded.
+
+
+## Native VA pool synchronization investigation — 2026-11-10T23:09:11.619584+00:00
+
+Exact installed intel-dlstreamer package2026.2.0 confirmed. Downloaded upstream releasev2026.2.0 commitad3f68259b650f1c1aaec694d80cdfcd1055045a (not unstablemain) source for analysis. Deployed libgstvideoanalytics.so copied read-only and hashed in sdk-va-pool-investigation.json. Disassembly confirms AcquireBuffer holds pool mutex+0x48, reads plain bool image+0x98 then conditionwait(+0x18); ReleaseBuffer sets bool and notifies WITHOUT the mutex. This is a concrete condition-variable synchronization defect/race in the SDK boundary, but NOT YET proven cause of these stalls: need live snapshot showing availability while sleeping. Methods are LOCAL symbols (nm lowercase t), so ordinary LD_PRELOAD override would not repair them. Do not use undocumented binary patch or claim SDK updated.
+
+C8 diagnostic16x8 first stack attempt thermally excluded after~90steadysec, no native stall captured. Current cooled diagnostic uses reconnectable unmarked source and read-only faulthandler hook; exact-CID/PID observer attaches GDB at stale-output3sec with pending admissions, bt32 and verified-layout read-only pool inspection. GDB attachment is diagnostic and disqualifies any capacity claim for that run. No target memory writes/function calls in pool inspection. Old observer explicitly stopped by exact ownedPID before replacement; all workloads remain thermally guarded.
+
+
+## Real SDK missed-wake component reproduction — 2026-11-10T23:16:49.128317+00:00
+
+Compiled va_pool_wakeup_regression.cpp diagnostic fixture and ran it INSIDE exactC8 WITHOUT GPU/model/media calls. Hash-checked actual SDK binary, verified private function offsets from disassembly, exact layout assertions. A test-only condition-wait barrier schedules release between predicate check and atomic wait; bounded100ms diagnostic wake prevents the test hanging. Actual SDK Acquire/Release missed1 notification; same Acquire with mutex-synchronized release missed0. Exit0 confirms controlled SDK defect, not deployment root-cause/capacity proof. Rawstdout/stderr/buildlog, source snapshot, binary and result JSON saved. No production binary patch/interposer was installed.
+
+Prepared narrow source patch for pinned2026.2.0: ReleaseBuffer updates predicate under same mutex and notifies after unlock. Flush snapshots completed under mutex but waits futures outside it, avoiding a new release-lock cycle. Source build feasibility being checked with existing4.13OpenCV/2026.2OpenVINO/1.28GStreamer headers/libs; builder-only tools separated fromruntime, no SDK upgrade. Initial podman build --cpus flag unsupported (setup failure); retried supported cpu-period/quota2cores. No candidate with SDK fix yet.
+
+Three cooled16x8 native-stack attempts thermally excluded before completed120s; no native stall captured in them. Switched diagnostic to16x5 over300s to reduce compute heat while retaining16-way sharing, scene everycam and exact same gates. Read-onlyGDB observer remains exact run/case/PID bound. This diagnostic remains NOT a headline capacity run.
+
+
+## Live pool snapshot separates latent SDK race from this stall — 2026-11-10T23:20:40.398275+00:00
+
+Captured16x5 initial failure before recovery: c8-va-pool-16x5-capture/ contains full bt32, Python stacks in stoppedlog, exactPIDs/health and read-only poolflags. All8 completed flags ZERO, available0 while AcquireBuffer waits. Therefore live sample does NOT establish missed-wake cause; do NOT present preparedSDK patch as the fix.15otherTransformFrameIp callers wait sharedmutex;5preprocThreadPoolworkers idle; GPU plugin/OpenCL work still outstanding. Two deeper threads are inside libigdrcl under libopenvino_intel_gpu_plugin, others driver mutexblocked. This narrows downstreamGPUexecution; exactkernel/drivercause stillunconfirmed. CaptureGDB1.363s is diagnostic, NOT capacity. Ensuing thermalabort is recorded separately; nativeoutput failure preceded it.
+
+Stopped exact owned16x5 guard after requested diagnostic captured (its auto-retry2 had no additional diagnostic need), explicit completion JSON recordsreason; no unrelatedworkload killed. Started one-variable NUM_STREAMS=1 experiment for primary only, keeping8requests, QAFT/model/proc, GPUscene, motion/policy unchanged. Upstream exact2026.2.0 defaults GPU NUM_STREAMS=-1(AUTO); supported ie-config property used via explicitdiagnostic create_branch hook. No newruntimeimage/default change. Nativeobserver watches exactcase.
+
+Builder-only tools image prepared local4dcf83da8b8535ee43add5f8443fb73879f192fab32998c40fc7c93807f11f94, not a CVcandidate. NO SDKplugin rebuilt/copied into image, no sourcepatch promoted after live evidence. Pinned upstream source retained in /tmp with critical source files archived; static poolpatch+component regression remain useful separate known-defect evidence. Need causalGPU scheduling test, native parity and fullworkload/frontiers/faults/soak before promotion.
+
+
+## Baked CV-to-agent API fault regression — 2026-11-10T23:28:42.034684+00:00
+
+C8 actual V8HandoffClient+V8HandoffScheduler+V8EventPipeline scene JPEG/package code exercised through real UnixHTTP API with schema-validating localcapturefixture. Synthetic unit-normalized scene vector is explicitly NOT a model/accuracy test.8/8cases PASS: normaldurable;429then503retry;disconnectbeforestore;disconnectafterstorethen200duplicate;400permanent;wrongpackageACK;missingevidenceACK;6attempt503exhaustion. Retrypackage IDs+manifest/evidence digest stable, oneuniquestoreobject afterlostACK, retainedcounts/bytesrelease, malformedACK never counted durable, permanent400protocolerror visible. Retrydelaysunchanged. FixtureACK is simulated durability, no fsync/Management/realagent claim. Allattempttimes/counters/errorreasons/exactimage/fixturehashes and originalJPEGs saved c8-agent-api-faults/. C8marked16x8stall and16x5diagnosticfirstattempt files now permanently archived with checksums; socket explicitly skipped, partialreason recorded.
+
+
+## GPU diagnostics narrowed; official API tracing and pending telemetry correction — 2026-11-10T23:50:22.598405+00:00
+
+NUM_STREAMS=1 primary-only C8 experiment REJECTED as stall fix: eventually native stall on cooledattempt3, full VA pool8busy captured; other attempts thermallyexcluded. Not baked. C8 sceneNPU16x8 marked180s also FAILED: primarypending3 nativeoutputtimeout despitefreshdecoder, exactGDBpool8busy, report /tmp/sentry-v8-capacity-16.ibu2a1w9. Initial~128FPS and NPUbusy6.42% do NOT qualify capacity. Sceneplacement didnotresolveGPUstall; no defaultdevicechange. Allcfg/models/gates unchanged. UpdateDECISIONS accordingly, do notrepeat these as untested fixes.
+
+Found separate telemetry correctness issue in NPUplacement: V8 scene timer hardcodes GPU and includesqueue/preparation in device-attribution. Prepared source-only fix: scene total and subjectsemantic are parent spans without fakeGPUattribution, sharedexecutor duration attributed to actual_device, queuewait separate.2focused tests PASS. Changes in v8_events.py and runtime_telemetry.py NOT IN C8; no C9 built. No vectors/quality/selection cadence changed.
+
+A custom publicOpenCL trace prototype compiled/CPUinvalid-argument passthroughsmoke passed, but was NOT used on GPU; source+binary moved to ignored diagnostic-tools/ so production native/lib COPY cannot include it accidentally. Selected official Intel OpenCL Intercept Layer instead, commit83f0db684e2184ff853bb9e783c1e70d72601dc5, DSOSHA0f71018703be8e3b5acbd3876e8c75d6b6e053b9a0bdc81467cb33b866c836f0. Read upstream controls/build docs. Logging-only settings, no forcedfinish/flush-after-enqueue, queue/kernel/input overrides or buffer/image dumps. Do NOT confuse FlushFiles(logflush) with FlushAfterEnqueue(commandmutation).
+
+First base64-hook generatedtrace launch INVALID_SETUP: placeholderreplacement accidentally corrupted embeddedbase64; stoppedownedguard, preservedinvalidhook/status. CorrectedAST+embeddedSHAchecked and bakedCPUclFinish(NULL)=-36 loggingpassed. To avoidloader-order ambiguity/hugehooks, added explicit optional --diagnostic-opencl-intercept fixture to capacityharness: freezes1DSObyhash, readonlymount, preservesbakedLD_LIBRARY_PATH, selectsinterceptICDatprocessstartandabsoluteactualICDrelaypath, recordssettingsandmarksreporttest_scope=diagnostic.57harnesstestsPASS and actualC8containerCPUloading/loggingPASS. No runtime/schema change ornewimage. Current diagnostic-c8/scene-16x8-official-opencl-trace now running, boundedthermalguard, nativeGDBobserver skipsSIGUSR1(nohookregistered). Logfilespersist under per-attempt/tmp/.../delivery/ocl-api.PID. Source/binary/provenance archived, logs can be large; disk guard8GB remains.
+
+Still no5/8/10completefrontier, noonehourstress, no releasequalification. Need rootblockingAPI/callback evidence before further runtimechanges. SDKpoolmutexpatch remains unpromoted latentbug, NOT provenrepair for liveall8busy. No Gitorregistry publication.
+
+
+## Low-overhead API progress diagnostic — 2026-11-11T00:17:08.961743+00:00
+
+Official verbose API tracing produced 2.74GB/102.8sec in first unfilteredworker; lossless gzip+SHA+streamed API summary completed (opencl-trace-archives/). Printed tracing is intrusive and not capacity evidence. Filtered16x5 attempt1 thermallyexcluded. Attempt2 finished without sustained finalstall: selected percam4.9811–5.0061FPS, completed-work failed some90%windows, so overallFAIL. Native capture at00:02:21 occurred immediately after deliberate warmup cooling; no AcquireBuffer frame in that stack. That capture is INCONCLUSIVE for native deadlock, not live8busy proof. Earlier actual native-stall captures remain separate. Collector now ignores guard PAUSED_STARTUP_COOLING; needs explicit generic status-path option and pause grace audit. No raw report overwritten.
+
+Built diagnostic-only upstreamICD patch with shared-memory perthread API progress and nestedcall restoration, no percall printing/global loggingmutex, no driver/queue/tensor/command changes. Archived exactsourceheader+patch+binary+SHA/provenance. ABI CPU smoke inside exactC8 passes clFinish(NULL)=-36, records2completedcalls and signederror.60focused harness/reader tests PASS. No runtimeimage/SDK/model/productionpolicy change; diagnostic library mountedread-only. New --diagnostic-opencl-active-only explicitly markeddiagnostic, requires explicitICD.
+
+Current guarded diagnostic-c8/scene-16x5-active-opencl-trace PID532441, exactC8/defaultGPUscene,16cameras×5FPS,180steadyseconds, activeAPIobserver532442+nativecollector532443. All measurements remain raw perattempt; thermalguard90C/critical−2 unchanged. No capacity claim, noC9, noGitorregistry push. Next correlate APIactiveage/nativeprogress/stack while NOT paused, then choose one evidenced repair. Full5/8/10frontiers,1hourstress and other outstandingtests remain incomplete.
+
+
+## Clean lightweight trace reproduces native completion stall — 2026-11-11T00:23:37.638604+00:00
+
+C8 active-only16x5 attempt1: no startupcoolingpauses; at00:19:25.629UTC captured realoutputstaleness before followingthermalabort. Pool8/8busy, AcquireBuffer waiting, remainingprimarysubmittersblocked; nativeGPUplugin workers wait/spin in libigdrcl. API coherent snapshots ~00:19:25 show four busy submissionthreads with ALL publiccalls completed; latestAPIcompletions ~2.3–2.6s old, noAPIactive>1sec. This doesNOT locate a blocked publicAPI or prove driverbug: pending asynchronouscompletion/surfaceinterop still needs discrimination. Driver+plugin mappings captured. No kernelGPUreset/hang/OOM entries in checked00:16onwardwindow. Per-thread namespacePID mapping wasnotinthiscapture (nextcollectoradds it). No falseclaim of exactrootcause.
+
+Attempt1 subsequently thermalexcluded; nativefailure precededthermal, bothclassifiedseparately. Attempt2running at80aggregateFPS, notyetcomplete. The lightweightlibrary itself isdiagnostic and notbaked.62focused harness/reader/archive/collector tests PASS; reader clock movedaftercoherent slotcopy toavoid artificialnegative microsecondage (oldraw preserved). Collector excludes deliberatepause+5secondpostresume healthrefresh; explicit --guard-status accepted, logsinfo proc mappings.
+
+Prepared single-variable PRIMARY va-surface-sharing->vaapi diagnostic hook using pinnedSDK documentedVAAPI_SYSTEM branch; decodeandmodelstayGPU, tracker/gates/modelproc unchanged. This introducesa copy intentionallyforfaultisolation, NOT release/defaultoptimization. Hooksource/hash/basis underfixtures/primary_vaapi_system_hook*. NoC9/newproductionSDK/push. Bothhandoffs current.
+
+
+## VA-copy diagnostic and retained scoped pass — 2026-11-11T00:32:07.381834+00:00
+
+Active-only16x5 retry2 finished180s scopedPASS: completedpercam4.9841201–5.0034355,minimumcompletedwindowratio0.9471767,RAM2683.91MB,CPU3.251cores,nodeGPU80.02%; sceneeverycam andUTCsanityPASS. Samecaseattempt1stalledbeforethermal, so no capacity/reliabilityclaim. Bothattempts permanentlyarchived withsourceSHAmanifests underarchived-capacity/c8-active-trace16x5-*.
+
+PrimaryVAAPI_SYSTEM16x8 bothattempts thermallyexcluded before180s, no nativecapture. Thus no evidencecopyingfixesstall. No backend/defaultchangepromoted. Now matched16x5 VAAPI_SYSTEM diagnosticrunning180s, startup-onlyCPUquota2(restoredbyharnessbeforesteady) reducescoldcompileheat. No threshold/tracker/model/contractchanges. APItracer provides recordedAPIs only; GDBnotshowingtracerstackmeans doNOTassumecompletepublicAPIcoverage. Read-onlyvendorICDdispatchoffsetmapper savedexactCsource/binary/offsets; samehashedlibigdrclhost/image. BpftraceBEGINCPU-onlysmokePASS, noapplicationprobesattachedyet. Nextifneeded attachboundedownedPIDvendorAPIentry/returnprobes toclosecoveragegapwithout printfhotkernels. Nativecollectornow recordsnamespaceTIDmapping forproperAPIthreadcorrelation.
+
+NoC9, noSDKpatchbaked, noGitpush. Source-onlyscene telemetrycorrection remainsunbaked. Allfrontiers/soak/pendingtestsincomplete.
+
+
+## Vendor API tracing coverage and copy control result — 2026-11-11T00:43:13.257594+00:00
+
+Copy-preproc16x5 completed180s /tmp/sentry-v8-capacity-16.ys5l8ckd: all16healthy,sceneeverycam/UTC PASS,no fatal/nativecapture, butcompletedwindowsFAIL (capacity08minratio.87108,12=.86923,14=.85399;means4.93287–~4.96). No copybackendpromoted; diagnosticdoesnotfixqualifiedcapacity.
+
+VendorAPIobserverinitialbpftrace0.20.2 attachmentFAILED toresolve rawaddress in strippeddriver; no tracingclaimforthattoolattempt. BCCbackend attach_uprobe(addr=...) implementedinstead; actualCPU-onlydirectvendorentry/returnsmokePASS. Invalidargs wait(0,NULL)vendorentryreturns0whereICDloaderreturn−30; initialassertionwasincorrecttooloracle, rawfailurepreserved thenremovedloadersemanticsassumption. NoGPUcommandissuedbysmoke. ExactdriverSHA/APIoffsettablemappedfromrealICD, no binarypatch. BCCper-thread+APIkeymaps preservenestedobservations, nohotkernelprintf/tensordumps.
+
+On16x8retry2 BCC recorded2active clEnqueueReleaseVA_APIMediaSurfacesINTEL calls~1.1sec atthermaltermination, plusoneunfinishedclFinish. TherewasNOqualifyingnativecapture, so thisdoesNOTprovea longnativehang/rootcause. Both16x8attempts thermallyexcluded. Newmatched16x5/defaultsurface-sharing/240steadysecondcaseRUNNING, guardedPID580228,APIobserver580229/nativecollector580230. NoICDlibraryoverride/defaultchange. Externalprobeinstrumentation meansdiagnosticNOTcapacity evenifharnesssummaryalonepasses. Bothhandoffs+STATUS/CURRENTtrackcase.
+
+Losslessverificationofclosed2.74GBunfilteredtrace nowrunningLPcore14/nice15/throttle16MiB/s PID579727. OriginalunlinkedONLYafterdecompressedbyte-for-byteequalityandSHA/countmatch; allvaluespreservedingzip+manifest. No otherdata deleted. Disklast14GB,8GBguardunchanged. NoC9/SDKupgrade/driverchange/push. Rootcause/frontiers/onehourstressstillunfinished.
+
+
+## C9 bulk metadata reader qualified at boundary; image candidate built — 2026-11-11T01:04:20.397992+00:00
+
+Measured C8 scene16x5 metadata bridge lifetimeavg~22ms/call in a sampled camera; Python/GI crossing/contendedwalltime suspected, NOT24msCPUpercallclaim. Added own read-only publicGstAnalytics Chelper (noSDKpatch) to copy exactlyexistingOD/class/sourcebox/confidence/FIRST-related-trackfields inoneboundary. Build against exactC8 SDK1.28.2 headers/libs, -Werror and linkundefinedsymbolscheckPASS; source+binary+buildprovenance native/src/gst_detection_metadata.c,native/build_gst_metadata.py,native/lib/libsentinel_gst_metadata.so. Noimage/surfacemap/preproc/association/model/gate operation inhelper. Nativeadapter hasper-threadrowbuffers, rejectsbufferlesssamplebeforeCpointer, failswholeframeexplicitly onmissingtracking/overflow/inconsistentmetadata, no silentpartialdata.
+
+Actual SDK CPUcomponent:16samples/1081detections EXACT; unknownfaceclassignored, missingtrackrejected, trackIDzeroandfirst-relatedrulepreserved.9ODidlecall~.009ms vs.223ms baseline,300OD~.39ms vs131.65ms. NOTwholepipelinespeedup. Same-native-sample actualGPUdetector+GVAtracker on2cameras×8FPS (ANPR720p+MOT1080p)90sPASS, checkpoints950frames each:6013+8122=14135EXACTdetections across1900samples. C8outputsretainedthroughqualificationhook; allclasses/boxes/confidence/trackIDs/metadataequal. Timingscheckpoint reference1.181/1.495s versuscandidate.110/.108s totalreadtime. Frozenhookbinary/moduleSHAsandrawlogs underfixtures/native_metadata_parity_hook* and /tmp/sentry-v8-capacity-2.r_9nhg1c.
+
+Built local-only localhost/sentinel-cv:v8-c9 configfbe30368c90710ee857b49a7a05238c94ec7424d0c9adc6c94d2674ba5beefe6 FROMexactC8. Addsown17KBreader, activatesinternalreaderflag, andbakespreviouslypreparedsceneactual-device/spantelemetryfix. DiffagainstC8savedthree*.patch. NO SDK/driver/model/productiongates/tracker/decoding/V8schema changes.80model/schema/policy/configfingerprints IDENTICAL. NoOpt80person_reidcopied (unpromotedworkingtree/headmismatchstillpendingcanonicalreconciliation). C9bakedsuitePASS: 306 passed, 1 deselected in 3.34s; policy 30 passed in 0.14s;3validatorsPASS. Actualbakednativecomponent+bufferlessnegativecasePASS. Thisisanoptimizationcandidate, NOT fixclaimforintermittentnativeGPUcompletionstall. NoGit/GHCRpush.
+
+Nowtesting UNMODIFIED C9 marked16x8/S sceneeverycam120s, startup-onlyCPUquota2restoredbeforemeasurement, thermalguard90C/critical−2unchanged, PID613827, candidate-c9-paced/scene-marked-16x8-bulk-metadata. Needindependentmarkerfreshness/latencyanalysis ifcompleted. Model/metadataexactnessdoesnotprovefullcapacity; frontiers/allprofiles/faults/1hourstressstilloutstanding. Futureperformancecheck: nativeSCRFD/AdaFace stillcomputeon3-framecadence beforecameraadaptivebest-candidateselection,so policybackoffdoesnotmeanallnativeidentitycomputeissuppressed. Measureandmapbeforechanginganything; nofacecadence/gateschangedinC9.
+
+BCCdefault16x5 diagnostic240sPASS4.97889–5.01234completedFPS/cam,minwindow.926999,RAM2764.09MB,CPU2.713cores,nodeGTactive79.72%. Noqualifyingstall/longvendorAPIcall (maxsampled~19ms), scene/UTCpass; diagnosticnotcapacityandearlierstallunresolved. Fullrawreport/source/hashrecordretained. Bothresourceobserversrenewedsegment4 (host586321,GPU587245), nodewideacceleratorscopeexplicit. InitialGPUmonitorrenewaloldprocess-exitracecorrected; exactoldintel_gpu_top processwasalreadygone. Redundantcompleted-casecollectorsstoppedonlybyownedmanifestPID+case; collector nowautoendsonguardterminalstatusandrejectsthermalpause/postresumegrace. Noapplicationservicekilled.
+
+ClosedAPIlogs arelosslesslyarchived (4gzip streams+SHA/byteproofs). Firstunlinkfailedoncontainer-ownedparent afterbyteverification; correctedexactelevatedunlinkandupdatedmanifest, nofalseclaimretained. Remaining3logscompressed/rereadSHAverifiedthenexactrawunlink; dataretainedinopencl-trace-archives/. Diskrecoveredto~17GB;8GBguardunchanged. Allsource/capturefilesotherthanverifiedduplicateclosedrawtextretained.
+
+
+## C9 native failure boundary, controls and useful short-run result — 2026-11-11T01:40:37.220407+00:00
+
+C9defaultmarked16x8 firstattemptfailednativeoutputbeforethermalabort; retry2FAILED /tmp/sentry-v8-capacity-16.tsls_yql. Exactnativecapture-v2 at01:07:26.048UTC hpid618070,thread618465(namespace205,queue1:src) blocksclEnqueueAcquireVA_APIMediaSurfacesINTELfor13.037sec asBCCentry/returnmaps show. Driverfutexmutexwaitinthatsamethread; anotherGPUpluginthread618464busyindriver. Pool8/8busy. ThisestablishesblockedACQUIREoperationbutNOTultimatecause: itmaybeawaiterbehindanotheroperationholdingdrivermutex. Needowner/operationevidence, notblanketdriverblame. BCCreturntrampolinescantruncateGDBunwindingbelowprobedfunction; preservecorrelatedAPIrecordsandTIDmap. NoGPUkernelreset/OOMevidenceobserved. C9metadataoptimizationdoesNOTrepairthisfailure; lifetimebridgeavg2.687–5.522ms/caminthatsnapshotvsC8sample22ms, notfullspeedupclaim.
+
+C9VAAPI_SYSTEMcopypreprocessing16x8 diagnostic /tmp/sentry-v8-capacity-16.sjn4z4ne FAILED: completedFPS5.096–5.807,minimumwindowratio.4345,scene/UTCpass,all16endedhealthy,butitALSOhad>3secnativegapcaptured01:11:25.809UTC. Pool8busy,GPUdriverwaiting/yielding; laterrecoveredwithoutsessionchange. ThuscopyingNOTacureandNOTpromoted. DoNOTsummarizeonly'copyhadnostall'. EarlierC8copycases short/thermalwerenotproof. TCPcompressedtransportalreadyfixedinnone-leakyOpt65code; currentsurface_stream.py leaky-type=none+stop-awarebytecapacitywait. PriorOpt57report'sleakysettingSTALE; noTCPchangeapplied.
+
+Testfixturecorrection: startupCPUquota/affinity hadbeenrestoredAFTERwarmup. MovedexistingverifiedrestorationBEFOREwarmup, so30snominalwarmupnowrunsfullhardwareandcachedfirstcounterbaselineisnotfromthrottledperiod.117fixture/guard/marker/pacingtestsPASS. Noexistingfailedrawreportreclassifiedaspass; oldnative13secstallsnotexplainedbythisfixtureissue. Newgroup8retryproofrelease2206864.8368,steadystart2206894.8380(30.001sfullwarmup).
+
+C9existinginternal8-camera-worker-groupcontrol16x8: firstattemptnativefailureaffectedone8cameraworkerwhilepeerscontinued; subsequentthermalexclusion. Retry2SCOPEDPASS180s /tmp/sentry-v8-capacity-16._k4xhzr5,completedpercam7.9861886–8.001268,minwindowratio.980753,RAM3713.48MB,CPU4.555cores. Existinggrouplimitoverride8instead20only; defaultunchanged. Independentmarkers1736decoded,0missing/ambiguous/no_marker,all16cameras>=83steadyimages;worstpercam p95=577.996ms,p99=599.484ms,max607.280ms. FreshusefulSHORTpassbutearliernativefailurepreventsreliability/sustainedqualification; groupinghelpedisolation,NOTprovenstallrepair. Rawlatencyrecords c9-groups8-marked16x8-latency.json.
+
+GPUrequest-concurrencydiagnostic: C9S2x8nireq1bootstrapand60sPASS (/tmp/sentry-v8-capacity-2.2iaym7gf);16x8nireq1allcamerasalsoinitializedbutstalledat01:34:32.481UTC despiteonlyoneprimaryrequest,thenworkerreplaced/single-epochmarkerfixturecouldnotreconnect. Pendingfull180sreportwillbeFAIL. Thereforeprimarynireq1ALONEnotcure. Inheritedsourcecomment'4requests5thcamerafailsPLAYING' isnolongergeneraltruth; donotuseittoforbidactualconcurrencytests. NoNIREQdefaultchanged. BatchmodelactualIR [?3,640,640]->[?,300,6]supportsbatchedshapes,BUTpinnedSDKbatch-timeoutdocs explicitlyexcludeva/va-surface-sharing. Forcingbatch>1withquiet/singlecameraandadmission3canwaitforever; doNOTenableunboundedbatchingorpretend5–15msVAdeadlinesalreadywork. Needexplicitpartial-batchsolutionbeforepromotion.
+
+Nextcausalfactorialcontroljustified: combineoneprimaryGPUrequestANDsceneNPU toremoveotherGPUmodelsubmission. Eachindividualchangefailedbefore (n8+NPUscene,n1+GPUscene); combinednotyettested. Noartifactorproductiongatechange; telemetryC9nowattributessceneactualNPUcorrectly. Ifstillfails, considerEXPLICITcontainer-onlyGPUdriverrevisiondiagnosticwithpinnedpackages+detector/embeddingparity, neverhostdriverchange/blindupgradeclaim. Nativeguard/lifecycle/APIreadinessfaults/frontiers/all-usecasebudget/1hourstressremainunfinished. NoC10, noSDKpatch, noGit/GHCRpush.
+
+
+## Diagnostic controls and dependency comparison — 2026-11-11T02:00:38.947973+00:00
+
+The combined primary `nireq=1` plus scene-on-NPU control failed with another native completion gap (capture around 01:43:17 UTC). Reducing primary concurrency and removing the other GPU neural model together did not resolve the stall. This combination is rejected as a demonstrated fix; defaults unchanged.
+
+The primary OpenCV preprocessing control reached roughly 126–129 selected FPS across 16 cameras at 8 FPS during initial steady samples. BCC recorded no VA acquire calls, confirming the intended interop-path isolation for observed calls. However, the guard terminated the attempt at 01:57:25 UTC with package/core temperature 96 C. No qualifying native stall was captured before termination. Classification: BLOCKED_THERMAL, not a capacity pass, failure, or proof that copying repairs the stall. Raw measurements and logs remain in runs/diagnostic-c9/scene-marked-16x8-primary-opencv. No thermal ceiling was raised.
+
+OpenCV OpenCL is already explicitly disabled in the baked image; no hidden OpenCV GPU execution was established. No duplicate change was applied.
+
+Exact official DL Streamer v2026.2.0 source, commit ad3f68259b650f1c1aaec694d80cdfcd1055045a, pins Ubuntu 24 GPU OpenCL/Level Zero 26.18.38308.4 and media 26.2.2. C9 carries older 25.18.33578.15 / media 25.2.4 with that SDK. This dependency discrepancy is verified; incompatibility and causation are NOT established. Preparing a separately tagged container-only controlled comparison against the official pinned snapshot 20260624T030400Z. PPA key fingerprint verified against Launchpad API. Apt simulation and package/version evidence are saved under driver-stack-control. Host userspace/kernel drivers are not changed. No SDK, model, tracker, production-policy or contract changes are proposed by this control.
+
+Podman default-network inspection initially failed because slirp4netns is unavailable. Repeated read-only inspection with --network none succeeded; networked package query explicitly uses host networking. This was a tooling setup error, not a runtime failure. No new CV image or push yet. All frontier, full-profile, fault and one-hour stress tasks remain open.
+
+
+## Container-only pinned GPU dependency candidate — 2026-11-11T02:04:26.385132+00:00
+
+Built local `localhost/sentinel-cv:v8-c10-driver-control`, config `04f2ff9d13d300249828b20fa2e8312b6d33635673e6dca6d7ba462eb80eef1f`, FROM exact C9. Only 12 explicitly pinned GPU userspace packages changed, matching the official Ubuntu24 snapshot dependency set. No removals, no host/kernel change, no SDK/runtime Python/model/contract/production-gate/tracker changes. `driver-stack-control/package-diff-normalized.json` records all versions. Initial diff assertion counted 13 display keys because libze1 gained an :amd64 suffix; normalization by architecture verified 12 actual package upgrades. This was a verification-tool display issue, not a thirteenth package change. All 80 protected model/schema/policy/config SHA-256 fingerprints match C9 exactly. Candidate is UNQUALIFIED, not a published release or proven stall repair.
+
+Now running thermal-guarded old-versus-new same-pixel QAFT detector (explicit actual model path; historical detector probe default is another model) and baked GVA GPU scene comparisons. Fixture images, raw detections, vectors, logs, exact image IDs and commands retained. Direct model comparison does not qualify native VA preprocessing/tracker/event parity or capacity. No BCC/GDB instrumentation in this numeric test.
+
+The successful C9 grouped 16x8 short run is now permanently archived with hashes under archived-capacity/c9-groups8-marked16x8-short-pass (3565 files). Its earlier intermittent failure remains recorded; this archive does not promote it to sustained capacity.
+
+
+## Numeric test-runner corrections and thermal exclusion — 2026-11-11T02:11:42.693154+00:00
+
+C10's package/artifact inspection passed. The first numerical comparison attempts did not qualify a model comparison: v1 used the host test UID against the image's pre-existing /tmp/sentinel lock, v2 tmpfs copied that underlying directory, and v3 incorrectly replaced the image's SDK PYTHONPATH so scene failed to import gstgva. All original logs retained. v4 preserves baked SDK paths and uses an empty owned scratch mount; detector baseline outputs were produced, but the guard terminated during cold scene compilation with maximum sampled temperature104C (critical-minus-2 stop), before candidate comparison. No model/runtime defect or numerical mismatch was established by these setup/thermal outcomes. No raw failure has been overwritten or relabelled PASS.
+
+Now v5 numerical-only comparison explicitly confines compiler CPU threads to the host's low-power cores14/15, retaining the same inputs/models/GPU inference and preserving the temperature limits. This is NOT a capacity benchmark; its timings must not be used for throughput claims. Full pipeline capacity will restore and verify the full allowed CPU set before warmup/steady measurement. Native-stage fault collectors and vendor probes are not attached to this numerical comparison. Test-plan appendix maps the required dependency comparison gates to existing REL/MODEL/FLOW cases; no catalog scenario was marked passed.
+
+
+## Thermal-safe numerical qualification and soak evidence sampling — 2026-11-11T02:18:12.242443+00:00
+
+Numerical v5 was a GPU compiler eligibility failure with LP-only cores14/15 ("CPU affinity check failed. No CPU is eligible"); no model output was compared. Tiny GPU component compilation on actual efficiency cores6/7 passed with default and explicit compilation-thread settings. v6 using6/7 still thermally stopped: sampled thermal-zone105C/core104C, exact guard record retained; no candidate comparison occurred. CPU affinity/quota alone has not established bounded cold-compiler thermal behavior. Do not hide these as image capacity failures or claim the original inference stall was solved. Guard terminated owned work; no thresholds raised. Repeated longjmp messages in its terminated probe are saved and are not independently classified as a spontaneous production crash.
+
+For v7 numeric-only probes, set documented GPU COMPILATION_NUM_THREADS=1 and ENABLE_CPU_PINNING=false identically in both baked detector/GVA scene model paths, plus one-core quota with a10ms CPU period. These are explicitly test-only compilation controls, not production-policy or capacity settings. Actual model input/output, devices, weights, preprocessing and profiles remain identical. Runner hash and controls saved in parity-v7-launch.json. No additional CV image or host setting change.
+
+Added optional test-receiver JPEG temporal sampling, per camera/session/binding/modality, default0 preserves existing behavior. Every package still receives full validation/hash checks, metadata audit and simulated ACK. At30seconds per scene camera, a16camera1h soak can retain ~1920 time-spaced scene images instead of filling disk with~28800 images; actual limit/horizon must be checked, not assumed. This prevents first2048-only gallery coverage from falsely qualifying end-of-hour freshness.142 focused capture/harness/guard/marker/pacing tests PASS including late-image retention, camera/modality independence, full audit retention and invalid interval rejection. This is test tooling only, not an image/contract/production gate change.
+
+No numerical driver parity or stall repair has passed yet; no capacity frontier or1h soak closed. Work remains active.
+
+
+## Reassessing the thermal interruption; native compatibility first — 2026-11-11T02:21:37.167169+00:00
+
+v7 numerical setup failed because GI's pre-init parse_launch placeholder was captured; v8 initialized Gst before capturing it and reached scene startup, but was thermally excluded at104C before candidate comparison. No numerical pass or mismatch exists yet. Host-window evidence around02:19:15–29 UTC is saved in driver-stack-control/thermal-spike-v8-host-window.json: nodeCPU about10–13percent, nodeGPU roughly1–3percent, NPU0. This does NOT prove compiler activity caused the hotspot. Earlier wording 'cold compilation caused overheating' was too causal: the verified fact is the spike occurred during the old image's scene startup/qualification; the CPU/native operation responsible remains unconfirmed. No additional CV images were created for these fixture revisions.
+
+To avoid further blind numerical-run repetition, comparison is paused pending native compatibility evidence. Started C10 original native VA surface-sharing path with2scene cameras×8FPS,60steadyseconds, no diagnostic source hook. Startup-only affinity6/7 and quota2 will be restored/verified before30second warmup. This is a native dependency compatibility/bootstrap test, NOT promotion or complete capacity. If it starts correctly, repeat the original16x8 native failure workload before spending more time on full numerical qualification. Model/quality/tracker/schema changes remain prohibited. Independent read-only node observers continue; no unrelated process/service stopped.
+
+Temporal gallery tooling passed142 focused checks; further capacity-tool argument validation was moved before sources start to prevent leaked fixture work on invalid intervals. All raw values/statuses remain saved. No Git/GHCR push.
+
+
+## C10 native bootstrap passes;16camera retry still active — 2026-11-11T02:30:58.034994+00:00
+
+Original native VA surface-sharing C10 bootstrap2cameras×8FPS/scene-every-camera completed60steadyseconds, harness scopedPASS, /tmp/sentry-v8-capacity-2.nco6nbmn. Completed per-camera means7.99362/7.97603FPS, minimum windows.99433/.99147. Final cgroupRAM1512.52MB, CPU.566cores;102/102handoffs durable at sampled endpoint with0exhausted/protocolerrors. This is a short compatibility test, not maximum capacity or real-agent storage proof. Native process maps prove C10 actually loaded upgraded OpenCL2116f74a.../iHD4795caaf.../LevelZero0fe232b...; NPU library remains1.33.0. Hashes saved in driver-stack-control/c10-bootstrap-mapped-driver-hashes.json.
+
+Independent JPEG/PES markers:94 decoded,0missing/no-marker/ambiguous;25steadyJPEGs per camera over first-to-last verified steady-poll window(~50s of configured60s). Per-camera p95=423.111/427.935ms,p99=440.168/432.766ms,max445.451/434.061ms. Definition is source video-PES submission to complete agent-API package acceptance, excludes camera encoder and Management. Rawrecords c10-bootstrap-markers.json; concise values c10-bootstrap-summary.json. Full CPU affinity0–15 and full cgroupquota restored before30secondwarmup, proof files in artifact directory.
+
+C10 original16×8/S marked workload attempt1 held~127–130 selected FPS with all16fresh until thermal abort before180s completion; classified EXCLUDED_RESOURCE_ABORT, no capacity or driverfix claim. No qualifying native stall was captured. Raw directory /tmp/sentry-v8-capacity-16.lh1nt4ug, no complete report. Retry2 /tmp/sentry-v8-capacity-16.474f409q now steady again~128FPS, final verdict pending. Read-only collector attaches GDB only on a qualifying native output gap; if it captures, that attempt becomes diagnostic, not capacity. No old-driver BCC offsets used on the changed driver.
+
+No GPUdriver numerical parity verdict yet. Direct old-image scene startup repeatedly excluded by setup/thermal problems; do not restart that same blind loop. Prepared bounded original-pipeline scene input/vector witness hook for future comparison: captures8lossless PNG/768Dvectorpairs and returns original embed output unchanged, diagnostic only. Not yet executed. No C11, no host driver change, no Git/GHCRpush. V8/model/gate/tracker artifacts unchanged.
+
+
+##16camera thermal exclusions and CPU queue-hint diagnostic — 2026-11-11T02:42:05.045626+00:00
+
+Both original GPU-scene C10 16×8 attempts thermally excluded before180s, despite~128FPS/all16fresh before stopping. Neither had a qualifying native stall capture. Moving scene to NPU with unchanged default primary concurrency also thermally excluded before180s; NPU-only placement NOT adopted and NOT shown to fix thermal reliability. Actual health proved scene_embedding=NPU/DLStreamer, vehicle detection=GPU/VA, NPU hardware busy~19.79percent in one sample; this was real NPU execution, not a telemetry label. OldC9 NPU-scene controls had native stalls; this changed dependency set has not been qualified for sustained reliability yet.
+
+Now one-variable primary GPU_QUEUE_THROTTLE=LOW diagnostic on exact C10, original GPUscene,16×8. Pinned SDK accepts the queue hint; no change to model/preprocessing, batch1/nireq8, tracker, source timestamps, gates, cadence, output/schema. Basis: OpenVINO official GPU-device guidance and project discussion25118 recommend testing this hint for driverCPU usage. It is a measured hypothesis, NOT a proven current bottleneck or fix. Only an injected test hook, not a new image/default. Conditional GDB only if native gap. Initial steady throughput~128FPS, rawGPU/CPU/RAM/temp/queue data saved; result pending. Numeric old-versus-new parity remains open, not bypassed.
+
+Closed C10 cases are being preserved under archived-capacity by atomic same-filesystem rename + compatibility symlink, hashing each regular file. This retains every byte without duplicating galleries on low disk. Initial archiver correctly stopped because successful bootstrap cleanup had removed its CIDfile; supplied exact previously observed bootstrapCID0b0b4de85f14, verified no running container, then restarted archive. No raw file deletion or broad image pruning.
+
+Temporal gallery tests142PASS. Prepared scene witness replay tool validates each lossless PNG's pixel hash and matching original768D vector hash, then compares baked GPU/NPU scene vectors; original-path capture hook skips warmupzero images. Neither capture nor replay has run yet. No numeric inference claim based only on weights matching.
+
+Status-note correction: CURRENT.json was not advanced for the intervening NPU/queue controls until this checkpoint. Read-only host observer's convenience case tag can therefore be stale. Raw UTC, health camera sessions/process starts, exact per-case guard phases/launch manifests remain intact; correlate measurements using those independent case identities/time windows, not CURRENT tag alone. No raw observer samples rewritten. All capacityfrontiers/fullprofiles/1hstress still unfinished. No C11, no host changes or push.
+
+
+## C10 native12×10 short pass and actual model parity — 2026-11-11T03:34:47.136415+00:00
+
+Unmodified C10 originalGPUscene12×10 completed180steadyseconds (/tmp/sentry-v8-capacity-12.2m1qjm3n): all12healthy; completedFPS9.98345–9.99330 approximately, sourceUTCsanityPASS, sceneJPEG/vector quotaeverycameraPASS. Final cgroupRAM2131.59MB, CPU3.366cores; sampled1377/1377handoffs durable,1backpressure,0exhausted/protocolerrors. This remains a three-minute scene-binding test, not maximum/sustained/full-use-case capacity. Exact per-camera counters and output coverage in c10-native12x10-summary.json.
+
+Independent markers:1282decoded,0no-marker/missing/ambiguous,578orderedloopunwraps.83verifiedsteadyimages per camera; worst-camera p95=575.095ms,maxsample729.311ms. Measurementwindow is first-to-lastverifiedsteadypoll(~170s of configured180s), not runtime-zero-clamped age. One commentary erroneously stated1326images; corrected immediately after reading rawresults to1282. No report/data rewritten to match the incorrect number.
+
+C9 actual native-path scene witness test scopedPASS (/tmp/sentry-v8-capacity-2.129l5_6n),8lossless720p sourcePNG/768D GPUvector pairs retained under driver-stack-control/original-path-scene-witnesses withpixel/file/vectorhashes. C10 native-context extra-referencecall comparison then verified8/8BIT-EXACT scenevectors, maximumL2delta0.0, /tmp/sentry-v8-capacity-2.5hrsh8nv. Report+actualvectors+hashes in driver-stack-control/native-gpu-scene-parity. Original emitted scene vectors were returned untouched. These were extra8diagnostic calls; no capacity claim fromthatcase.
+
+First native-comparison fixture failed because a numpy.bool_ in its auditJSON could not serialize; it caused both camera threads to restart, after which single-epoch replay couldnotreconnect. That was an injected fixture failure, NOT a new production runtime reconnect defect. Rawlogs and two valid partial vectors retained (both alsoexact). The failedguard was explicitly cancelled. Fixednative-Pythonbool+explicitworkerimportpath; offline self-check verifies warmupskip,exactoriginalreturnobject,all8JSONrecords, and negative numerical result logging withoutsubstitutingoutput:2PASS. Initial self-check secondtestfailed due mockedmodule-registry cleanup reimportingcv2extension; preloadedcv2beforepatch fixedtestisolation, not runtime. Correctednativecomparison thencompletedPASS. Noimage rebuild for fixturefixes.
+
+Actual QAFT direct-wrapper numeric comparison nowPASS across40samepixelGPUframes (20ANPR+20MOT):328detections (132+196),0missing/extra/classdifferences,IoU1.0,confidence delta0.0. Exact XML/BINhashes and every BGRinput hash match; executiondevices explicitlyGPU. Fullreport driver-stack-control/qaft-detector-parity-default-namespace/report.json. Compilation-only controls equal onbothsides; not timing/capacity or nativeVA preprocessing/complete tracking/eventparity. Need nativepretracker frame-aligned comparison separately.
+
+## Disk-pressure diagnosis, recovery and test namespace correction — 2026-11-11T03:34:47.136415+00:00
+
+The preceding QAFTdefaultcomparison attempt actually stopped BLOCKED_RESOURCE_PRESSURE (free8160530432bytes below8GiB reserve, availableRAM22353616896bytes, max55C). Earlier commentary incorrectlycalledthisthermal; explicitlycorrected. This was NOT a model/throughput failure. Auditverified Podman keep-id allocated multiGiB remapped rootimagecopies, including C10mappedlayer9920479...created03:05:21 immediatelybeforeguardstop. Removed keep-idfrom numerical runner; usesUID0INSIDE defaultROOTLESSnamespace (hostuser1000) towriteownedfixtures. This is test-only, not KubernetesUIDqualification; nativeimage testsstillrunbaked10001. No modelCPUfallback.
+
+An attempted own SDKbuilder delta archive hit Python3.12 streaming-tar PosixPath bug and left3.643GiB own temporary OCI export at /var/tmp/container_images_oci85849420. Verifieditsconfigwas exactbuilder4dcf83... and recovered the398532096byte addedlayer+config/manifest into147916592byte gzipdelta; checked every retainedblobSHA. Delta intentionallyrequiresretainedexactC8base6a35...; restore instructions andfullpackage/imageinventories in sdk-builder-recovery/. DoNOTloadtheincompletedeltadirectly. Removedonlythatverifiedfailedexportduplicate and unusedownbuilderimage/cache via exact podmanrmi --no-prune (no force). C8/R2/C9/C10runtimeimagesandallmodel/testdata kept. Space recovered to~11GiB,8GiBguardunchanged. No unrelatedoldpip folders/userdata/services/imagespruned. IfSDKtoolchain needed, reconstructfromdelta+retainedC8base, use private /dev/shm TMPDIRforexportstagingtoavoidrootdiskduplication. NoSDKpatchbuilt.
+
+Controlbuildassets kobuk.asc/install.sh/pins.json nowalsosaved in docker/gpu-stack-control/ for reviewable rebuild context; drivercontrolDockerfilestilllocaldiagnosticFROMexactC9. NoC11, nohostdrivers/kernel/powerchange, noGit/GHCRpush.
+
+## Active ten-minute pre-soak and remaining scope — 2026-11-11T03:34:47.136415+00:00
+
+C10unmodifiedGPUscene12×10,600steadyseconds, nowrunning: diagnostic-c10/scene-marked-12x10-ten-minute-presoak, guard815837, conditionalnativecapture815838. Everypackage validated/audited; optionalJPEG temporal retention10spercamera keepslate samples withoutfillingdisk. FullCPUaffinity/quota restoredbeforewarmup. IfGDBcaptureoccurs, attemptisdiagnosticnotcapacity. Observersegment5 renewed10800s:host814032,GPU814033; stoppedonlyexactownsegment4processes andflushedtheirfiles. GPU/NPUcountersremainnode-scoped, CPU/RAMcgroup-scoped. Currentrawstatus alwaysreadguard, not stalestdout.
+
+Remaining: all5/8/10FPScapacityfrontiers anduse-casebudgets, representative1080p/HEVC/live sources, fullpositiveidentity/ANPR/hazard/camera/API faults, ten-minute thenone-hoursteadyqualification, inheritedHTTPsupport/revisions/healthmetricsemantics, canonicalOpt80person_reid/sourcevsbakedOpt79reconciliation. ActualManagementafteragentAPIisoutofscopeperuser; doNOTblockCVoptimizationonremoteManagementdurability/search. LocalfixtureACKdoesnotproveagentfsync. No282catalogPASSclaim.
+
+Read-onlypinnedSDKsourceclarification: gvatrack ZERO_TERM mapsframeforCPUread; IMAGELESS usesdummyMattoavoidmapping. ThereforeownPythonBGRavoidancecounterdoesnotproveend-to-endnoCPUimagemapping. Nativezero-term mode/association isUNCHANGED; doNOTswitchtoimagelesstofakecapacity. Mappingisnotproof ofafullBGRcopy; measurebeforeoptimizing. Source tracker.cpp:~84–104. Processing.decoded_fpsiscurrentlyselected/receivedatPythonboundary; actualpre-FPSdecodedsourcecountsexistinnativestageprogress. DoNOTcallselectedFPSfullincomingdecodeFPS. Potentialnonbreakingactualsource-rate gauges needcarefulimplementation/validation; notyetdone.
+
+
+## Native parity, thermal stops and current single-thread control — 2026-11-11T04:13:50.560806+00:00
+
+C10 default 12×10 scene600s pre-soak stopped after468.394steadyseconds at the unchanged temperature guard; the later10×10 scene600s pre-soak also stopped thermally (max91C). Neither qualifies sustained capacity; raw terminal status/result/phase retained in c10-presoak-terminal-summary.json. Throughput remained near targets before stopping; no qualifying native stall capture. Do not infer the old shared-stage stall has been repaired.
+
+Actual native VA pretracker comparison C9/C10:158 commonPTS frames,1037 detections EXACT, no differing frames (native-primary-pair/comparison.json). Raw160frame captures each retained. CPU fixture170input/170sink/160boundedcapturePASS after correcting the diagnostic fixture to read public GstAnalytics OD metadata without assuming legacy gstgva ROI tensors. Direct QAFT328detections and native-context8scenevectors also remain exact. These checks do not establish complete event/tracker/identity parity.
+
+CPU-only C10 inspection found Python OpenCV4.14 thread count1 while separate native DLStreamer OpenCV4.13 defaults16 in an unrestricted component. OPENCV_FOR_THREADS_NUM=1 resolves the native pool to1. Actual earlier capacity-worker native count was not measured under startup CPU constraints; do not assert it was16. New bounded control uses that existing environment variable only: scene-marked-12x10-native-opencv-one-thread,600steadyseconds, guard862257, conditional collector862258; still RUNNING at this checkpoint. No image rebuild, tracker algorithm, quality/emission gate or host setting change. Compare results and native tracker/output parity before adopting.
+
+Read-only node observers: host814032/segment5, timestamped GPU859069/segment6. Verified582timestamped GPU samples by04:13UTC, including raw engine/client counters. Receipt UTC is not a kernel sample timestamp. Prior10camera cgroup-memory sampler857260 ran only the final approximately1minute, not the entire test. All GPU/NPU scope limitations retained. Current/STATUS convenience pointers corrected; use raw runUTC/session/phase for old windows. No commit/push or production-ready claim. All5/8/10frontiers, positive fullusecases, one-hourstress and inherited integration gaps still open.
+
+
+## Native OpenCV thread control did not clear thermal qualification — 2026-11-11T04:17:04.442828+00:00
+
+12×10/S nativeOpenCV1 control ended BLOCKED_THERMAL after 429.645steadyseconds, max95C sampled on stop. Near120FPS held before abort; no600second completed report. Environment override NOT promoted. This does not prove native-thread default caused previous heat, nor that the override lowers heat or fixes the native stall. Exact raw guard/events and observer records retained. Next tests change workload/FPS purposefully:5/8/10scene operating points and positive heavy roles, not blind repetitions of this failed hold.
+
+
+## Explicit FPS screens and tracker thread parity — 2026-11-11T04:21:07.600255+00:00
+
+Read actual guard, not prior stdout: nativeOpenCV1 12×10 control stopped BLOCKED_THERMAL after429.645steadyseconds; max95C on stop, no600s report. Native thread override NOT adopted. CPU zero-term tracker fixture separately verified default native16 versus env1:240identical NV12 input frames,755tracked detections EXACT including crossing/missing intervals/new subject. Full per-frame pixel hashes, detections and raw thread counts in native-tracker-thread-parity/. This synthetic CPU check does not establish accuracy, VAmodel/event parity or thermal benefit. Fixture only, no runtime tracker change.
+
+Active original C10 defaults16cameras×5FPS/S,180s marked720p10source screen, guard874826: near80FPS, scene everycamera, temperatures66–86C in recent steady samples; result pending. Current metadata points to this case. Cgroup memory sampler876751 captures memory.stat/cache/anon/swap/pressure from startup; process load sampler876750 records CPU times/PID/name/threads/RSS plus available frequencies/power counters, never argv/credentials. Read-only shared-host attribution, no unrelated program stopped. Some Firefox/host CPU exists and is retained, so no isolated capacity claim. No image build or push.
+
+
+##5FPS useful short point and8FPS screen; HTTP mismatch fix prepared — 2026-11-11T04:28:37.692634+00:00
+
+C10 originaldefault16×5/S completed180s: per-camera4.989116–5.000681FPS, min10swindowratio.967834, allsceneJPEG/vector quota and sourceUTCsanity passed.352retainedJPEGmarkers,0missing/no-marker/ambiguous; worstcamera p95577.796ms. c10-native16x5-summary.json and raw /tmp/sentry-v8-capacity-16.a4dqn08n. End health2490.68MB and3.043CPUcores,1864admitted/1863durable at that sampled endpoint; that one pending difference is not a loss verdict. No max/sustained/fullrole claim.
+
+Next20×5/S held~100FPS but blocked thermally after87.777steadyseconds (max96C terminal). No completedcapacitypass and no qualifyingnativecapture; do not infer a20camera throughput failure. Exact c10-native20x5-verdict.json and /tmp/sentry-v8-capacity-20.wpgua203 retained. Current12×8/S180s screen near96FPS,guard887321, verdictpending. Liveffprobe probes ch9/ch10/ch16=HEVC2560×1440@25,traffic1=H2641920×1080@25,traffic2=HEVC1920×1080@25allpassedmetadata availability; not nativehardware/frame/FPSqualification.
+
+Fixed confirmed inherited HTTP(S) probe rejection in working source and added an HTTP-only source branch:urisourcebin parse-streams=true/use-buffering=false outputsencodedvideo into explicitH264/H265parse+VAdecoder. Uses same downstream graph/gates/evidence; no decodebin/softwaredecode. URI source TLS/auth defaults retained; no HTTPS certificate weakening. Official GStreamer urisourcebin documentation supports elementary-stream parsing.12focusedadmission/codec/hardware-selection/geometry/rejectionunitchecksPASS0.11s; recorded http-input-source-unit-result.json. No HTTP native test or imagebuild yet. Prepared docker/Dockerfile.sentinel-v8-http-input FROM exactC10, copyingonlysurface_stream.py. Existing C10capacityresults remain C10; do not transfer them automatically to the future candidate.
+
+
+## Explicit8FPS short pass, C11 HTTP native execution and source reconciliation — 2026-11-11T04:36:40.378255+00:00
+
+C10 originaldefault12×8/S180s scopedPASS: per-camera7.988074–8.001690FPS,min10swindowratio.976658, sceneeverycamera/sourceUTCsanityPASS.262retainedmarkers,0missing/no-marker/ambiguous, worstcamera p95487.677ms. Raw /tmp/sentry-v8-capacity-12.gwm6gqoq and c10-native12x8-summary/markers.json. No maximum orlongterm qualification. C10shortscreenpoints now16×5,12×8,12×10; do not call these fullrolecapacity.
+
+BuiltlocalC11 localhost/sentinel-cv:v8-c11-input-compat configdc372f8db7ee59b7443de5f705c8960000d77784889b3a2b4b138f8110fbc492 FROMexactC10, ONLYHTTPsourcecompatibility filecopy/pycompile. Sourcefrozenin c11-input-build-context/, noapt/newmodels/contracts/quality/trackerchange. All80protectedhashesidentical; actual62bakedPython sources matchworkingtree exactly. Only extra source is unpromoted parallel_background.py, unused by accepted runtime.
+
+Restored person_reid.py to exact14f12d4f... alreadyinC10/C11, after preservingOpt80versioninpreserved-unpromoted-gait-source/ andrecordingHEADcommit/path/hashes. Wholeframeonce-per-selected-frame/sharedforeground acceptedimplementation retained. Prototypeintegration notpromoted.21gaitworker/admission/retirement/prototypecomponenttestsPASS,2Opt80-integrationtests explicitlySKIPbecausefactoryisnotintegrated; not2productionfailuresorclaimedpasses. No runningimage altered bysource synchronization.
+
+C11 actualHTTPnative1×5/S60scompatibilityPASS: pacedHTTP MPEGTS/H264720p -> namedVAdecoder/GVAdetection/zero-termtracker -> sceneJPEG768D -> validagentAPIpackages. Raw /tmp/sentry-v8-capacity-1.2d48bvzs; c11-http-native-summary.json. HTTPserver givesseparateprobe/decoderconnections, ffmpegstreamcopyonly. No independentHTTPPES-toAPIlatency captured; inputexecutionpass, not HTTPcapacity/frontier/HTTPSqualification. HTTPStrusted/untrustedcases stillopen. Startupbriefcatchup snapshot50FPSexcludedfromsteady, notcalledsustainedrate.
+
+NowC11all-role2×8, people1080p30/MOT17 andvehicles720p10/ANPR, allbindingsonboth, explicitpositiveface/body/gaitoraclecam1andplate_read/plate_outcomeoraclecam2. Firebranchenablednegative; separatepositive/clearstillneeded. Guard896726, raw /tmp/sentry-v8-capacity-2.rd2ap3as, verdictpending. No source-markedindependentlatencyforthisfirstfunctional/fullroleexercise. Allrawhealth/resources/stages/queues/payloads retained; no modelaccuracy claim. No commit/push.
+
+
+## Concrete recovery defects, thermal-method correction and C12 — 2026-11-11T05:11:43.539400+00:00
+
+C11 original all-role2×8 (people1080p30+vehicle720p10) was thermally excluded after18.846steadyseconds,105C package/P-core24. Whole-run/startup/warmup-inclusive cam1 outputs included8face,60body,13gait vectors; cam2 included39plate_read/38plate_outcome; total792validAPIpackages at sampledreceiverendpoint. These counts prove exercisedpaths, NOT completedsteadycoverage, accuracy orcapacity. Thermalwindow rawhost/process traces in c11-all-role2x8-thermal-window/: CVlargestCPU up to2.43cores, no proofwhichoperationcausedheat.
+
+C11 E-coreplacementcontrol withsame2×8allroles also thermallyexcluded after38.399steadyseconds,105C package/Ecluster104C. Threadobserver verified122liveCVthreads allowed6–13,0broader-mask samplesafterrelease. This disproves aP-core-onlyexplanation; CPUplacement NOT adopted. Actualcomponent showed tasksetinheritance6,7works but OCIcpuset unavailable(rootlesscontroller notdelegated); nohostcontroller/power/fan/kernel change. Two-camera memoryobserver startupfailedassertRunningwhilepaused; that collector failureisnotanimagefailureanddoesnotprovidefullmemory.statcoverage. Collector nowaccepts explicitlyPausedliveownedcontainer.
+
+C11 single-camera all-role1×5 CPUprofile was aFAILED/diagnostic run, notcapacity. Linuxperf35s/49Hz userCPU produced358samples,0lost,~7.306CPU-seconds,3.47MBdata;~48percent ofsampleduserCPUinlibccopycode,callerresolvedtoactualiHD_drv_video.so offsets0x3f6610/0x24790f. This is NOT48percentwalltimeorprovenbottleneck/heatcause. Rawperfdata,mappings,report/commands in c11-cpu-profile-1x5-perf/. DoNOTproposealgorithm/copychangesfromthatshortconfoundedprofilealone.
+
+The runtimefirsttimedout duringcoldinitialization, thenrecovered, thena21.066773second **deliberate testcoolingSIGSTOP** at04:50:09.836–30.903UTC coincidedwithnativeprogressages21.085–21.219s andsubsequenttimeout. ThereforethiscaseisNOTevidenceofaspontaneoussharedinferencehang. SourcePESsendercontinued, allrawframes/logsretained. EarlierC9nativeVAacquireblocked13swithallpoolslotsbusyremainsaseparatevaliddiagnostic, notexplainedawaybythisnewfixturefinding.
+
+Theconfoundedtimeout independentlyexposedTWOrealcodebugs:
+1.DlsGaitExtractor.closecalledclose_backgrounds missingfrombakedOpt79base. AttributeError maskedoriginalrecoveryfailure. Addedbasebackground/foregroundcleanup+idempotentclose WITHOUT importingOpt80parallelfactory/alteringMOG2. Nativebackgroundrefrelease,peerisolation,partiallyinitializedstateandenginefinallyreleaseoncleanupfailure tested.
+2.Recoveryreadpending0 BEFOREsuspend; producerreservedoneframebetweenreadandfence, soresumeoverunfinishedadmissionraised. suspendnowreturnspendingatomicallyunderitsproducerlock; recoveryusesfencedcounttorequestsharedworkerreplacement, retainingoldacceptedrecords/frozentimes. Unitforcedtheexactlate-reservationwindow,emptycamera-localrestartandconcurrentfence. No quality/temporal/dedup/tracker/NN/model/wirechange.
+
+BuiltlocalC12 localhost/sentinel-cv:v8-c12-recovery-fence config8312b38ffcd473f621569cab83bdf5d572c8f052b1d9e403595b1fe2d25d36db FROMexactC11,copyonlyperson_reid.py/dlstreamer_bridge.py/surface_stream.py; frozencontext c12-recovery-build-context/. Actualbaked325runtimePASS,1Opt80-onlydeselected;30policyPASS;3embedded/canonicalvalidatorsPASS. Hostfocusedrecovery/gait/HTTP37PASS;harness/guard/baked-runner110PASS. NoGit/GHCRpublication. Allnativequalificationstillopen.
+
+Correctedtestmethod: capacity/recoveryphasefilesexplicitlynative_clock_deadlines_active=true,guardforbidsSIGSTOPevenstartup/warmup. Heatnowstop/exclusionandcool/retry, notfreezeanactivegraph. StartupCPUperiodoptionpermitsgentle5000/10000Linuxquota(componentactualverified),full16CPUbudget/0–15affinityrestoredandverifiedbeforewarmup. No emulated/changed productionclockorpausedsteadytime. Theoldgenericpausefeatureisretainedfordeliberatediagnostic/non-nativefixtures; donotblindlycopyoldlaunches. IncidentregistryaddedINC025/026/027overlappingexistingcases:still282scenarios,now27permanentregressions. Nofreshwhole-incidentPASSfromunitsalone.
+
+C12unpausedall-rolepeople1×5 case /tmp/sentry-v8-capacity-1._u5wul6f thermallyexcluded98C after11.683steadyseconds,0startupSIGSTOP. Lowquota causedoneboundedcold35sfirstframetimeout;recoveryfreshframewasverified,thenfullbudgetreleased. Notfull-rolecapacityorcleancold-first-attemptpass. Rawcase/receiver/stagetracespreserved; no1hqualification.
+
+NOW: C12S8×8unpaused600s pre-soak,sceneJPEGrand768DvectorEVERYcamera/2s,markedbusy720p10source,guard928325,raw/tmp/sentry-v8-capacity-8.vzjq6hpq. Initialsteady~64FPS,temp59–61C,verdictpending. Startquota0.5CPU/10msperiod;fullquota/affinityproofbeforewarmup;noNN/decodeCPUfallback,noperf. Memorysampler930362,conditionalnativecollector930367. IfGDBcaptureoccurs,classifydiagnosticnotcapacity. SavedexactCIDinc12-scene8x8-cid.txtforarchivalafterharnessremovesitsCIDfile.
+
+NEXT: checkthiscasefirst; if600spasses,independentmarkers/resource/scenecoverage thenselectedcontinuous1hstressatdeclaredsafeoperatingpoint. StillneededC12positive/fullrolebudgetsand5/8/10frontiers,liveRTSPS/HEVC/HTTPS(sourcech9/10/16/traffic1/traffic2metadataavailabilityallverified),gait-enablednativecleanup/recovery/racefaults,source/config/memory/APIcases. ActualManagementafteragentAPIoutofscope;mockACKdoesnotprovefsync. Nativevalidationmayusethequiet1080pclipwithallmodalitiesconfiguredtoprovelifecyclecleanupwithoutclaimingpositiveidentityaccuracy;positivepathsareseparatelyexercisedabove. DoNOTanotherbroadrewriteorpromoteCPUplacement/nativeOpenCV1/parallelgaitexperiments.
+
+Hostobserver814032segment5ends~06:29UTC;timestampGPU859069segment6ends~07:03;processobserver876750ends~07:18. Renewbeforeany1hstresswouldoutlivethewindow. GPU/NPUremainnode-scoped;process/RAMscopesexplicit. Rootdisk~10GiBfree,keep8GiBguard;no broadpruning. Everyrawvalue/status/failedattemptretained,bothhandoffscurrent. Current/STATUSnowC12;priorhistoriesareimmutable.
+
+
+## C12 ten-minute useful pass, native gait teardown PASS, cache control — 2026-11-11T05:47:21.643921+00:00
+
+C12S8×8 unpaused pre-soak COMPLETED600.027836s/600configured. Per-camera7.991702–7.994326completedFPS,min10swindowratio.980633. Everycamera sceneJPEG+768Dquota/sourceUTCsanityPASS.495retainedmarkers,0missing/no-marker/ambiguous,403orderedloopunwraps; worstcamera p95473.140ms. EndcgroupRAM1797.89MB,CPU2.054cores,sampled2694admitted/2694durable,0backpressure/exhausted/protocolerrors. Noqualifyingnativegap/GDB. NOTmaximum/fullrole/1h/sitequalification. Rawcaseatomicallymoved toarchived-capacity/c12-scene8x8-600s-unpaused-pass:1052files,112494408bytes,allhashes,no duplication/deletion. Old/tmp/sentry-v8-capacity-8.vzjq6hpqcompatibilitysymlink. Summary/markers:c12-scene8x8-presoak-summary.json/markers.json. Debugpollafterfinishcomputed1.8sfromcleanup-phaseandhealthconnectionrefusedafterintentionalshutdown;thesearepollingartifacts,notruntimefailure. Actualsteady600.027836s.
+
+Nativefaultfixture scripts/isolated_validation/gait_teardown_fault_hook.py andone-shot/peer/actual-closeCPUselfcheck1PASS. After20ssceneflowcamera1throwsInjectedGaitTeardown; actualDlsGaitExtractor.closeaudited. Quietfootage/allgaitprofilesconfiguredproveslifecyclecompatibility,NOTpositivegaitexecution/accuracy/capacity. PeerprofileSstaysfresh. Initialcoldgait-configured-native-teardown-peer attemptthermallyexcludedinstartup100CBEFOREfault;notqualified.
+
+OwnstoppedC11/C12RWinventoryfoundactualNPU/OVcompiledcache:68.6MB/25.7MBzecachesand16.3MBovblob,total~130MB. ExactC12stoppedcontaineracb22e8043f8exported6files/130753258bytes toc12-native-cache-seed/npu andov. ManifestpinsallSHA/size/mtime,exactimageC12,host/kernel/bootSHA. Readonlyprivateseed;freshper-runwritablecopiesmountedONLYtoexistingNPU/OVcachepaths. NOcamera/tracking/presence/embeddings/Secrets/GStreamerregistrystatecopied. Nohardwarecachebakedintoruntimeimage. FirstexportscriptSyntaxErroroccurredbeforeexecution;correctedonce,exportthencompleted.
+
+Harness --warm-cache-seed isTEST-only,sameimage+hostboot+contentvalidation,explicitWARMCACHEcondition,nocoldqualification,nodesired-statefield.58harnesschecksPASSincludingwrongimage/corruptseedrejection. Image/runtimeunchanged. DoNOTassumecachehitfromfilepresencealone;measurestartup/heat/outputandretainchangedcachefiles. NativeS8pre-soakwasfresh-containerdefault,NOTwarmseed.
+
+Warmcachequietfault /tmp/sentry-v8-capacity-2.pi4mk562:startup48.6s,bothactive,nothermalstop. Fault05:34:51.738285UTC; actualgaitteardowncompleted05:34:51.739254. OnlycameraexceptionInjectedGaitTeardown,nocleanupAttributeError. Freshcam1NEWsessioncomplete sceneACK1.653709safterfault. Cam2ONEunchangedsession,12independent1Hzhealthsampleshealthy/freshduringfault/recovery±5s. Bothsteadycounter/scenequotaPASS;99/99sampledhandoffsdurable,0errors. c12-gait-native-teardown-fault-verdict.jsonPASS. RawcapacityharnessreportFAILPRESERVEDbecauseitflagsintentionalexception;independentfaultoracleexpectsexactlyoneexception. NevercallthiscleancapacityPASS. ClosesnativegaitteardownassertionforINC025,notINC026forcedadmissionraceorallfaultvariants. ExactCIDc12-gait-native-teardown-warm-cid.txt.
+
+NOW C12busyallrolepeople1×5warmseedcomparison:guard959387,case diagnostic-c12/all-role-people-1x5-warm-cache,originalMOT17-02native1080p30,allbindings+explicitface/body/gaitpositiveoracle. Same0.5CPU/10msstartup/fullrelease,nativeclocknoSIGSTOP,180steadyseconds. OnlycacheconditiondiffersfromC12unpausedcoldcase(thermalafter11.683steadyseconds). Verdictpending;donotclaimbusyheatfixed. Current/STATUSmustpointtothiscase. Noimagebuild/push.
+
+SurgicalSDKreadfoundnoGAP/skip-inferencemarkerinpinnedmonolithicGVApath,onlyintervalcounter. NOnewnativefacegate/throttlerewriteimplemented. Nativefaceinterval3stillcomputesseparatelyfromadaptivecandidate/emissionbackoff. V8contractEXPLICITLYboundsagenthandofftosixattemptsthenreleases/reportsunproduced;donotintroduceunboundedresendsorclaimviolationfromstaticreadingalone. ActualbakedC12API8faults/liveinput/nativefaultvariantsandselected1hcontinuousstressstillrequired. Higher5/8/10frontiersincomplete;C10shortpointsnotautomaticallyC12points. Healthprocessing.decoded_fpsisselected/receivedboundary;rawhardwaredecodecountsinnativeprogress. NeverlabelselectedFPSrawdecode.
+
+Observershost814032segment5ends06:29UTC,GPU859069segment6ends07:03,process876750ends07:18. Renewhostbefore1hwilloverrun. Disk~9GB,8GBguard;ownstoppedcontainersaudited(threeSA~138MBeach,scene~5MBeach). Nocontainer/imagepruning. IfcleanupneededpreservefullownRWdelta+inspect/logsfirst;sourcecacheisuseful. Bothhandoffs/rawcasesretained. Goalactive,notglobaloptimality/production-ready. Firstattemptwritingthischeckpointfailedf-stringliteral-bracesNameErrorBEFOREanywrite;thiscorrectedplain-textcheckpointretainsfacts.
+
+
+## Live mixed-codec continuity failure and API boundary results — 2026-11-11T06:07:12.597242+00:00
+
+C12 cached all-role people1x5 /tmp/sentry-v8-capacity-1.oke3zqek thermally excluded105C during warmup, before steady; no capacity verdict. C12 baked API eight-fault suite PASS in c12-agent-api-faults/report.json, including429/503 retry, disconnect before/after storage, duplicateACK, permanent400, badpackage/missingevidenceACK and six-attempt exhaustion. Simulated agent API only.
+
+C12 live H2641080p+HEVC1440p 2x5 scene test /tmp/sentry-v8-capacity-2.wdrug61o FAIL uninterrupted continuity. At05:58:07 both primarydet outputs stale10seconds with3pending each while parser/decoder continue. Watchdog fenced, parent replaced worker19(exit-9), both recovered. Endhealthy and~9.919FPS/110ACK do not establish clean pass:33scenes/camera vs38minimum, countergenerationchanged. No deliberateSIGSTOP/thermalstop. c12-live-rtsps-stall-verdict.json preserves exact stages/events. Ultimate native blocking owner remains unconfirmed. Next bounded diagnostic will capture native stacks; no model/gate/schema/tracker changes. One-hour still NOT RUN.
+
+
+## One-hour attempt launched; live diagnostic and protected artifact audit — 2026-11-11T06:12:44.646901+00:00
+
+C12 actual80protectedmodels/config/schema/policy hashes rechecked in running image:allIDENTICAL C11, c12-protected-artifact-parity.json. Live mixedcodec diagnostic /tmp/sentry-v8-capacity-2.kqy8oon2 BLOCKED_THERMAL before180s; no qualifyingstall/GDBcapture. Remains inconclusive, notPASS. Concurrentstoppedcontainerarchival makesresourceattributiondiagnostic only. TwoOWNstoppedC11containers archivedwithinspect/logs/fullRWtar+SHA/entries beforeexactremoval:stopped-c11-rw-recovery/manifest.json,212554288bytesarchive,~60MiBreclaimed; noimages/unrelatedcontainersremoved. Initialdiagnosticlaunch invalidcritical-margin2 rejectedbeforeworkload; correcteddefault10, sustained90C/critical-2hardstopretained.
+
+NOWC12unpaused8x8/S3600continuoussteady launch guard982966,casescene-marked-8x8-continuous-one-hour. Markedbusy720p10replay,sceneJPEG768D EVERYcamera2sec, gallery30sec/1024maximum,10secsteadysamples and1Hzhosthealth/resources. Startup0.5CPU10ms/inherited6,7 thenverifiedfull16CPU/affinitybeforewarmup. NoSIGSTOP, noNN/decoderfallback, nopolicygatechange. Resourceguard8GiBfree/4GiBavailable,thermal90sustained/critical-2immediate. Host/GPU/processobserversrenewed979254/979260/979267,3hcoverage. No one-hourPASS until raw3600s/freshness/scene/API/stability checksfinish. PreviousrawPASS scopeunchanged.
+
+
+## Build-recipe drift corrected in source during unchanged C12 hold — 2026-11-11T06:26:54.858377+00:00
+
+Actual62bakedruntimePythonfiles rechecked matchworkingtree; unusedparallel_background.py onlyextra. Actualnativeprogress+metadatabinaries matchlocalqualifiedSHA; c12-workingtree-source-audit.json/c12-native-helper-binary-parity.json. Confirmed canonicalDockerfile omittednativefastmetadataflag(default0), genericwrapperdidnotcheckmetadatahelperprovenance andfloatingSDK/graphics didnotreproduceC12. Sourceonlycorrection:explicitSENTINEL_NATIVE_DETECTION_METADATA=1;aptintel-dlstreamer=2026.2.0;wireC10exact12graphics snapshotpins;rm-foldaptlist compatibility;build-timeNativeDetectionReaderABIload;wrapperchecks source/binarySHAandSDK1.28.2provenancebeforeusingfrozenhelper. HostSDK1.24.2 mustnotrebuildthishelper; native/verify_gst_metadata.pyfailsclosedonchangedsource/binary/wrongSDK.4focusedtestsPASS, shellsyntaxPASS. c12-build-recipe-source-fix.json preserveshashes/command/result. Fullcanonicalrebuild NOTexecuted yet, transitiveapt/pipnotallpinned, doNOTclaimfullyreproducibleorrequalifiedimage. RunningC12unchanged.
+
+Onehourtestcontinues with1Hzhost/cgroupmemory and10secsteadysamples; nootherNNtestsconcurrently. StaticSDKThreadPool review saved sdk-threadpool-static-review-not-cause-proof.json:sourcecatchoutsideworkerloopcanexitworkeraftercallableexception; notproofactualstallcause. NoSDKpatch/runtimefixpromoted. Currentultimateprimarynativefailurestillopen; earlierliveFAILnoterasedbyrepeatthermalexclusion.
+
+
+## One-hour8x8 thermal exclusion; lower-load continuous hold queued — 2026-11-11T06:30:12.088282+00:00
+
+C12scene8x8onehourattempt /tmp/sentry-v8-capacity-8.8m75sy4z STOPPED sustained90C,guardBLOCKED_THERMAL,notsoftware/capacityPASS. Lasthealthyactualsteady725.765219seconds, not3600. Recovered10sec countersfrom1Hzobserverpasspartialthroughput, no qualifyingnativecapture/replacement; RAM1762.50–1780.18MB(last1779.09). Exactlasthealth/handoff/stages/rawsamples+guardretained c12-one-hour8x8-partial-thermal-summary.json. Exactownedstoppedcontainerinspect+411097byteproductionlog recovered c12-one-hour-terminal-runtime/. Originalharnessreportunwritten dueSIGTERM; firstrecoveryanalyzercallwrongkeywordfailedbeforewrite, correctedusingactualsignature. No fabricatedreport/PASS. Raworiginal remains /tmp untilarchivedwithoutduplication.
+
+QueuedlowerloadC12scene4x8/S3600s continuous steady,case scene-marked-4x8-continuous-one-hour,guard1001949. Requires30sec below65C beforelaunch, same0.5CPU10msstartup/fullverifiedrelease, same8FPS andscene2seceverycamera, source720p10marked,512gallery/30sec. This testsstabilityat32FPS/4cameras, NOTmaximum orfullrolecapacity. Noquality/model/wire/tracker changes. NoNNtestsconcurrently. Current/STATUSreflect4x8. Keepcoolingandcontinuingasuserrequestedwithoutincreasingthermalguard.
+
+
+## Second continuous hold thermal exclusion, actual configuration grid and controlled retry — 2026-11-11T06:48:12.082689+00:00
+
+C12scene4x8onehour /tmp/sentry-v8-capacity-4.ywce9qup thermallyexcluded critical105C after588.754914healthy steadyseconds. Partial10seccounterthroughputPASS,RAM1401.36–1417.58MB(last1416.29),1321admitted/1321durable,0backpressure/exhausted/protocolerrors, sameworker/noqualifyingnativecapture. OriginalreportunwrittenonSIGTERM; reconstructedONLYpartialcounterverdictfrom1Hzobserver, c12-one-hour4x8-partial-thermal-summary.json. Exactstoppedruntimeinspect+204330bytelog c12-one-hour4x8-terminal-runtime/. Rawatomicarchived c12-scene4x8-one-hour-critical-thermal:211files/24734544bytes+checksums, /tmpcompatibilitysymlink. Prior8x8thermalrawarchived467files/59047550byteslikewise. No1hPASS.
+
+Thermalwindow06:41:20–36process/hosttracesretained thermal4x8-*.json. CVworker1002765~0.7–1.35cores; Firefoxcontent3963493~1core06:41:27–29coincideswithP-coreheat;notproofsolecause. No competingCVbenchmark, noOOM/resetclaim; no killingbrowser/unrelatedservices. No power/fan/kernelcontrolsmodified. Newretry4x8case scene-marked-4x8-one-hour-cooled-retry guard1017991 waits60continuoussecondsbelow60C, up to3thermalretryattempts(each3600steadyrequired), nopauses/addingpartialdurations. NootherNNtestsparallel. Current/STATUSupdated.
+
+ActualC12offlinebakedvalidator/staticcameraadapter grid26PASS1.528s: S/SA profiles for1/8/16/50cameras at5/8/10FPS, plus16mixed5/8/10 and8defaultFPS. Scene bindingon everycamera; maxacceptedconfigured500FPS isNOTcapacity. Savedall26desiredJSONs, privatefakeSecretfixtures, exactcommand/result/logs in c12-baked-configuration-grid-*. Firstattemptpodmanexec255becausecontaineralreadythermallystopped(beforevalidatorran), savedstderr; correctedCPU-onlynetwork-noneinstancewith0.5CPU/Ecoremask, noNPU/GPU/modelwork. No actualdesiredstate/revision/Secretschanged.
+
+FreshC12releaseincidentgate initialized27rows, INC025unit+nativeassertionsnowmapped/checksummedPASS;26othersPARTIAL pendingexactrequirednative/deployment/loadmapping. Thisisnot26observedruntimefailures; doNOTclaimblanketallincidenttestsPASS. Scopeandfactsarein c12-incident-results.json/c12-incident-gate-summary.json.
+
+
+## Active continuous retry and precise GPU measurement scopes — 2026-11-11T07:06:45.080264+00:00
+
+The60C/60seccooldowncase(scene-marked-4x8-one-hour-cooled-retry,guard1017991) neverlaunchedaCVcontainer:sharedhostidle62C repeatedlyresetdwell. Cancelled ONLYthatverifiedwaitingguard,rawCANCELLEDpreserved. Normalguard70C/15seccooldownrestored forfreshscene-marked-4x8-one-hour-default-cooldown,guard1029026, upto3thermallyexcludedattempts. HARD90Csustained/critical-2immediatestopUNCHANGED. NoSIGSTOP andnopartialdurationsadded. Currentattempt1 steady start~06:52:33UTC,now807seconds/~13.45minutes,4healthy/sameworker19,near32FPS,RAM1410.58MB,1790admitted/1790durable,0errors,lastsnapshot69C. NOT1hPASSyet. NootherNNworkconcurrently.
+
+Read-onlyartifactwatcher1032208 automaticallysaveseachattemptCID/artifact andstartsexactownedcgroupmemoryobserver; oneconditionalnativeGDBcollector1032209watchescaseacrossretries. Noattachmentunless2camerasstale>3swithacceptedpendingwork;anyattachmentclassifiesrun diagnostic. Source+commands+PIDsin c12-cooled-onehour-observer-launches.json/c12-cooled-onehour-artifact-watcher.py/c12-cooled-onehour-artifact-watch.jsonl. CurrentattemptactualruntimePIDmap c12-cooled-onehour-attempt1-process-map.txt:host1029348/ns1 API,1029352/ns4 supervisor,1029366/ns18 ancillary,1029367/ns19sharednativeworker. Guard/observersownershipverified; nounrelatedprocesstouched.
+
+GPUscopeprecision:hostintel_gpu_topsample06:35:00earlier4camera showsnodeCompute35.93percent,Render8.19,Video2.16,VideoEnhance4.04,GPU4.85W/package25.97W. ThesampleCVclientPID1002765Compute35.64. TheseareONEsample,NOTcomplete-runmeans,nothardwarecapacity. /healthznon-RC6~67percent measuresnodeGTactiveresidency,notComputeenginesaturation; preservedlabels. Futurecomplete-reportintegratesrawtimestamps/engineintervals andusesexactPIDmappingbeforeperprocessattribution. NodeNPUbusy0expectedforSprofile; noCPUfallbackinferenceconclusionfromthat.
+
+Addedbuild-recipeverifier/pinnedpackagesonlyinsource;currentC12unchangedandprotected80/62runtimefiles/hashestillvalid. No push/publication. Currentraw1hourartifactstoredineachattemptstdout/watchmanifest; globalobservers979254/979260/979267coverageuntil~09:10UTC,renewifhold/retrieswouldoutlivethat. Rootfree8460MiB,lastcheck,8GiBguardretained. Goal/5-8-10FPSfullrolefrontiers/nativefailure/TLS/longholdremainingexplicitinVALIDATION_CURRENT.md.
+
+
+## User stop handled; restored .64 isolated campaign now active — 2026-11-11T08:18:01.504284+00:00
+
+User explicitlystoppedlocaltestingthenrequestedalltests onrestored192.168.1.64. Interruptedturnleftlocalguard1029026running; verifiedownership, savedactiveattempt3containerinspect/logsandguardstatusinuser-stop-before-remote64/, sentTERMtoownsupervisor+collectors, verifiedlocalguardCANCELLEDattempt3andNOtestcontainersrunning. Local1hholdsNOTqualified. No unrelatedlocalprocesstouched.
+
+RemoteSSHrestored;hostapexFabric-box/kernel7.0.0-30-generic/bootd1e98fbc-19fd-49dd-9fdb-59909cef6f59;285H16logicalCPU/32GBRAM,~28GBavailable,noSwap,GPU/NPUdevicesavailable;Ethernet1000Mbps. Freshroot/home/admin1/Documents/sentry-validation-20261111-c12, testkitrepo/bakedsource copiesseparatefromexisting/home/admin1/sentry_cv. Foundrunninguser-servicesentry-cv.service20cameras/GPU+NPUonboot(PIDs1523,1560,1561,2532,2811,3073). GracefullySTOPPEDonlythatserviceunderuserauthorizedisolation;inactive/dead/noacceleratorclientsverified. OriginalunitRestart=on-failureandrestorationcommandpreserved artifacts/preflight/isolation-actions.json. EssentialK3s/network/SSH/OSleftactive;isolationmeansnocompetingCV,notbareOS.
+
+FrozenC12streamed3909303808bytesin49.639swithoutdiskarchive orregistrypublication. Dockerimport02b5c8ab4ceec3fe9ba0481e916d5286d616abb39884f8fefc3aaaa8485d1ff1 differsconfigrepresentationfromPodman8312b38f...,ALL70RootFSlayers+Env/Entrypoint/Cmd/User/WorkingDir/Healthcheck/Volumes/Ports/StopSignal/archEXACT. Notrebuild. Importresultandexpectedimagefilepreserved. Sixfixtures144128346bytestransferred/allSHA256verified(720pmarkedANPR+sidecar,ANPR,people1080p30,quiet1080p25,fire). Existingold5.2GB/11GBcampaigns/archivesUNTOUCHED. No credentialvalueswrittenintoevidence.
+
+Actualremotebakedunit/policy/validatorrunnerPASSED, device/plugin/hashpreflightPASSED:nonroot10001,OpenVINO2026.2.0 GPU+NPUenumerate,12requiredGVA/mediafactoriespresent,80model/config/schema/policyhashesidentical. EnumerationNOTproofallNNexecuted;nativefoundationsnext. Hostreadonlyexistingapp.venvhascv2/numpy/jsonschema/psutil/pytest/PIL;usedWITHOUTmodification/install.
+
+Testharnessonlyupdates:optional--memory-limit-mib(recorded24576MiBforremoteOSheadroom),Docker-awarecgroupmemoryobserver(+rawcgroup.procs),DockerhostPIDmappinginconditionalnativecollectorusingNSpidfromownedDocker-topPIDs. Local100guard/harnesschecksPASS;syntaxchecked. No image/gates/model/contract/runtimechange. Dockerlaunchuses--startup-cpuset6,7(CPUaffinityofdockerclientdoesNOTpropagatethroughdaemon),2CPUquota/10msperiod,verifiedfull16CPU+cpusetrestoredbeforewarmup. NoSIGSTOP. Actual24GiBlimit/executionenvironmentrecordedpercase;notclaimedunlimitedhostcapacity.
+
+NOWremoteROOTfoundation-scene-active-1x5 guard181946,default5FPS/Sprofile/marked720p10/20warmup/90steady/sceneJPEG768Devery2sec/strictAPIcapture+markers. Thermal90sustained/critical-2unchanged,coolingnormal70/15,2maxthermalretries,6GiBdiskreserve/4GiBavailableRAM. Remoteobservers181943/181944/181945started10800sec,needrenewforlongcampaign. RootinteractiveSSHsession21071available;noautoreboot/driverreset. LocalRoptimization_evidence/2026-11-11-remote64-c12. Save/mirrortimestampedcaseevidenceandall282scenarios/27incidentsasfreshNOT_RUNuntilactualassertionsevidence. AgentAPIistheboundary,notManagement/fsync. NoGit/GHCRpush.
+
+
+## Remote startup controls corrected — 2026-11-11T08:51:39.510154+00:00
+
+Continuing on .64 after user resume. Remote foundation attempts with E-core/LP-core masks encountered thermal exclusions; LP-only case pf7yg_gz also repeatedly failed scene warmup with OpenVINO CPU affinity error before the later thermal cutoff. Keep both findings; not proof the unrestricted image fails. Quota-only case z1ukw78t reached camera frames and scene packages after55.9s, then the harness failed Docker update --cpus16 because launch used explicit CPU period/quota. Test-only helper now restores matching period/quota;61 harness tests PASS. New case foundation-scene-1x5-quota-restored guard296014 uses full CPU eligibility and verified full16CPU before warmup. Same exact C12 image, no runtime/policy/model/contract change. 282-case fresh remote ledger initialized NOT_RUN; historical unit checks do not mark native scenarios passed. Remote capacity and1h stress remain unqualified. No Git/GHCR publication.
+
+
+## R2 deployment diagnostic review — 2026-11-11 (other-side tests untouched)
+
+User supplied Downloads/r2-diagnostics and requested review only; explicitly leave tests on other side untouched. Reviewed authoritative BLR host log, report, summaries and exact locally baked r2 source (config e5ce6194581be39b0732ec4b8a486cfbea22bb32e76b82338bc1df92bc473bf7; deployed registry digest e8baec1ad054312f0081deb4bf6d34c7c8cc3bfb38516a3582d3d2fed32b4629). Source was read in a short network-disabled container with no devices and overridden Python entrypoint; no inference/live tests or remote operations. No runtime/schema/model/image/deployment changes.
+
+Independently counted 94 stalls, 10 shared worker watchdog replacements, 40 per-camera exit records, 25 verified recoveries; all94 stall records pending_admissions=0. IMPORTANT correction: this is native inference gate admission state, NOT delivery outbox pending state. Source freshness before parser with stale downstream cannot by itself establish a GPU/model stall. Initial trigger remains unresolved.
+
+Concrete recovery cascade confirmed: at authoritative host-log line4242 cam04 faceclass teardown error is logged with camera_id=null; lines4248 and4258 show cam12/cam08 receiving that same cam04 error. Exact r2 _camera_for_source checks current ancestor ownership; _dispatch_bus broadcasts unowned ERROR to every camera queue. Ownership loss during teardown therefore can turn a camera-local error into peer failures. This is evidence of cascading recovery, not proof of the first stall trigger.
+
+Cam15 has66 startup exceptions:38 No route to host and28 401. Management separately established SHA-256 Digest and successful GStreamer SETUP/PLAY with decoded explicit credentials, followed by a distinct TCP interleaving parse failure; these probes not rerun here. Official FFmpeg n6.1.1 httpauth.c confirms only default/MD5/MD5-sess digest algorithm acceptance. Baked r2 FFprobe failure aborts RTSP preflight, sets no explicit decoded user-id/user-pw properties, forces TCP. r2 ALREADY retries startup (66 records) and verifies admitted fresh frames after source restart (25 records); do not claim these safeguards are wholly missing.
+
+Detailed review counts, evidence references, bundle hashes and proposed regression cases saved in optimization_evidence/2026-11-11-r2-diagnostics-review/review.json. Follow-up repair scope: compatible discovery/auth plus post-auth frame validation; retain bus error ownership across teardown; matched RTSPS scene-only/mixed and isolated/shared comparisons with stage capture. No initial native stall root cause or completed repair claimed.
+
+
+## .64 connection/API/config checks and thermal precondition — 2026-11-11T09:02:19.066220+00:00
+
+Same C12 image remains unchanged. Native scene1x5 quota-restored guard296014 has not started its child: waiting for70C/15s continuous cooling. Sampled1242 idle/precondition records: minimum55C, median58C, maximum105C,74samples>=90C. No CVcontainer active during idle diagnostic. Process observation over80recent1Hzsamples: busiestmean k3s~.108cores; no competing CVservice. This doesNOT identify cause oftemperature spikes. Kernel/thermal counters/power settings preserved read-only. No fan/BIOS/governor/kernel changes and no thermal guard weakening. User asked asynchronously tocheckfans/ventilation. No remote FPS/capacity/stress PASS.
+
+Remote FFprobe/socket readiness: all5 supplied RTSPS sources work (ch9/ch10/ch16 HEVC2560x1440@25;traffic1 H2641920x1080~24.917;traffic2HEVC1920x1080@25). All10externalTCPports9001-9010 refuseconnection. This is assigned-host inputavailability, notdefaultnativeexecution. Capacity willuseindependentlocalcompressedreplays.
+
+Actual baked agentAPI suite8/8PASS: normaldurable,429then503retry,disconnectbeforestore,disconnectafterstore,permanent400,wrongpackageACK,missingevidenceACK,exhaust503. StableID/digest andretained-bytesreleaseasserted. Synthetic scene/JPEG, notNNperformance orrealstorage. Native connection-onlyTLSfixture15/15PASS: defaultlegacyuntrusted/expired/badhostname/shared;strictunknownCA/siteCA/explicitfile/hostname/expiry/badPEM/sharedleader/401;realpublicRTP withadditionalCA. Separate strictpublicsourcewithNOextraCA passedactualRTP/flags127. FulluntrustedTLSVAdecode/packages remainsNOT_RUN. Configuration matrix16/16PASS:1/8/16/50cameras × default8/explicit5/8/10 throughBAKEDvalidatorandSecretfilereferences. This isconfigurationacceptance, NOTcapacity.
+
+Fresh282-case/27-incidentledgers savedlocallyandremotely;6caseIDscreditedPASSwithexplicitscopes,6PARTIAL,othersNOT_RUN. 325bakedunit+30mockedpolicyscenariospassedpreviousphase;1deselectedand2repo-onlyparallelbackgroundexclusionsretained. Actualcapacitycatalog has12uniform+9mixedprofiles (corrects carriedsummary's13profilecount). ExistingCAPACITY_TEST_MATRIXactivecampaignmetadataandREMOTE64runbook correctedfromstaleunreachable/localstatus.
+
+Harnesstests103PASS. Test-onlyDockercompatibilityaddedtoTLSqualificationandnative recoverydriver, notruntimecode. Persistent rootremote_case_bridge301751 snapshotsguardCURRENT/STATUS, handlesuserSTOP, startsowncgroupobserverwhencontainerexists,andarchivesrawcaseaftertermination. Localmirror1128264 checkpointsowncampaignartifacts every30s,latest rsync0. Sourcebridgeupdatedtoindependentlyretainnativeerrorfindingsbesidethermaltermination;restartbridgebeforecompletiontouseupdatedsource. RootinteractiveSSH21071 remainsavailable. Host/GPU/processobservers181943/181944/181945 expire~11:15UTC;renewbeforeneeded. UserCVservice remainsstoppedforauthorizedisolation;restorecommandsaved. No Git/GHCRpush.
+
+
+## Remote native foundation PASS; actual quota fix verified — 2026-11-11T09:15:04.721476+00:00
+
+User replied fansworkingandrequestedwaituntilcooled. Keptallthermalguards unchanged. Firstcorrectedcasequota-restoredwaited15minwithoutchild thenBLOCKED_THERMAL. GPU-profiler-offcontrolstill105C; alloptionalobserversoffidlecontrolstill101C, so no causal claimprofilerfixedheat. Leanfoundation353964/bridge353965eventuallycooledandstarted /tmp/sentry-v8-capacity-1.5exm7j2t. NativeS1x5passed90ssteady. Actualstartup62.7s;beforewarmupDockerquota releasecpu.max160000/10000verified(full16CPU). Steadyselected4.99962FPS;worst10sratio.983865;completed-work/scene/sourceUTC/fatallogassertionsPASS. Whole-run63packages:58sceneJPEG+768Dpaired,5camerahealth. Independentmarker12decoded,0missing/ambiguous/bad;8steady samples,p50~382.47ms/p95~415.43ms,p99~416.01ms,max416.16mssourcePES-to-agentAPI. SmallshortS-onlysample, NOT1h/frontier/allusecases. RAMrolling~1399–1401MB;optionalGPUenginetimingnotrecordedintheleancontrol,healthGPUresidency2–3%NOTcomputeutilization. No image/gate/model/schema changes.
+
+AdditionalagentAPI3/3PASS:permanent401releasedwithoutfalseACK;absentsocketfiniteexhaustion7.77s;real30stimeoutfirstresponse31sretry2identicalbytes/IDandduplicateACK31.04stotal. CombinedAPI11PASS;freshledger8PASS/5PARTIAL/269NOT_RUNwithscopes. TLSstrictpublicnoextraCARTPpassed. CurrentresultsJSON preservesunqualifiedcapacity5/8/10separately.
+
+Restoredfullobservers378153(host)/378154(GPU)/378155(process)at~09:14UTC,3hduration;newsegment2preservesgap. Localmirrorresumed1141671. NOWscene-marked-8x5-short-search,180steady,independentmarked720p10,sceneJPEG/vector2seceverycamera;fullresourcecapture/cgroupbridge,24GiBRAMlimit/4GiBavail/6GiBdiskreserve,thermal90sustained/critical-2immediate/noSIGSTOP,cooling70/15unchanged(maxwait1800peruser). ReadCURRENTforguardPID. ThisexplicitS-onlyprofiledoesNOTclaimall11appsorfullusecasecapacity. No push.
+
+
+## External replay generators remove setup work from measured host — 2026-11-11T09:21:03.823569+00:00
+
+Eight-camera scene-marked8x5attempt /tmp/sentry-v8-capacity-8.8amb0x6s BLOCKED_THERMAL duringHOSTsource setup (onlyartifactdirectoryprinted;noCVcontainerstart/log). Temperaturescore12-15~92-94Csustained;noimagecapacityresult. DidNOTchangeimageforit. Movedall8independentmarkedcompressedreplaygeneratorstocompute-a192.168.1.92. Localmarker_sender optional--bindIP/--peerIPdefaultsbackcompat127loopback; onlyaccept.64clients. Compressedcopy/pacingunchanged;21marker/pacing/reconnecttestsPASS. Externalports19001–19008allocatedonlyownsources;original9001–9010remainuntouched/refused. LocalproducerPIDs1144745,1144747,1144752,1144779,1144781,1144783,1144785,1144787;exactcommandsandfixturehashsaved external-sources/scene8x5/sources.json. NoGPU/NPUmodelworkoncompute-a. SourcegenerationCPUisnotmeasurededgeCPU.
+
+NOWscene-external-8x5-short-search guard395040 bridge395041,180steady/20warmup/cold.5CPU/10msrestoredfull16beforewarmup,allthermalguardsunchanged. RootCURRENT/STATUSupdatedbybridge. ExternalURLsloadedthroughsameV8Secretformat. No --recording/--marker-replay onremoteprobe, sothereareNOsourceFFmpegprocessesonedge. Samplingvectors/JPEG2seceverycam,S-only. Awaitingcoolingperuserlatestreply. Fullobservers378153/378154/378155andmirror1141671active.
+
+CrosshostmonotonicclocksMUSTNOTbesubtracteddirectly.5initialSSHclockintervalsamplesretained external-sources/scene8x5/clock-link-start.json;localclockobserver1146000 recordsbounds every30s in clock-link-continuous.jsonl. Anyderivedsource-to-APIlatencyrequiresmappedclockbasisanddeclareduncertainty;rawlogsneverrewritten. Same-hostfoundationp95~415msremainsvalid8samplesbutnotglobalSLA. Localone-threadfire20s+black30s720p10fixturegeneration1145993started;thisispreparationnotfire/clearPASS. Existingoriginal6fixturesremainverified. NoGit/GHCRpush/runtimechanges.
+
+
+## Eight-camera partial throughput; sustained thermal timing corrected — 2026-11-11T09:41:02.064241+00:00
+
+External8x5/S attempt /tmp/sentry-v8-capacity-8.w9eg32b0 becameactive94.4s,coldstartupquota.5CPUthenfull16verified,warmup20s,steady~123.4/180s beforethermalabort. 13rollingwindows39.35–40.996aggregateFPS,target40;partial10scumulativecounteranalysis8cams4.9914–5.0008FPS withcompleted/inferredworkallmeetingratios. RAM~2049–2058MB;actualGPUCompute43–51%insampledintervals,Video~4–5%,VideoEnhance~5–6%,nodepackage22–24W, GPU4–5W; nodeactiveGPU72–75%isNOTcomputeutilization. Logs/RAWAPI/gallery/cgroup/closedobservationspreserved. No modelerror/restartestablished. **WholecaseTHERMALLY_EXCLUDED,NOTcapacityPASS.**
+
+PARTIAL_ANALYSIS.jsoninlocalcaseevidencecontains91steadymarkerobservations0missing/ambiguousmarkersandestimatedpercamP95~288–323ms. CrosshostSSHclockbounds+explicit2000ppmrelativedriftallowance give~153–162msmaxuncertainty;NOTsamehostprecise415msfixturemeasurement/norunqualifiedSLA. Rawlogsnotrewritten. Initialpartialanalysisused1Hzcachedhealthandmisreportedthroughputfalse;correctedtoactualdeclared10scounterwindowswhichPASSforthepartialspan. Onlypartialanalysis,notfullqualification. Copiedscript retainedr/analyze_external_partial.py. Nativeconditionalcollector436530startedjustafterthermalterminationandcorrectlydidNOTattach;nocapturedstall/noevidenceofnativehangfromthiscase.
+
+Repeat1guard442469 /tmp/sentry-v8-capacity-8.q64dpcz1 alsothermallyexcludedearlysteady(~three10sreadings40.025/40.1/39.57). Replay8PIDs1153803/06/08/10/12/14/17/44 allone-shotendafterclientclosed. Stage4observers448594/95/96restoredwarmupthenstoppedfornextcoldstartup. Localmirror/clockrestartPIDsreadfrompidfiles; pausedbeforestartupagain. Capture/warmupcontrollerrestorersareOWNonly.
+
+Foundtestconfigurationmismatch:defaultguard3hotobservationswith2sinterval=>~4secondssustained, butourhigh-resolution.5sintervalhadleft3hotobservations=>~1secondstop;repeat1lastsensortrace90,90,96triggeredafter1s,nonear-criticalevent. To preserveDEFAULTsustaineddurationwithgranularsamples,newinvocationexplicit--hot-samples9at.5s=>~4s.90Cceiling/critical-2immediate/NOSIGSTOP/cool70C15sremainunchanged. Thisistestguardconfiguration,NOTimageproductionpolicy;earlierthermalexclusionsarenotretroactivelypassed.
+
+NOWscene-external-8x5-duration4s guard471233 bridge471234 remoteobserverrestarter471235. ExternalnewsourcePIDs1158649,1158652,1158654,1158656,1158658,1158660,1158662,1158664,listeners192.168.1.92:19001–19008onlypeer.64. Localpersistentwarmupwatcher1158666 restartsfullmirror+clockduringwarmup;remoterestarterstartssegment5fullobserversbeforesteady. Exactcommandsartifacts/*-command.json. Awaitcool/full180s;sameunmodifiedC12SHA02b5...,S-only JPEG/vector2seceverycamera. No8/10FPSfrontier/fullrole/stressqualificationyet.
+
+Fixturefire20-black30-720p10.mp4generationcompleted5,108,973bytesSHA4ff0d540e812344ecf21a64cd1f24b4db68303f22283586012584dc7ffe44e01;first20soriginalfire,then30ssyntheticblackevaluatednegative. Notyetrunnative. Crosshostclock_link.py4mathregressionsPASS;markersenderdefaultsunchangedwithoptionalbind/peer;21source/marker/pacingtestsPASS. Whole325unit/30policy and11API/15TLS+strictpublic/16configchecksretained. Profilematrix12uniform/9mixed,282scenario/27incidentsfreshledger8PASS5PARTIAL269NOT_RUN. NoGit/GHCRorimagechanges. UserCVserviceon.64remainstoppedforisolationandmustberestoredaftercampaign/explicitstop. RootSSH21071persists.
+
+
+## Near-critical stop confirms thermal constraint; all-app execution started — 2026-11-11T09:54:38.928371+00:00
+
+Duration4s8x5run /tmp/sentry-v8-capacity-8.rdm4h6bq againtracked~40FPS/~2062–2067MBearlysteadybutimmediatecritical-2stopat09:44:59becauseCore9/10reached104C. Hencechanginghot-durationdidNOTestablishstablethermalcapacity;thisisnotvalidPASSnorFPSFAIL. Newrootcaseall-usecases-people1x5 usesSA(all11apps)withoriginalMOT17-02-SDP1080p30off-boxsource,selected5FPS,120steady/20warmup/startup600/cold.5CPUfull16beforemeasurement,24GiBRAM/thermal90sustained4sec+crit-2immediate/cool70C15sunchanged. NotpositiveANPR/hazardfixture;face/body/gait/presence/count/crossings/dwell/sceneandhazardNNexecutiontobeinspected. NeedseparatepositiveANPR+fire/clear.
+
+NOWguard504520bridge504521rootobserverrestarter504522;casebecameRUNNING09:53UTC /tmp/sentry-v8-capacity-1.4q94aylx. LocalMOTpeopleone-shotTCPsource1164782at192.168.1.92:19001onlypeer192.168.1.64;fullcommandinexternal-sources/all-usecases-people1x5/sources.json. Localpersistentwarmupwatcher1164783restoresmirror+clockwhenwarmup;rootrestarterwilllaunchsegment6profilersbeforesteady. Previoussegment5observers485482/485483/485484stoppedforcool/startup. Newread-onlydiagnosticrootcommandsuse`taskset -c14,15 python3`toavoidPcorepollingbursts;RUNTIME/Docker/guard/harnessaffinityhasNOTchangedandfull16CPUsteadyproofrequired. Noimage/model/contract/productiongatechange. NoGit/GHCRpush. Remoteoriginalsentry-cv.servicePAUSEDforauthorizedisolation;restoreactionretained.
+
+Partialfirstexternal8x5analysisfinalcorrected10scounterwindowsshows8cam4.9914–5.0008FPS,completed+inferredPASSforthe123sPARTIALspan,sourceframesmarkers0bad91steadyJPEGs;top-levelverdictTHERMALLY_EXCLUDED_PARTIAL_RUN. GPU/hostrawclosedstreamsallretained. No8/10FPSfrontier,fullrolecapacityoronehourSLAisqualified. Fansworkingperuser;explicitdirectionwaituntilcoolandcontinue. DoNOTweakennearcriticalabortorcallsamethermalattemptsuccess. Continueothersemanticsandthencapacityafterphysicalcooling.
+
+
+## .64 unreachable during all-app startup; preserve evidence before restart — 2026-11-11T10:02:22.546040+00:00
+
+All-apppeople1x5 /tmp/sentry-v8-capacity-1.4q94aylx firstactualstartupcapturedpid54/session320ad6e6-b0e6-47a5-b0e6-eeba855ca959. Parser2/1;decoder.sink1/src0; downstreamall0. At09:54:53.247275 camera_pipeline_stalled after35.468s,stream_disconnected/surface decoder timeout,pending0. Firewarning systemmemoryonGPU isknown320BGRbranch,NOTCPUfallback norrootcause. Lastmonitor09:54:50RAM17.3%nodeCPU7.1%,supervisorRSS256.9MB(whichisNOTtotalcontainerRAM). Nativegroupstarted09:54:40.956,butnocameraframesyet. SavedfullDockerstartup logREMOTELYunderall-appcase/startup-diagnostic-container.log;thiswasNOTyetmirroredbecausewarmupneverstarted. Toolresponsesretaineddecisivestagetraceexcerptsonlylocally.
+
+At09:57:31attempteddiagnosticDockerinspect/update--cpu-period10000--cpu-quota160000 toremoveTEST.5CPUquota beforecamera ready (possiblecoldmodelstartupslowing). PersistentrootSSH21071returnedNOconfirmation. DoNOTassumeupdateexecuted. ThenindependentTCP22/18380andSSHfail:No route to host/timeout;neighbor.64INCOMPLETE;pingDestinationHostUnreachable;localenp3s0UP192.168.1.92/24. No matchingTailscalepeerfound. Hostfreeze/power/networkcauseUNCONFIRMED;askeduserwhetherpoweredresponsive. No remote reboot/resetperformed. thermalcausationnotproven. Needcollectpreviousbootkernel/pstore/crashes/modelstacks/GPU/NPUevents+DockerOOMexit+guardlogswhenaccessreturnsbeforeanotherload.
+
+Savedhost-unreachable-incident.jsonandRESULTS_CURRENTstatusHOST_UNREACHABLE_PENDING_RECOVERY. StoppedONLYownlocalexternalMOTsourceprocessgroup1164782 andpendingwarmupSSHwatchergroup1164783;sourceproducerwasNOTGPU/NPUwork. RemoteoriginalCVservicewasstoppedbeforeloss;IFhostrebooted,itmayautostartagain—RECHECKbootID/service/GPUclientsandisolationbeforeANYnewtest. Testcontainerrestartpolicynotassumed. All-model,capacity5/8/10andonehour remainNOTQUALIFIED. KeepfrozenC12source8312/import02b5RootFSequality/80hashproof;NO runtime/model/schema/gates/contractchangeorGit/GHCRpushduringthisresume.
+
+
+## Incident registry and recovery collector prepared — 2026-11-11T10:09:14.742565+00:00
+
+AddedINC-028hostreachabilitylossduringall-appnativeinitialization, overlapsRES-08/FLOW-09/PERF-04;total282cases/28families. No assertedkernel/model/imagecause. New-imagechecklistdefaultNOT_RUNforallfamilies;fixed7preexistingPARTIALscopeddefaults bymovingthosehistoricalvaluesintoreference_evidence_status, preservinglast_scoped_evidenceandoriginal282rowCSVverdicts. Regressionregistrychecks14PASSafterfix. Plan/runbookmetadataupdatedaccordingly. No contract/schema/runtime/modelchanges.
+
+LocalCURRENT/STATUSandRESULTS_CURRENTnowexplicitBLOCKED_HOST_UNREACHABLE, notstaleRUNNING. CAPACITYmatrixcurrentcampaignstatusupdated. Read-onlycollectorpreparedandpy_compiled: optimization_evidence/2026-11-11-remote64-c12/collect_after_recovery.py. It capturesprior/currentbootkerneljournal,pstore,bootidentity,process/memory/devices,userCVservicestate,owncase/Dockerlogsandlimits;sanitizesURLs;doesnotexecuteinference,resetdrivers,restartservicesorreadcameraSecretcontents. Upload/runasrootafteraccessreturnstoaNEWoutputdirectorybeforenextload. CollectorNOTRUNyet. Onreboot recheckoldautostart20camerauserCVservicebecauseisolationwillbeinvalidagain. No automaticpower/rebootattempt.
+
+MostrecentnetworkevidenceSSHNoRoute/18380timeout/ARPINCOMPLETE/pingHostUnreachable(localinterfaceUP);physicalstatequestionpending. RootSSH21071pendingwithoutresponse. DelayeddiagnosticCPUquota-releasecommand09:57:31executionunknown. Newfulllogstartup-diagnostic-container.logexistsonREMOTEonly,notmirroredbecauseneverreachedwarmup;doNOTpretendlocalfullrawexists. ToolexcerptandincidentJSONpreservedlocally. Localexternalpeople-sourcegroup1164782andwaitinghelper1164783stoppedonlyownprocessgroups. Activeimagehardwaretestcannotcontinueuntil.64responds. All5/8/10FPSfrontiers,mixedrolebudgetsand1hholdsremainunqualified;previous1x5S90sPASSandthermalpartial8x5valuesretainedunchanged. No push.
+
+
+## .64 recovered, host freeze confirmed; isolated NPU dispatch checks — 2026-11-11T10:37:49.074732+00:00
+
+User saidtryagain;SSHrestored10:09:37UTCnewbootbff139d2-2c08-4f03-9cca-33014fc95171,uptime<1min,hostnameapexFabric-box. User explicitlyconfirmedboxwasnotresponsiveevenpoweredon,andphysicallypower-cycled. ThisisconfirmedHOSTFREEZE/restart,notmerelynetworkfailure;kernel/model/thermalcauseUNKNOWN. NewrootSSHsession72871(authenticatedsudoonce,sttyechooff)replacesdead21071. Keepcredentialoutofartifacts.
+
+Ranread-onlycollect_after_recovery.pyasroottoR64/artifacts/recovery-20261111T1010,copiedlocallysamebasename. Old20-camerauserCVserviceAUTO-STARTED(MainPID1401)afterboot;recordedthenSTOPPEDagainunderisolationauthorization. Serviceinactiveverified,originalrestorationcommandretained. No essentialK3s/network/GUIservicekilled. UserGUIbackgroundprogramsmaystillrun;isolationmeansnootherCV,notbareOS.
+
+RecoveredfailedDockercontainer79557afe7475(sentinel-v8-capacity-1-518235),sameC12image02b5...,Exit255/FinishedAt10:09:35duringdaemonrestart,OOMKilledfalse(notproofofnohostOOM),limitsCpuPeriod10000/CpuQuota5000/.5CPU,Memory24GiB,Cpusetempty. Therefore09:57diagnosticearlyreleaseDIDNOTtakeeffect;diagnosticreleaseJSONabsent. /tmp/sentry-v8-capacity-1.4q94aylxlostatreboot,butcaseguardfilesandDockerRW/logspersisted. Fullfailedlog109linesrecovered,firstsourceinterrupts09:54:53and09:55:29;freshframeRECOVERED09:55:45.618(attempt2,newsession21efb653-8c13-43d5-8ae6-c73b99c4ad5f),lastmonitor09:55:49RAM20.1%nodeCPU4.8%,supervisorRSS258MB—notfullcontainerRAM. Lastguard09:55:49.089max59C/available26,462,216,192bytes;noOOM/panic/GPUresetexplainingfreezeinrecoveredkerneljournal,pstoreempty. Existing3/var/crashfilespredatethistest(Nov3/5),noevidenceofnewApportdump. Lastpriorbootsystemjournal15:25:44IST,nonewclean-shutdownrecordclaimed. Noexactrootcauseestablished.
+
+Nextdecision:isolatemodel/deviceexecutionbeforeanotherfullSAgraph;avoidrepeatingfullhostfreezewithoutoffhosttraces. Createdtest-onlyscripts/isolated_validation/model_device_probe.py:syntheticstaticinput,explicitGPUorNPU(noCPU/AUTO),compiledEXECUTION_DEVICESverified,3inferenceswithshape/finiteflags,stageJSON. No productioncode/model/schema/gateschanged. CPUquota.25and4GiBused ONLYfordiagnosticmodelcontainers,all16CPUeligibilitylogged;theirwalltimesarenotproductionmodel-latencyclaims. Initialposeprobe33794thermallyexcluded104CandalsohadHELPERbug:EXECUTION_DEVICESreturnsstringNPU, list(str)splitintocharacterscausedfalsefallbackerror. Fixedhelpertypenormalization;notimageCPUfallback.
+
+PoseNPUrerunguard46206(case device-pose-npu-normalized-device)PASS10:29:34:actualEXECUTION_DEVICESstrNPU,all0–15eligible,3finite[1,3,3]outputs,compile14.689sunder.25CPU,call117.7/6.0/4.1ms(DIAGNOSTICquota,notperformance). Guardtemperature-reader/DockerCLIalonepinnedLP14,15at10:26:05toavoidtestmonitorPcorebursts;DockerdaemonNNcontainerFULLaffinityproof0–15. NoCV/NNaffinityorhostpowerprofilechanged;powerprofilesctlget=balanced.
+
+Offhostlogs:rootkernelreader33765journalctl-kf->R64/artifacts/device-isolation-after-reboot/kernel-live.log;localpersistentSSHtailwritesnodekernel+modelstagestocompute-a. Currentoffhostreader1192883=>local.../device-isolation-after-reboot/offhost-face-body-gait.log(+stderr). Modelphaselogssurvivehostlosslocally. EarlierreaderPIDs1184360/1186518terminatedOWNonly. No automateddriverreset/reboot.
+
+CURRENTrootsequentialcontroller83980runR64/device_sequence.py,singlemodelat-a-timeface/body/gaitguardedwith90Csustained4s/crit-2immediate,cool70C15s,maxcool600/runtime300,CPU.25,4GiB,peerimageunmodifiedC12,modeloutputdimscheckedatcapture. FaceNPUcase device-face-npu-isolatedPASS10:34:03,3finite[1,512],compile42.14sunder.25CPU;finiteoutputswithZEROsyntheticinputdonotprovefacealignmentaccuracy. BodyNPUbegancompile10:35:48[1,3,256,128];gaitnext. SequenceCURRENT/resultsJSONinR64/artifacts/device-isolation-after-reboot. Captureoffhostnativekernelstreambeforefuturecombinedrun. Allappstartup.5CPUuntil30framesisatestconfounder;futurecombinedcontrolmustremoveartificialstartupthrottlebeforemodels/camera-readinessratherthanblamingimagefromthatthrottledcase. Noquotalimitremovedfromruntimeimageitself. Capacity5/8/10/fullusecasebudget/1hstillunqualified. FreshR64CASEledger8PASS5PARTIAL269NOT_RUN;INC028registered(newmatrix28families)butrootcauseopen. NoGit/GHCRpush.
+
+
+## Link restored; thermal exclusions and NPU checks reconciled — 2026-11-11T11:02:27.902989+00:00
+
+User requested “now check” after Ethernet cable/link attention. At 11:01 UTC, enp2s0 carrier=1, operstate=up, negotiated speed=1000 Mbps. Boot remains bff139d2-2c08-4f03-9cca-33014fc95171. The 10:36 link interruption/downshift did not reboot the host and must not be confused with the earlier user-confirmed freeze/power-cycle. Earlier freeze cause remains unknown.
+
+Isolated unchanged-image NPU checks completed: pose [1,3,3], fused face 512D, body 384D, gait [1,256,16]/4096D; all three synthetic inferences per model finite and EXECUTION_DEVICES=NPU. These are dispatch/shape checks under diagnostic CPU quota, not recognition accuracy, production latency or combined-graph qualification. Face/body/gait sequence raw results copied locally.
+
+Combined local people replay 1x5 FPS/all11 apps: full-CPU attempt thermally excluded at 10:44:43; bootstrap4 attempt thermally excluded at 10:56:27, 104 C, before camera startup qualification. Bootstrap4 had temporary 4-core CPU budget pending readiness, not a capacity configuration. Both used unchanged C12 and local video to remove external source-network dependence. Neither establishes a decoder/model fault or a camera maximum. At 11:01:51 package/core maximum was 55 C; no Docker CV container running. Thermal safety thresholds were not relaxed.
+
+Current root SSH session14666. Kernel observer33765 and reconnecting off-host log reader1200274 are read-only; last guard149352 has finished. Original user sentry-cv.service remains paused for campaign and must be restored at campaign completion. No rebuild, production runtime/model/schema/gate changes or push during this recheck. All 5/8/10 FPS frontiers, combined-role capacity and one-hour stress remain unqualified. New evidence: optimization_evidence/2026-11-11-remote64-c12/link-recheck-20261111T1102/.
+
+
+## User corrected missing automatic continuation — 2026-11-11T11:35:17.155334+00:00
+
+User explicitly reiterated: after cooling automatically resume; isolate from unrelated workloads. Root cause of controller stopping was `--max-attempts 1` in earlier invocations, not lack of authorization. Started new exclusive case all-usecases-local-people1x5-autoresume: guard283037, bridge283038, native log watcher283039; exact argv archived remotely. Guard now permits1000 thermal retries with cooldown70 C continuously15 seconds,90 C sustained~4 seconds/critical-2 immediate unchanged. Each thermal attempt remains EXCLUDED and cannot count toward sustained duration. Nonthermal failures, cleanup errors, sensor/memory/disk failures stop for investigation rather than being concealed by retry. Disk floor6GiB, RAM floor4GiB, limit24GiB; user STOP file honored.
+
+Original CV service already inactive. Stopped additional user sentry-cv-ui.service and tracker-miner-fs-3.service, both verified inactive; restoration records remote artifacts/isolation-services-resume.json. No competing Docker CV/benchmark or NPU client found. Essential Kubernetes/network/desktop/thermal services left running and their background cost remains in whole-host metrics. Do not call this bare-OS isolation.
+
+Current attempt1x5FPS/SA/all11apps/local1080p30people/120steady20warmup. Uses diagnostic .5-core cold-start quota restored before measurement by existing harness, all16 eligible. This is functional validation only, NOT a camera-capacity point. Previous4-core and fullCPU starts thermally excluded before frames. Models/runtime/V8schema/production gates unchanged; no new image or push. Current/STATUS metadata corrected to active supervisor; prior failed attempts preserved. Thermal retry resumes without waiting for another user instruction.
+
+
+### Additional workload isolation — 2026-11-11T11:39:18.014319+00:00
+
+Cooldown attempt2 initially showed brief80–101 C spikes between~53–60 C idle samples, despite no CV container. Inspected Kubernetes; it is independent of these standalone Docker tests. Under user's explicit instruction to stop unrelated work, gracefully stopped k3s.service (previously active; restore via systemctl start k3s.service after campaign). Docker and SSH remain active. Runtime/thermal policy unchanged. Existing Kubernetes controller replica settings and data were not deleted. Saved original service states and Kubernetes inventory in remote artifacts/isolation-system-services-resume.json and isolation-kubernetes-inventory.json. Need preserve restoration state for the additional stopped application containers/control service as well. Current guard283037 automatically waits/retries; never infer FPS/capacity from startup exclusions. Local continuous mirror restarted PID1233807.
+
+
+### Automatic restart verified / isolation completed — 2026-11-11T11:40:12.553713+00:00
+
+At11:39:26UTC guard283037 reached RUNNING attempt2 automatically after cooldown, new container c1184bc01d28, raw /tmp/sentry-v8-capacity-1.gb313f8p. Attempt1 thermal exclusion /tmp/sentry-v8-capacity-1.kbarql_l retained. This proves cooldown/restart scheduling, not successful processed FPS. CV test image and production gates unchanged.
+
+Stopped unrelated active UI, Prometheus and metrics-server CRI containers gracefully (3 stop exit codes0); namespace/controller/data not deleted. Stopped apex fabric control service to prevent competing reconciliation; original active states and IDs saved in isolation-system-services-resume.json and isolation-cri-stopped.json. Restore after campaign: `systemctl start k3s.service apexfabric-control.service`; Kubernetes then reconciles its unchanged replicas. User services to restore: sentry-cv.service, sentry-cv-ui.service, tracker-miner-fs-3.service via admin1 user bus. SSH/network/Docker/OS thermal/desktop access left intact.
+
+Fixed test observer duration mismatch: long-lived remote bridge172800 seconds had forwarded that to memory observer limited10800 seconds. Bridge now caps each per-container observer10800 seconds; CV attempts max2400 seconds. Source script py_compile passed and uploaded; only test controller restarted, guard/model/image untouched. New bridge PID in remote artifacts/autoresume-controller.json. Continuous local mirror PID1233807. No commits or pushes.
+
+
+## User status check — 2026-11-11T11:54:12.224160+00:00
+
+Verified .64 reachable, same boot bff139d2..., guard283037 RUNNING attempt5 at11:53:19UTC; current sample max57C. Four preceding attempts thermally excluded with successful cleanup; automatic retries continue. Attempt4 /tmp/sentry-v8-capacity-1.nqwupsvu reached actual camera progress after230.4s, verified temporary.5CPU released to full16 (cpu.max160000/10000), warmed20s, one steady sample4.955/5FPS and2916.51MB. Then105C near-critical stop11:52:59UTC before completing120s steady. Cannot call this capacityPASS.
+
+Partial attempt4 capture-agent records:138 accepted packages,87 evidence objects,47 vectors (28body384D,5face512D,14scene768D by declared profiles). Event counts object_present40,person_feature_sample33,zone_count20,track_lost20,scene_sample14,presence_recovered6,presence_ended_unknown3,camera_health2. No gait observed in this partial attempt; all-app bindings do not establish every positive use-case. Capture ACK is simulated at API boundary, not real downstream durability. Current retry5 remains initializing. Summary saved optimization_evidence/2026-11-11-remote64-c12/status-update-20261111T1153.json. No runtime/image/policy/contract change or push.
+
+
+## Status recheck — 2026-11-11T12:31:06.242743+00:00
+
+Same .64 boot; guard283037 RUNNING attempt13 at12:30:16UTC, max54C. Twelve previous attempts ALL thermally excluded with cleanup successful; none completed required120s steady. Automatic retry works, but repeated thermal exclusions mean no new sustained pass/capacity progress. Attempt12 reached active after207.5s (~4.858/5FPS), then thermal stop during20s warmup. Previous attempt4 short sample4.955FPS/2916.51MB remains partial evidence only. No higher-camera or8/10FPS frontier qualified. Saved status-update-20261111T1230.json. Do not claim temperature belowlimit at this instant proves stability or infer physical cause. No runtime/image/model/contract/gate edits or push.
+
+
+## Isolation audit while monitoring repeated thermal retries — 2026-11-11T12:34:50.409099+00:00
+
+User requested continued monitoring and complete testing. At12:32UTC attempt14 was active,13 prior attempts thermally excluded. Audit found k3s.service ACTIVE again since11:38:50UTC (PID296098,NRestarts0); earlier stop did not keep isolation. Prometheus/metrics-server had been recreated. This invalidates any claim that those intervening attempts were fully isolated, although none was capacity-qualified anyway. Exact actor that requested restart is unproven. Journals show unrelated image-pull/controller retries.
+
+At12:33 stopped unrelated CRI apps again and stopped k3s/control services. `systemctl mask --runtime` returned success but was INEFFECTIVE: /etc unit fragments take precedence over /run masks, UnitFileState remained enabled. Do not claim runtime mask protection. Added reversible RUNTIME-only drop-in `/run/systemd/system/{k3s.service,apexfabric-control.service}.d/99-sentry-validation-isolation.conf`: ConditionPathExists=!/home/admin1/Documents/sentry-validation-20261111-c12/ISOLATION_ACTIVE. Marker created, daemon-reload; explicit start checks returned inactive/ConditionResult=no for BOTH units. This actually verifies restart prevention. Files/restore steps saved remote artifacts/isolation-runtime-conditions.json. Docker/SSH/network left intact. No production runtime/gate/model/contract change.
+
+Restoration: remove only OUR runtime condition files and marker; remove OUR /run unit mask symlinks to /dev/null if still present (`systemctl unmask --runtime k3s.service apexfabric-control.service`); daemon-reload; start original active services. Keep existing /etc service/drop-in configuration unchanged. User CV/UI/indexer restoration records retained. Native attempt14 began before isolation correction, so its startup is mixed-condition evidence. Future controlled runs should start after this verified isolation.
+
+
+## Stop identical thermal repetition; controlled power diagnostic — 2026-11-11T12:38:32.043284+00:00
+
+Full16-autoresume guard283037 cancelled intentionally during attempt15 after14 repeated thermal exclusions; all evidence retained. Introduced separate all-usecases-local-people1x5-efficiency-cores guard334181 at12:36:55UTC, no startupquota, inherited/cgroupCPU6-15, otherwise identical C12/all11 apps/5FPS/localoriginal1080p30 fixture. Attempts1and2 thermally excluded almostimmediately at104–105C, affecting several E-core/package sensors. Therefore P-core placement alone did NOT solve thermal blocker. Do not interpret CPU-placement hypothesis as confirmed cause. This diagnostic cannot be hardwaremaximum evidence. Efficiency guard then stopped for next controlled comparison, not leaving it to repeat20 equivalent heat spikes.
+
+Independent LP-affinity read-only observers started333372(hosthealth),333373(actualGPUengines),333374(processCPU/power) for10800seconds; paths artifacts/observer-isolated-autoresume,gpu-isolated-autoresume,process-isolated-autoresume.jsonl.gz. Old metrics scopes retained: nodeGPUnotisolatedprocesscompute, no NPU busy fabrication.
+
+Read actual hostpower: intel_pstate/no_turbo=0, packagePL1=45W,PL2=115W,peakconstraint205W. Beginning a separate reversible TURBO-DISABLED diagnostic, saving original value0 and RAPL snapshot BEFORE write in remote artifacts/temporary-turbo-control.json. Only no_turbo set1/readback1. No BIOS/fan/driver/model/gate/schema/image change. RAPL limits NOTchanged at this step. Restore no_turbo original0 after campaign; never combine this conditional result with stock-power camera capacity. Earlier thermal exclusions remain excluded. Purpose is obtaining stable functional measurements and isolating thermal execution conditions; this is not a claimed pipeline code fix.
+
+Verified runtime conditions now keep k3s/control inactive/ConditionResult=no (runtime mask alone had been ineffective). Final service/power restoration must include runtime condition files/marker, our masklinks, original system services plus userCV/UI/indexer.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T12:49:08.481281+00:00
+
+{"utc": "2026-11-11T12:47:22.637698+00:00", "controller_pid": 340748, "power_scope": "CPU turbo disabled", "image": "sha256:02b5c8ab4ceec3fe9ba0481e916d5286d616abb39884f8fefc3aaaa8485d1ff1", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-anpr5", "completed": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T12:50:29.475628+00:00
+
+{"utc": "2026-11-11T12:50:16.491815+00:00", "controller_pid": 340748, "power_scope": "CPU turbo disabled", "image": "sha256:02b5c8ab4ceec3fe9ba0481e916d5286d616abb39884f8fefc3aaaa8485d1ff1", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-fire-clear5", "completed": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+## Stable native foundation and guarded continuation — 2026-11-11T12:50:50.935880+00:00
+
+With temporary no_turbo=1 (ONLY host power change; RAPL remains45W/115W/205W), frozen C12 completed1camera5FPS/all11app SA/originalpeople1080p30/localreplay. Guard335669 PASS, raw /tmp/sentry-v8-capacity-1.t1gapvr9. Full16CPU eligible beforemodelcompile; no artificialstartupquota/affinity. Startup24.339s,120ssteady, cumulative4.9898558FPS, worst10sratio.98561; completed/inferredwork and scene output checks PASS, fatal_lines empty. Temperature50–86C overwholeguard. RAMroughly2871–2875MiB =2.80–2.81GiB (earlier comment's2.87GiB was unit approximation; canonicalhealth mb divides1024²).
+
+Wholecapture899packages,401evidence,235vectors:33face,126body,6gait,70scene. Steady-only57sceneJPEG/vector pairs and27face/99body/6gait samples. Simulated agentACK validates schemas/hashes/promised associations, NOT production agentfsync/downstreamManagement. Fullsteady120s qualifying this boundedprobe doesNOT qualifycamera maximum,independent sourceclockorrecognitionaccuracy. Wholevssteadycounts/endpointsMUSTNOTbecombinedintolossrates.
+
+Samehostruntime observed_at→captureAPI accepted_at timing summary saved turbooff-foundation-latency.json:scene70samples median250.7ms/p95~307.9ms;identity165samplesp95~2816msincludesbestselectionwindow. These are NOTindependentsourcecapturelatency or per-modeltimings. Healthretains measuredtype/nestedspan metadata; frameconversion lifetimeavg~83.5ms andactivepolicy~52.3ms deserve capacity-stage followup; no optimization claim from them alone.
+
+New test-only controller scripts/isolated_validation/continue_remote_campaign.py launchedPID340748 at12:47:22UTC, masterCAMPAIGN_CURRENT.json, exactpercasecommands/ledgerunderartifacts. Sequence:positiveANPRSVX5,fire20s→black30sSH5 withexplicitpositive/clearoracles;all-apppeople8/10;2cameraall-appTCPoutage;realRTSPSuntrustedTLSreconnect+nativeblockedcallbackrecovery;S/SA1080pbusy-crowd5/8/10FPSfrontiersup to50withstopandbinaryrefinement;selectedlastshortpassingSA8pointonehour. Stopsforruntimefatal/failedfunctional/resource/cleanup/sensor conditionsforinvestigation;not silently skipping failures. Eachprobe stillcapacity_qualified=false pendingindependentfreshness/resources/scopes. This nativebatch is NOT all282cases; omittedcasesmustremainNOT_RUNuntilactuallytested.
+
+Test-only external_replay_fleet.py usesexistingpacedcompressed-copy source,50listeners19101–19150oncompute-a192.168.1.92,onlypeer.64,uniqueTCPconnectionpercamerawithfreshlogepochonreconnect; noencoding/GPU/NPUworkoncompute-a. OriginalMOT17-02-SDP1080p30sha516f...matchesfixturemanifest. OriginalpeoplefixturehasNOvisiblemarkers;PESindicesaloneareNOTpixel-latencyoracles. FleetPID1278408; stopownedfleetaftercampaign,NOTuser9001–9010sources. Manifest/epochsunderexternal-sources/people-continuous-turbooff. FunctionalfixturesrunlocallyandtheirsourceCPUincluded;capacitysourcesoffbox. LocalmirrorPID1233807;status/handoffwatcher1280025pollsmasterandappendsmeaningfulcontrollertransitions. Independentmetrics333372/73/74expireafter3h; longercoverage mustrenewtheseifcampaigncontinuesbeyondexpiry.
+
+CurrentmasterbeganANPR5;noANPRpositivePASSclaimeduntilactualplate_readoraclechecked. Firefixtureuploaded/sha4ff0...verified. Scriptspy_compilepassed;noimage/runtime/model/schema/productiongateedit/rebuild/Git/GHCRpush. Mandatoryrestoreaftercampaign:original no_turbo0;ourruntimeconditionfiles/markerandmasklinks;K3s/controlservices;userCV/UI/indexer. Original/etcsettingsuntouched.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T12:53:11.585898+00:00
+
+{"utc": "2026-11-11T12:53:08.137744+00:00", "controller_pid": 340748, "power_scope": "CPU turbo disabled", "image": "sha256:02b5c8ab4ceec3fe9ba0481e916d5286d616abb39884f8fefc3aaaa8485d1ff1", "capacity_qualified": false, "status": "NEEDS_REVIEW", "reason": "RuntimeError: Functional failure requires review: turbo-off-next-fire-clear5", "completed": 2}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T13:02:18.933726+00:00
+
+{"utc": "2026-11-11T13:02:04.282131+00:00", "controller_pid": 351861, "power_scope": "CPU turbo disabled", "image": "sha256:02b5c8ab4ceec3fe9ba0481e916d5286d616abb39884f8fefc3aaaa8485d1ff1", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-fire-clear5-mixed-repeat", "completed": 2}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+## Fire/scene oracle review and continued native testing — 2026-11-11T13:03:50.130559+00:00
+
+ANPRSVX5 uninstrumented PASS: cumulative4.9913/5FPS, steady/inferred workPASS,85plate_read+74plate_outcome overwholeloopedclip,457evidence,70scenevectors,1037packages,fatal_linesempty. This validatesexecution/API/delivery,not exactplateaccuracy.
+
+First fire-clear5 run FAIL retained (raw /tmp/sentry-v8-capacity-1.b1nvzm0e): nohazardevents;34steadyscenepairs. It was incorrectlydeclaredactivityactive while20sflame/30sblackfixture intentionallygoesquiet. Therefore2sactive-onlysceneoraclewasinappropriate;quiet5ssweepswereexpected. This oracleerroralone doesNOTexplainabsenceofhazardsanddoesNOTretroactivelypassthecase. Master340748 correctlystopped NEEDS_REVIEWafteractualfunctionalFAIL.
+
+Read-onlyhazard_diagnostic_hook.py recordsunchangedGVAROIconfidence,framegeometryandeffectivepolicystate;doesNOTmodifyoutputs/gates/geometry/scheduling. Separateinstrumentedcase turbo-off-fire-score-diagnostic guard348415,raw /tmp/sentry-v8-capacity-1.gpcol2sy,activitymixed,100ssteady PASS. ActualGVA sampledfireconfidence.355–.609(allbelowbalanced.65eventgate);smoke.612–.850(somequalified). Capture52packages:3fire_smoke_suspected+2fire_smoke_cleared+42scene,plusevidence. Hazardstatesactuallycreated/clearedsmokeepisodes. This provesoneinstrumentedtransitionpath;itdoesNOTestablishfirstuninstantiatedfailure'sexactcause orfix. Noproductionthresholdlowering. Needunmodifiedrepeat.
+
+Controller now supports --resume preservingallpriorledgerrows;onlymatching-imagePASSreused,failedcase directoriesneveroverwritten. Corrected newcasefire-clear5-mixed-repeat retainspositive+clearoracle, activitymixed. MasterresumedPID351861at13:02:04UTC;currentcaseunmodifiedimage/nohook. PriorfailingfirecaseremainsFAIL. Existingrecordedcontroller340748isdead. Future8/10FPS/outage/recovery/frontier/soakstillpending. No newimage/gates/model/contractedits orpush.
+
+Externalfirst/lastports19101/19150checkedfrom.64:TCPbytesbeganMPEG-TSsync0x47;onlytransportpreflightnotCVdecode/capacity. Sourcefleet1278408alive,50listenersbackedbyoriginalMOT17fixture. Reconnectingnative-logtailerscriptaddedfornewcasecontainersfromexactrun/caselabelsonly;completeDockerlogscapturedandmirroredevenifsharednativeworkerhangs. Existingoffhostkernelcapturecontinues. SourceallidenticalbusyfootageisappropriateforloadbutNOTindependentproofagainstcross-camera-pixelcontamination;distinctpeople/vehicle/resolutionpairandpixeltimestamporaclesremainexplicitremainingtests. Noall282coverageclaim.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T13:05:01.128939+00:00
+
+{"utc": "2026-11-11T13:04:56.012922+00:00", "controller_pid": 351861, "power_scope": "CPU turbo disabled", "image": "sha256:02b5c8ab4ceec3fe9ba0481e916d5286d616abb39884f8fefc3aaaa8485d1ff1", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-all-people8", "completed": 3}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+## Uninstrumented fire repeat passed;8FPS all-app underway — 2026-11-11T13:06:36.835772+00:00
+
+Master351861 advanced at13:04:56UTC to turbo-off-next-all-people8. Corrected uninstrumented fire-clear5-mixed-repeat PASS with3suspected+3cleared events and46whole-runscene samples (blackperiods correctlyallowquiet5ssweeps). Positive/clearoutputoraclesmetandno diagnostic hook used. Originalfire-clear5FAIL remainsinledger;changingtestactivityaffectsonlysceneoracle,NOTCVpolicy,thereforefirstmissinghazards'exactcausehasNOTbeenprovedorfixed. Nativeconfidence/temporal phase sensitivity remains qualification caveat;doNOTclaima runtimefirefixwasmade.
+
+8FPSall-app native run nowinitializing;modelprofiles/gates/imageC12unchanged,turbo-offconditionstillapplies. Newglobalrun-labelverifiednativeDockerlogfollowerPID353442capturesnewcasecontainerscontinuouslytoexistingoffhosttailedfile. Per-caseAPI/gallery/logreportarchivalremainsactive. Observer333372/73/74andnativefollower353442expire~3hafterlaunch; renewbeforea laterhoursoaktoavoidmetricsgaps. Sourcefleet1278408andstatushandoffwatcher1280025active. No pushes/rebuilds.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T13:08:03.497598+00:00
+
+{"utc": "2026-11-11T13:07:59.865281+00:00", "controller_pid": 351861, "power_scope": "CPU turbo disabled", "image": "sha256:02b5c8ab4ceec3fe9ba0481e916d5286d616abb39884f8fefc3aaaa8485d1ff1", "capacity_qualified": false, "status": "NEEDS_REVIEW", "reason": "RuntimeError: Functional failure requires review: turbo-off-next-all-people8", "completed": 4}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+## Eight-FPS completion shortfall measured; bounded prefetch candidate — 2026-11-11T13:16:15.706792+00:00
+
+UnmodifiedC12SA1x8 run /tmp/sentry-v8-capacity-1.j4m71qo2 FAIL despite selected7.978FPS/.997ratio. Completed/inferred7.3399FPS(.91749ratio),worstwindow.84393;114pre-admissionrejections overwholecapture, no fatalerrors; scene/embedding/UTCchecksPASS. API950durableatsampledboundarynotwholecapture;wholecapture71scene,132body,44face,38gait. DoNOTreportselected7.98ascompleted8FPS. Master351861 stopped NEEDS_REVIEWat13:07:59UTC, preservingfailure.
+
+Measuredstages:selectiveBGRconversionlifetimeavg73.852ms;eventpolicy48.316ms;totalframe135.152ms. Sharedgaitbackgroundupdate60.461ms when due,alreadyonceperselectedgaitframeacrosspeople. Secondaryqueuewait~.1ms here,NOTdominatingqueuecontention. Thusanotherglobalsharedmodelrewriteisnotjustified. NativeDLSpathperformssynchronousconversionwhileexistingconverter.submit/takeprefetchisusedONLYnon-DLSlegacybranch.
+
+ScopedcandidateC13:extendcamera-localone-next-outputconversionprefetchtodefaultDLSpath. Nofutureframewait;takeonlyalready-producedappsinksamples. RetainnextVA/Gstbufferandadmissionrecord;deferallnextframemetadata/tracker/presence/identity/zone/count/dwellpolicytonormalorderediteration. SameconvertergraphandpairedPTSchecks;onependingconversion;prefetchedpixelsdiscardedifnormalpolicydoesnotneedthem;capsmismatchdoesnotconvert. Drainindependentfirebranchatnormalconsume boundary;recoveryresetsalreadyexistingpendingreferences. Noconfidence/NMS/class/quality/temporal/emission/schema/model/devicechanges. RuntimeinternalSENTINEL_DLS_BGR_PREFETCH permitsA/B,defaultonincandidate;notdesired-stateinput.
+
+VerifiedsourcebeforeeditSHA1ece61e215a00257d9656e5bb8c8e5fe05d152a00b75a1cf39fec36509cc610cEXACTLYmatchesbakedC12file. Existing123nativeadmission/recovery/frame-clockregressionsPASSlocallyafterpatch;nativepixel/provenance/performance/reconnectstillMUSTtestcandidate. Newminimaloverlaydocker/Dockerfile.sentinel-v8-bgr-prefetch,onlysurface_stream.pycopiedoverC12rootfs. Buildinglocallyon.64aslocalhost/sentinel-cv:v8-c13-bgr-prefetch;buildsource/log/immutableparentcheckatR64/artifacts/c13-build. OriginalC12taguntouched;noGit/GHCRpublication. AnynewqualificationneedsfreshC13runroot,notreuseC12PASSorcontinuationledger. Hostturbo-off/isolationconditionsremainrecordedandmustrestoreaftercampaign.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T13:36:55.643864+00:00
+
+{"utc": "2026-11-11T13:35:22.239522+00:00", "controller_pid": 396258, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-anpr5", "completed": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T13:38:16.696792+00:00
+
+{"utc": "2026-11-11T13:38:16.362120+00:00", "controller_pid": 396258, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-fire-clear5-mixed-repeat", "completed": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T13:41:19.131399+00:00
+
+{"utc": "2026-11-11T13:41:08.029725+00:00", "controller_pid": 396258, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-all-people8", "completed": 2}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T13:44:21.520911+00:00
+
+{"utc": "2026-11-11T13:44:09.900642+00:00", "controller_pid": 396258, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-all-people10", "completed": 3}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T13:47:23.939684+00:00
+
+{"utc": "2026-11-11T13:47:11.788591+00:00", "controller_pid": 396258, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-outage-all2x5", "completed": 4}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T13:50:26.418008+00:00
+
+{"utc": "2026-11-11T13:50:17.798746+00:00", "controller_pid": 396258, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "NEEDS_REVIEW", "reason": "RuntimeError: Functional failure requires review: turbo-off-next-outage-all2x5", "completed": 5}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T13:55:30.531353+00:00
+
+{"utc": "2026-11-11T13:55:15.413868+00:00", "controller_pid": 433089, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-outage-all2x5-availability-oracle", "completed": 5}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T13:58:32.890799+00:00
+
+{"utc": "2026-11-11T13:58:21.433571+00:00", "controller_pid": 433089, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-reconnect", "completed": 6}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:01:14.978811+00:00
+
+{"utc": "2026-11-11T14:01:09.506032+00:00", "controller_pid": 433089, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "NEEDS_REVIEW", "reason": "RuntimeError: Recovery failure requires review: turbo-off-next-reconnect", "completed": 7}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:11:02.707178+00:00
+
+{"utc": "2026-11-11T14:10:42.645205+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-reconnect-controlled-SA-8", "completed": 7}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:12:44.038860+00:00
+
+{"utc": "2026-11-11T14:12:30.052460+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-native-hang-controlled-SA-8", "completed": 8}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:14:05.080712+00:00
+
+{"utc": "2026-11-11T14:13:53.504178+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x5", "completed": 9}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:16:47.234719+00:00
+
+{"utc": "2026-11-11T14:16:43.223577+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-2x5", "completed": 10}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:19:49.706799+00:00
+
+{"utc": "2026-11-11T14:19:32.991372+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-4x5", "completed": 11}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:22:31.827551+00:00
+
+{"utc": "2026-11-11T14:22:26.808883+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-8x5", "completed": 12}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:25:34.252918+00:00
+
+{"utc": "2026-11-11T14:25:22.833114+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-12x5", "completed": 13}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:28:36.595588+00:00
+
+{"utc": "2026-11-11T14:28:22.926671+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-16x5", "completed": 14}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C13 conversion prefetch, recovery and capacity continuation — 2026-11-11T14:28:59.510002+00:00
+
+Goal unchanged: optimize native DL Streamer execution while preserving V8 desired-state8.0 / wire7.0 / local-agent1.0 and every production gate. User requests continued monitoring through capacity, workload balance, latency/resource/failure checks and selected one-hour stress. Delivery boundary remains package acceptance at agent API; no Management upload or agent fsync claim. No push/publication authorized in this campaign.
+
+Active root `/home/admin1/Documents/sentry-validation-20261111-c13` on `.64`; local evidence `optimization_evidence/2026-11-11-remote64-c13`. Current master458997 is authoritative only while alive: always read CAMPAIGN_CURRENT.json. Observer keeper396256, local mirror1311601 and watcher1311602. The earlier C12 root is retained, not the active candidate. Off-host compressed-copy fleet1278408 serves unique ports19101–19150; same original MOT17 1080p30 recording is repeated, so this is workload capacity, not distinct physical-camera or cross-camera identity proof.
+
+C13 local Docker tag `localhost/sentinel-cv:v8-c13-bgr-prefetch`, configID `e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db`. This is NOT a registry digest. Parent70 C12 RootFS layers match. C13 changes only surface_stream.py plus pycache: one already-produced next-frame BGR conversion can overlap current frame's policy. Next Gst/VA sample/admission is retained; next tracker/policy remains ordered. Session, sourcePTS, pairing, source-pixel conversion and existing recovery cleanup are retained. No models, SDK, device placements, schemas, thresholds, tracker association or emission cadence changed. Source SHA `cac86b7a61e3083be18da74617c5fa73a6baff460b7b82d688cbb91b67b60cdf`. Overlay Dockerfile `docker/Dockerfile.sentinel-v8-bgr-prefetch`; C12 original/source/build proof in C12 artifacts/c13-build. Host source regression123 cases passed; not123 hardware scenarios.
+
+Measured same busy1×8FPS all-app comparison: C12 selected7.978 but completed7.3399 FPS, FAIL; BGR wait73.852ms / whole frame135.152ms. C13 completed7.980502, PASS; conversion49.461ms / frame107.937ms,186 prefetched/consumed. Independent uninstrumented repeat7.986241;1×10FPS9.9548008 PASS. These are short workload points, not maximum camera capacity. Actual pixel A/B using C13 prefetch off/on:338 common sourcePTS, ZERO different BGR SHA/shape; enabled run exercised131 prefetched frames. Instrumented pixel parity is not performance or full event/tracker accuracy proof.
+
+C13 native positives: ANPR read and explicit outcome paths; fire/smoke suspected and clear; face/body/gait/scene vectors with evidence; API acceptance checks. TCP18-second interruption with two all-app5FPS cameras passed using an availability-aware oracle and stronger all-peer completed-progress/freshness/Ready checks. Original outage FAIL remains: scene-count oracle incorrectly demanded scenes during the intentionally unavailable target interval. Harness correction excludes only declared target downtime; peers retain full cadence. No runtime scene change. Public RTSPS443 upstream then timed out in independent strict and legacy transport probes; original blocked run remains FAIL/external-source annotated. Created controlled off-box self-signed RTSPS fixture: two interrupted18-second rounds with all-app2×8FPS passed, shared worker51 retained, recovered current camera/session packages verified. Native blocked-callback injection passed: worker51→430, watchdog fence/process replacement and fresh current-session packages for both cameras. This tests injected callback blockage, not a real GPU kernel hang/reset. Controlled RTSPS source stopped after both PASS; its CA was only trusted by test relay, never mounted into image.
+
+Harness-only changes: remote archive bridge now fixes parent directory owner so rsync can traverse; cgroup observer duration bounded10800s; source_reuse reports actual duplicate URL use instead of N>10 assumption; controller --resume reuses only same-image PASS and never overwrites failed attempts. Capacity-harness regression71 cases pass. All retry/failure/raw reports retained. Automatic guard performs bounded thermal retry; repeated identical resource blocks require diagnosis.
+
+Current measurement condition: ALL native C13 results are CPU turbo OFF (no_turbo1), full16CPU eligibility, existing GPU/NPU, unchanged RAPL. Original no_turbo0 saved and must restore at campaign end. Stock-power repeated104–105°C starts were excluded; low-core variant also spiked, so neither P-core fault nor previous freeze cause was established. No SIGSTOP cooling. K3s/control remain isolated by verified runtime conditions (runtime mask alone was ineffective); three originally-active user services stopped. Restore only our conditions/masks/marker, original services, turbo, and stop owned source/observer processes at end. SSH/network/desktop/thermal services retained. Desktop GPU activity means node-wide GPU counters are not container-only compute.
+
+Capacity search now running scene-only S at12×5FPS;1/2/4/8×5 passed with actual completed frames and scene JPEG/vector cadence per camera. These are not all-app counts. Next S5/8/10 and SA5/8/10 frontiers, neighboring-count refinement and selected all-app8FPS one-hour run. Controller batch is NOT all282 scenarios. C13 independent pixel-marker latency, full HTTP acceptance/native behavior, other app budgets, distinct camera evidence/association, resolution/transport edges and remaining canonical scenarios still require explicit results. Don’t inherit C12 native PASS as C13 PASS. Don’t infer capacity from selected FPS, accepted50-camera configuration, quiet gating or aggregate averages. Inspect first failure and preserve its limiting evidence.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:31:39.018072+00:00
+
+{"utc": "2026-11-11T14:31:29.088104+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-20x5", "completed": 15}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:34:41.475914+00:00
+
+{"utc": "2026-11-11T14:34:39.368338+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-18x5", "completed": 16}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:38:04.183556+00:00
+
+{"utc": "2026-11-11T14:37:47.641793+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-19x5", "completed": 17}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:41:06.621874+00:00
+
+{"utc": "2026-11-11T14:40:55.865822+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x8", "completed": 18}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C13 monitoring checkpoint — 2026-11-11T14:42:40.907142+00:00
+
+First scene-only5FPS short frontier:18cameras PASS,19/20 FAIL. Throughput criteria remain average>=95% target for EVERY camera and minimum sampled10s window>=90%; this is not an exact5FPS-at-every-instant SLA. Every camera must also meet frame-eligible scene image/vector cadence. All-app capacity is separate and still being measured. Scene-only20x5 had all20 healthy, source ages<1.91s, nofatal, but completed percam4.533–4.824; containerRAM4078–4283MiB (report field container_memory_mb), CPU6.49–7.31cores. Node GPU Compute median87.61%,P9593.10%, video median39.37%; do not confuse this with node GT active residency or sum engines. Three sampled source ports offered28.65–29.13PES/s (original30FPS), median socket write0.037–0.042ms with spikes299–380ms; source delivery jitter therefore coexists with high GPU activity. No unsupported claim of a single proven bottleneck or hardware maximum. Analysis saved `S20x5-limiting-evidence.json`.
+
+Offline C13 accepted-record audit:15 completed cases,11562 package records and1117 saved JPEGs passed metadata links/dimensions/norm-record/geometry, independent JPEG decode/size/hash. Receiver checked actual vectors and multipart bytes; gallery retains metadata and norms, not vectors. This is artifact integrity, not distinct-camera pixel provenance/subject recognition or real-agent durability. Tool `scripts/isolated_validation/audit_captured_packages.py`; result `captured-package-audit.json`. Both initial failed cases remain failures despite artifact audit success.
+
+Created conservative C13 `CASE_LEDGER.json` for282canonical scenarios: partial/in-progress credit only for actual assertions; all others NOT_RUN, no inherited C12 native PASS. `summarize_remote_campaign.py` and local watcher1348259 update RESULTS_CURRENT JSON/Markdown from mirrored raw reports. Native log follower renewed from371325 to517074 for12hours, same append/off-host destination; observers396256 continue renewable segments. Fixed only two root-owned recovery agent-status evidence files to owner1000 so mirror now rsync0, no image/data mutation. Source, models, contract, production gates and turbo-off condition unchanged. No Git/GHCRpush.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:43:48.774267+00:00
+
+{"utc": "2026-11-11T14:43:43.597853+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-2x8", "completed": 19}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:46:51.189923+00:00
+
+{"utc": "2026-11-11T14:46:31.440731+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-4x8", "completed": 20}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:49:33.280315+00:00
+
+{"utc": "2026-11-11T14:49:21.277321+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-8x8", "completed": 21}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:52:15.389519+00:00
+
+{"utc": "2026-11-11T14:52:13.332909+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-12x8", "completed": 22}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:55:17.729232+00:00
+
+{"utc": "2026-11-11T14:55:09.493446+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-16x8", "completed": 23}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T14:58:20.145145+00:00
+
+{"utc": "2026-11-11T14:58:11.722020+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-14x8", "completed": 24}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:01:22.602640+00:00
+
+{"utc": "2026-11-11T15:01:11.861816+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-15x8", "completed": 25}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:04:25.031137+00:00
+
+{"utc": "2026-11-11T15:04:12.107145+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x10", "completed": 26}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C13 scene capacity checkpoints — 2026-11-11T15:05:19.163673+00:00
+
+Completed short S-only frontiers:5FPS18PASS/19FAIL;8FPS14PASS/15FAIL. S14x8 completed7.8267–7.9332FPS/camera, minimum10sec-window ratio.91522, finalcontainer3423.61MiB, all14fresh. S16x8 selected-frame checkPASS but completed-workFAIL6.4273–6.7725FPS/camera, worstwindow.69185; sceneimage/vectorcoveragepassed,nofatal. This is why selected FPS cannot qualify capacity. Native frame-conversion wall waits~106–126ms in firstthreecameras; scenequeue~13–21ms, sceneexecutor~36–37ms, JPEG~19–23ms, startup-inclusive rejectedadmissions165–200. These are overlapping/sampled lifetime means, NOT a proof of one causal bottleneck or GPUkernel latency. Full raw native trace may be needed before further scheduling changes; don't label metadata_bridge time as primary-model inference time. Do not change queues/gates merely to pass thresholds.
+
+Current controller458997 is starting S1x10. All power/contract/model/gate/isolation settings unchanged. Scene-onlyprofile still includes existing primary/motion/tracking infrastructure; its camera count is not full all-app capacity. C13 all-appfrontiers, remainingprofilebudgets, independent marked latency, C13baked/non-GPUfailurerepeats, nativeHTTP, geometry/transport/othercanonicaledges and selected1hour remainunfinished. Historical NPUscene controls on older C8/C9 stalled; C10NPUscene wasthermallyexcluded. Do not blindly repeat those as an untried cure. Any future placement experiment needs current-image GPU/NPU numeric parity and an explicit single-variable workload comparison first. No new image/default placement proposed or adopted during these capacity searches.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:07:07.175940+00:00
+
+{"utc": "2026-11-11T15:06:59.793882+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-2x10", "completed": 27}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:09:49.339726+00:00
+
+{"utc": "2026-11-11T15:09:47.632676+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-4x10", "completed": 28}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:12:51.672870+00:00
+
+{"utc": "2026-11-11T15:12:37.474131+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-8x10", "completed": 29}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:15:33.784417+00:00
+
+{"utc": "2026-11-11T15:15:29.541420+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-12x10", "completed": 30}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:18:36.169058+00:00
+
+{"utc": "2026-11-11T15:18:25.693614+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-10x10", "completed": 31}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:21:38.521974+00:00
+
+{"utc": "2026-11-11T15:21:19.823181+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-11x10", "completed": 32}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:24:20.622357+00:00
+
+{"utc": "2026-11-11T15:24:14.000587+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-1x5", "completed": 33}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:27:23.020973+00:00
+
+{"utc": "2026-11-11T15:27:17.862247+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-2x5", "completed": 34}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:30:25.361762+00:00
+
+{"utc": "2026-11-11T15:30:21.879593+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-4x5", "completed": 35}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:35:29.404196+00:00
+
+{"utc": "2026-11-11T15:35:11.467396+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "STOPPED", "reason": "InterruptedError: User stop", "completed": 36}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:38:31.779060+00:00
+
+{"utc": "2026-11-11T15:35:11.467396+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "STOPPED_FOR_PREFETCH_BOUNDARY_REPAIR", "reason": "Agent held launcher after four-camera5FPS PASS; not a user pause. C14 correction and testing continue.", "completed": 36, "replacement_root": "/home/admin1/Documents/sentry-validation-20261111-c14"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:40:03.679032+00:00
+
+{"utc": "2026-11-11T15:35:11.467396+00:00", "controller_pid": 458997, "power_scope": "CPU turbo disabled", "image": "sha256:e254aaa143b0c6919438b784135580579e65a373674c0abed3e36ec9335d59db", "capacity_qualified": false, "status": "STOPPED_FOR_PREFETCH_BOUNDARY_REPAIR", "reason": "Agent held launcher after four-camera5FPS PASS; not a user pause. C14 correction and testing continue.", "completed": 36, "replacement_root": "/home/admin1/Documents/sentry-validation-20261111-c14"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:41:47.840424+00:00
+
+{"utc": "2026-11-11T15:40:02.361335+00:00", "status": "PREPARING_NATIVE_BASELINE", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "power_scope": "CPU turbo disabled", "capacity_qualified": false, "completed": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:46:11.276690+00:00
+
+{"utc": "2026-11-11T15:46:09.445694+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-anpr5", "completed": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:49:13.679456+00:00
+
+{"utc": "2026-11-11T15:49:03.328834+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-fire-clear5-mixed-repeat", "completed": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C14 boundary correction and fresh validation — 2026-11-11T15:50:19.438232+00:00
+
+USER GOAL REMAINS ACTIVE: complete monitored isolated testing/optimization on `.64`, preserving V8 and all production gates, with performance/capacity5/8/10FPS, scene on each camera, use-case budgets, latency/resources, failures and selected1hourstress. Delivery boundary is CV→agentAPI, not Management storage. No user pause was requested. No Git/GHCRpush.
+
+Important source-review finding before long stress: C13's new direct prefetch pull retained the correct surface/PTS but its consumption branch skipped normal `camera.consumed`/processing-phase trace and explicit missing-PTS validation in pull_surface. No real-stream malformed-PTS incident was observed; Dls admission also rejects missing/unregistered PTS, so do NOT claim a demonstrated fabricated-event timestamp. Correction: shared `_record_consumed_surface()` validates missing PTS before tracing/time/admission and records valid consumption in both normal and prefetched paths. No early consumption at speculative conversion; no pixel/model/gate/threshold/schema/association change. Added7regressions;130focused timestamp/admission/recovery/consumption tests passed. Permanent INC-029 now in PIPELINE_TEST_MATRIX.json and PIPELINE_TEST_PLAN.md (29incidentfamilies, still282cases/28areas). Native injected-PTS regression remains pending until actual report.
+
+Held ONLY C13 test launcher458997 with SIGSTOP; active CV/guard continued and4×5FPS all-app case finished PASS. Then SIGTERM+CONT let master record that PASS and exit without starting another case. Generic automatic text said User stop; raw automatic status saved, annotated `STOPPED_FOR_PREFETCH_BOUNDARY_REPAIR` to distinguish this agent correction from user cancellation. CV processes were never SIGSTOPped. C13 post-waiter614677 stopped while only waiting. C13 results all retained, not relabelled: scene-only5FPS18PASS/19FAIL,8FPS14PASS/15FAIL,10FPS11PASS/12FAIL. C13 all-app1/2/4×5 passed;8/10FPS all-app fleet frontiers and stress were NOT finished. All these are conditional turbo-off short tests, not stock-power/full capacity.
+
+C14 local Docker tag `localhost/sentinel-cv:v8-c14-prefetch-boundary`, configID `sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088` (NOTregistrydigest), sourceSHA `852d7fbae6b27e236c2a07d6e8365103adc355696bd03087ef901904582d7221`. Dockerfile `docker/Dockerfile.sentinel-v8-prefetch-boundary`. All72parent C13 filesystem layers verified, now75layers: source+regression file+pycache. Image environment and UID10001:10001 unchanged, all model/SDK/policy/schema bytes inherited. Build proof/newsource/newtest in `/home/admin1/Documents/sentry-validation-20261111-c14/artifacts/c14-build/`. Fresh C14 baked332unit+22subtests,30policy,3validators PASS;1deselected and existing2repo-only exclusions explicit. Cleanup-inspect exit1 means removed containers absent; main report result passed.
+
+C14 remote root `/home/admin1/Documents/sentry-validation-20261111-c14`, local `optimization_evidence/2026-11-11-remote64-c14`. Fresh native baseline SA1×8PASS completed7.98738FPS,389prefetched frames; positivevectors face30/body120/gait51/scene71. Counts are whole-run outputs, not accuracy/SLA claims. ANPRpositive C14PASS; now fire-clear mixed repeat executing. Master646236, postwaiter650567, observerkeeper635788, nativefollower635789. Local mirror1408985/statuswatch1408986/results1408987/offhostnative1414019. Old C13 observer396256/nativefollower517074 stopped; old local C13 watchers stopped. C12 kernel reader33765 and kernel offhost evidence remain. Sourcefleet1278408 on19101–19150 remains, immutable original people1080p30. Controlled RTSPS restarted on sourcehost: MediaMTX1409797,publisher1409805, sourceconfig/cert path in C14 local-rtsps-fixture/active-controller.json. Public test CA copied to R14 fixture-source-ca.crt only for relay; never mounted into CV. Stop these owned test sources at cleanup.
+
+C14 master fixed native positives/recovery then independently REPEATS the C13 scene-boundary neighbors: S5[1,18,19],S8[1,14,15],S10[1,11,12], binary refinement as needed. This saves redundant lower-count searches without copying PASS. SA5/8/10 full count search unchanged. New `--prefetch-fault-regression` invokes actual retained-surface consumption fault on two-camera SA8 before capacity/soak: one-shot fake missing timestamp passed to real validator, real surface pixels untouched, then verify rejection trace, worker replacement, fresh session-linked packages and causal UTC. This is metadata fault injection, not proof of physical GPU hang recovery. Tool-only changes in v8_recovery_image_validation.py; source guards unchanged.
+
+Postchecks controller waits for planned native batch AND passing hour, then verifies already-passed exact-image baked report (no redundant rerun),11actual baked-client API fault cases with original30s timeout/retry, instrumented off/on pixel parity, marked ANPR720p1×8 independent source-PES→API latency, native HTTP1×8 using bounded local paced-source fixture. HTTP fixture is test-only and preserves required native VA decoder. Source/agent real storage excluded. Marked scene p95 test freshness bound4s is an explicit test bound, not a new contract/production gate; deliberate ANPR candidate delay reported separately. These postchecks are not all282scenarios. They can stop NEEDS_REVIEW on real failures; inspect rather than blind retry. Broader use-case budgets/resolution/transport/association/omitted canonical cases remain explicit work.
+
+Harness issue caught during C14 mirror setup: copied watcher scripts still contained full remote C13 path even after short-name replacement. Stopped only those new local watcher PIDs; quarantined initial copied old artifacts/status/results in L14/invalid-initial-c13-mirror. No C14 runtime result or verdict credited from that copy. Corrected full path and require expected exact image config ID before status/mirror writes; current C14 mirror rsync0 and C14 baseline report confirms03a24… . This is harness invalid setup retained, not image failure. Post helper selects final guard attempt, preserving excluded attempts, and report tools accept explicit runID.
+
+Power/isolation unchanged: no_turbo1 conditional, no RAPL/fan changes, all16CPUs eligible for CV (observersLP14–15). Original turbo0 and originally active system/user services MUST restore after campaign. R12 marker/conditions still own k3s/control isolation; restoration records copied into R14 artifacts. Desktop/network/SSH/thermal services retained; counters node-wide. No hardware freeze cause established, no stock-power capacity claim. Never use SIGSTOP native CV for cooling. Automatic guard90Csustained/critical-minus2, RAM4GiB/disk6GiB floors. All remaining work and thresholds retained in canonical matrix/handovers.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:51:55.858064+00:00
+
+{"utc": "2026-11-11T15:51:55.050224+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-all-people8", "completed": 2}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:55:18.508730+00:00
+
+{"utc": "2026-11-11T15:54:58.867020+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-all-people10", "completed": 3}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T15:58:20.885982+00:00
+
+{"utc": "2026-11-11T15:58:00.733083+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-outage-all2x5-availability-oracle", "completed": 4}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:01:23.292134+00:00
+
+{"utc": "2026-11-11T16:01:06.714507+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-reconnect-controlled-SA-8", "completed": 5}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:03:04.607764+00:00
+
+{"utc": "2026-11-11T16:02:56.100696+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-native-hang-controlled-SA-8", "completed": 6}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:04:25.751924+00:00
+
+{"utc": "2026-11-11T16:04:19.447540+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-prefetch-missing-pts-controlled-SA-8", "completed": 7}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:06:07.055402+00:00
+
+{"utc": "2026-11-11T16:05:46.839095+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x5", "completed": 8}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:08:49.177611+00:00
+
+{"utc": "2026-11-11T16:08:36.557077+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-18x5", "completed": 9}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C14 native regression checkpoint — 2026-11-11T16:09:25.128122+00:00
+
+C14 fixed native positives PASS: ANPR read, fire/smoke suspected/clear, all-person8/10FPS repeats, two-camera SA5 intentional18soutage (all-peer progress and fresh target), repeated controlled RTSPS interruptions, blocked-nativecallback worker replacement51→430, and NEW actual-prefetch missing-PTS metadata injection worker51→433. Both current-camera/session packages matched after new fault, causal UTC sanity passed. Stronger independent saved-trace audit confirms error on capacity-01, actual camera.consumed count206, valid priorPTS30807823026age.067s; invalidUINT64_NONE was not recorded as consumed. No evidence of fabricated timestamp; no claim this is a real codec corruption or physical GPUkernelhang. INC-029 now scoped unit/native evidence, broader pixel/load/release qualification pending. Stronger assertion copied into permanent test tool; original report preserved, audit separate.
+
+Controlled source PIDs1409797/1409805 terminated after all3recovery cases; source compressed-copy fleet1278408 still needed/active. C14 new source search nowS1×5. All future controller resumes reuse same-image passing native fixtures; restart source only if a new recovery run is required. Private root-run capture agent-status files were owner-corrected after finished cases without broadening permissions; fixture now performs this correction after capture shutdown automatically. Currentmirror rsync0. No runtime/image/gate changes since frozenC14. All traces/artifacts remain remote and off-host.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:11:51.543715+00:00
+
+{"utc": "2026-11-11T16:11:44.830201+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-9x5", "completed": 10}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:14:53.871465+00:00
+
+{"utc": "2026-11-11T16:14:42.910122+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-13x5", "completed": 11}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:17:56.272892+00:00
+
+{"utc": "2026-11-11T16:17:45.070164+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-15x5", "completed": 12}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:20:58.682957+00:00
+
+{"utc": "2026-11-11T16:20:49.192625+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-16x5", "completed": 13}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:24:01.098803+00:00
+
+{"utc": "2026-11-11T16:23:55.401330+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-17x5", "completed": 14}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:27:03.531639+00:00
+
+{"utc": "2026-11-11T16:27:01.591143+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x8", "completed": 15}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:30:05.933778+00:00
+
+{"utc": "2026-11-11T16:29:49.265294+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-14x8", "completed": 16}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:33:08.358577+00:00
+
+{"utc": "2026-11-11T16:32:49.426184+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-7x8", "completed": 17}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:35:50.471385+00:00
+
+{"utc": "2026-11-11T16:35:41.424684+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-10x8", "completed": 18}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:38:52.851536+00:00
+
+{"utc": "2026-11-11T16:38:37.586832+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-12x8", "completed": 19}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:41:35.035020+00:00
+
+{"utc": "2026-11-11T16:41:33.732897+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-13x8", "completed": 20}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C14 continued capacity and test-instrumentation checkpoint — 2026-11-11T16:42:47.696420+00:00
+
+C14 short scene5FPS boundary17PASS/18FAIL. The repeated18case had all18healthy, nofatal, scene+UTC checksPASS, selectedFPSPASS, average completed4.9067–4.9878FPS, but minimum10swindow.88711<.90: correctlyFAIL rather than inheriting C13's18PASS. Actual raw decoded buffers derived from rate-gate accepted+dropped gauges were29.751–29.969FPS/camera. Frames arrived/decoded; this is downstream completion variation, not a proved new regression caused by the tiny timestamp helper. C14S14×8 failed and lower counts are being refined. No cause assigned without matched evidence. Current runS12×8 or next refinement; always inspect CAMPAIGN_CURRENT. Isolated userCV/UIunits inactive; bootIDunchanged. RawGPUclientPID map and Docker hostPID mapping recorded in artifacts/gpu-client-process-scope-check.json; checked client activity belonged to CV, desktop clients idle in that sample; not an all-time exclusivity claim.
+
+Added offline analyze_observed_engines.py with streaming bounded-memory parsing of same-host-monotonic hardware samples and actual raw decode counters, distinct from selected/completed rates. GPUengine,nodeNPU,power,CPUfreq/temp distributions stored hardware-steady-analysis.json; engines/watts overlap, never sum. Countercoverage duration explicit, resets unavailable; raw stage rate is not independent source-pixel freshness or capacity qualification. No runtime telemetry format/gate change.
+
+Queued postchecks EXTENDED without altering CV image: controlled five-consumer SAME TCP URL source test at5×5/S (separate from unique-port capacity), then60s instrumented native-stage timing at1×8/SA. New tcp_replay_source.py independently paces compressed-copy stream per client; off-box smoke2simultaneousclients saw valid MPEG-TS, source exited0 with children/handlers cleaned. This is fixture smoke, not five-CV-cameraPASS. New GStreamer trace hook is provenance-only (no monkeypatch), latency tracer walltimes include wait/preprocess; not pure GPU/NPUkernel time. Actual ancestor SDK videotestsrc→three identity-elements tracer smoke gave12records per namedstage, parserPASS. Explicitly NOT model/performance measurements. Real DLStreamer primarydet/facedet/faceclass trace remains queued. Stage analyzer preserves generic secondary elementIDs without falsely guessing model identity; scope includes traced startup/warmup/steady because clock alignment is not presumed.
+
+Testhelper status race found/corrected: SIGTERM old waiter could sleep5s then overwrite replacement POSTCHECKS_CURRENT asSTOPPED even though replacement stillwaiting. CV/masterguard neveraffected. Stopped actual launcher-record PID724404 and verified exit before replacement, not trusting stale statusPID650567. New finish_remote_campaign.py holds lifetime fcntl singleton lock. Current waiter737679, commandproofpostchecks-controller-v4.json. Negative duplicate invocation failed BlockingIOError and left live owner/status unchanged (postchecks-singleton-negative.json PASS). No more helper replacement without exit verification. Original maincontroller646236 continues. Both handoffs retain this harness issue; no imagefailure attributed.
+
+Currentpostqueue: after allnativefrontiers and PASShour -> verify existingexact-imagebakedproof ->11API faultcases ->instrumentedpixelparity ->markedANPR720p1×8 independentPES→APIlatency ->HTTP1×8 ->sharedTCP5×5 ->nativeelementwalltime1×8. All sequential, no concurrent capacity contamination. Post is still WAITING_NATIVE_BATCH; no queued case creditedPASS. Sourcehelper/hook/analysis scripts are test-only, not baked CV modifications. Full282catalog, broader role budgets/resolution/transport/accuracy/actualKubernetes/agent-storage gaps still explicitlyunqualified. Onehour and all-app frontiers remainunfinished. C14candidate/runtime/sourceSHA/model/policy/contract unchanged, no Git/registrypush. Power/services restoration and source/observercleanup stillmandatory at campaignend; sourcefleet1278408 active, controlledRTSPS1409797/1409805 already stopped.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:44:37.430580+00:00
+
+{"utc": "2026-11-11T16:44:31.965943+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x10", "completed": 21}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:47:39.912530+00:00
+
+{"utc": "2026-11-11T16:47:19.794803+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-11x10", "completed": 22}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:50:22.026474+00:00
+
+{"utc": "2026-11-11T16:50:15.919354+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-12x10", "completed": 23}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T16:54:04.941564+00:00
+
+{"utc": "2026-11-11T16:54:00.703688+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING_AUX_DIAGNOSTIC", "case": "aux-native-stage-timing-SA-1x8", "completed": 23, "stage": "native-timing-diagnostic", "main_test_launcher_held": true}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T17:04:53.566962+00:00
+
+{"utc": "2026-11-11T17:04:40.977824+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-1x5", "completed": 24}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T17:07:55.975354+00:00
+
+{"utc": "2026-11-11T17:07:44.840088+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-2x5", "completed": 25}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T17:10:58.373142+00:00
+
+{"utc": "2026-11-11T17:10:48.855172+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-4x5", "completed": 26}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T17:14:00.705398+00:00
+
+{"utc": "2026-11-11T17:13:54.929888+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-8x5", "completed": 27}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T17:17:03.177332+00:00
+
+{"utc": "2026-11-11T17:17:03.075704+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-6x5", "completed": 28}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T17:20:25.941926+00:00
+
+{"utc": "2026-11-11T17:20:09.239833+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-5x5", "completed": 29}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T17:23:28.384723+00:00
+
+{"utc": "2026-11-11T17:23:15.315359+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-1x8", "completed": 30}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C14 continuous campaign monitoring and queued role budgets — 2026-11-11T17:25:23.976393+00:00
+
+User instruction: keep watching and complete carefully. Confirmed remote main646236 running, never paused CV; fixed singleton post-waiter737679 was WAITING, terminated and actual exit verified before launching851203. Runtime image remains frozen03a24b49; no contract, production gates, model placement or Git/registry publication changes. New waiter v5 saved remotely.
+
+Native timing diagnostic before stress passed on exact C14: actual GStreamer element-latency records, primary median7.5464ms/p9510.3402ms; tracker median4.5085ms/p958.186ms. Face records include inference-interval/no-ROI bypass buffers, so medians are not pure neural execution latency. Decoder wall intervals include pacing/reordering/startup and are not hardware decode cost. Evidence native-element-latency-before-stress.json. Main test launcher (not any CV process) had been held for this exclusive diagnostic; resumed17:04:40UTC, still running. The hold included about eight minutes after the diagnostic finished; do not repeat that unnecessary delay.
+
+C14 scene-only short boundaries independently measured:5fps17PASS/18FAIL;8fps13PASS/14FAIL;10fps11PASS/12FAIL. These use full16 CPUs eligible but turbo disabled, identical dense-people1080p30 sources repeated across independent TCP connections. Selected FPS alone is not capacity; completed-per-camera and scene JPEG/vector coverage remain required. At17:24UTC all-app5fps search complete and8fps starting. Final authoritative frontiers/ledger override this chronological checkpoint.
+
+Queued post-tests now additionally measure fixed eight-camera scene-everywhere deployments with identity on a subset at5/8/10fps, and mixed1080p people/720p ANPR roles at2 and8 cameras8fps. Each identity camera must produce face/body/gait vectors in the steady window; vehicle roles require positive plate_read. Ordinary rate/coverage FAILs are retained, while native fatal, invalid timestamps, unavailable report or guard exclusion stops for review. These are selected tested combinations, not the entire12-profile/9-mix catalog or general hardware maximum. New offbox owned eight-port ANPR source fleet1479227 serves19401–19408 only to.64, original720p10 clip SHA64c5892b...092; manifest and commands retained. No source encoding/inference on test host.
+
+Preserve one-hour qualification, subsequent API fault/pixel-parity/independent marker latency/HTTP/shared-TCP/native-tracing checks and final audit. No completed-hour or all282-case claim yet. Restore original turbo and only campaign-stopped services after the whole authorized run ends; preserve all exclusions.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T17:26:30.745344+00:00
+
+{"utc": "2026-11-11T17:26:17.175506+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-2x8", "completed": 31}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T17:29:33.114751+00:00
+
+{"utc": "2026-11-11T17:29:19.128098+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-4x8", "completed": 32}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C14 evidence audit and bounded post-test captures — 2026-11-11T17:29:38.096398+00:00
+
+Independent audit of29 completed C14 raw capture cases passed41,305 packages and2,901 saved JPEGs, zero metadata/link/hash/decode errors. Exact scope is stored in package-integrity-audit-current.json: all records have retained metadata; JPEG audit is the bounded saved subset. This is not identity accuracy, distinct physical-camera provenance or real-agent durability. Hardware analyzer aligned30 steady intervals with6,105 GPU/6,423 host/6,425 process samples so far. Raw decode counters for failed6×5 SA remain29.90–29.93FPS/camera; downstream completion, not absent source frames, caused that short point to fail.
+
+Postcheck waiter856474(v6) replaces851203 only after its WAITING state and process exit were verified. Normal saved gallery is bounded128 packages/10seconds; the receiver still validates every multipart package, image and vector before ACK. Independent marked-latency case retains3000/0seconds to expose frame markers. No emission policy changed. Static canonical-schema/positive-oracle validation passed26 planned mixed configurations, native tests still queued.
+
+Local invalid-initial-C13-mirror was compressed into invalid-initial-c13-mirror.tar.gz, all8,188 regular-file SHA256s read back and compared before replacing the uncompressed duplicate; archive proof retains every file hash. This preserves the excluded wrongly rooted initial copy and recovers about130MiB without deleting evidence. Local free space around5.2GiB and remote campaign volume around6.6GiB remain monitored. No broad cleanup or other-user data removed. Campaign overview now explicitly labels old C12/C13 checkpoints historical and links current C14; cumulative incident count29.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T17:32:55.741498+00:00
+
+{"utc": "2026-11-11T17:32:37.182943+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "NEEDS_REVIEW", "reason": "RuntimeError: Native failure requires investigation: turbo-off-next-SA-4x8", "completed": 33}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T17:35:37.952614+00:00
+
+{"utc": "2026-11-11T17:35:25.475925+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "INVESTIGATING_NATIVE_STARTUP_CRASH", "reason": "RuntimeError: Native failure requires investigation: turbo-off-next-SA-4x8", "completed": 33, "case": "diag-native-startup-SA4x8-gdb-r1", "diagnostic": {"utc": "2026-11-11T17:35:25.475925+00:00", "case": "diag-native-startup-SA4x8-gdb-r1", "guard_pid": 875127, "bridge_pid": 875128, "capture_pid": 875126, "command": ["taskset", "-c", "14,15", "python3", "scripts/isolated_validation/run_guarded_case.py", "--root", "/home/admin1/Documents/sentry-validation-20261111-c14/artifacts/runs", "--run-id", "remote64-c14", "--case", "diag-native-startup-SA4x8-gdb-r1", "--engine", "docker", "--min-free-disk-mib", "6144", "--min-available-ram-mib", "4096", "--max-attempts", "3", "--max-runtime", "5400", "--sample-interval", ".5", "--hot-samples", "9", "--max-cooldown", "86400", "--", "taskset", "-c", "0-15", "python3", "scripts/v8_capacity_probe.py", "--engine", "docker", "--image", "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "--port", "18380", "--startup-timeout", "360", "--warmup-seconds", "20", "--steady-seconds", "60", "--sample-seconds", "10", "--activity", "active", "--memory-limit-mib", "24576", "--capture-gallery-limit", "128", "--capture-gallery-interval-seconds", "10", "--cameras", "4", "--fps", "8", "--profile", "SA", "--source-urls-json", "[\"tcp://192.168.1.92:19101\", \"tcp://192.168.1.92:19102\", \"tcp://192.168.1.92:19103\", \"tcp://192.168.1.92:19104\"]"], "scope": "Diagnostic only: startup nativefault backtrace; not capacity"}}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C14 actual native startup crash, investigation started — 2026-11-11T17:35:49.964696+00:00
+
+{
+  "utc": "2026-11-11T17:35:49.964696+00:00",
+  "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088",
+  "case": "turbo-off-next-SA-4x8",
+  "result": "FAIL_NATIVE_STARTUP_CRASH_AND_STEADY_RATE_SHORTFALL",
+  "report_path": "optimization_evidence/2026-11-11-remote64-c14/remote-artifacts/runs/remote64-c14/turbo-off-next-SA-4x8/raw-sentry-v8-capacity-4.xy1k_p9v/report.json",
+  "fatal_lines": [
+    "Fatal Python error: Segmentation fault",
+    "{\"timestamp\":\"2026-11-11T17:29:51.867567Z\",\"level\":\"ERROR\",\"logger\":\"stream_fleet_openvino\",\"message\":\"camera process exited; restart scheduled\",\"pid\":9,\"camera_id\":\"capacity-01\",\"stream_session_id\":\"d2dc20c1-686c-4af7-959e-bf6f2659994e\",\"event\":\"camera_process_exited\",\"camera_process_pid\":51,\"exit_code\":-6,\"retry_reason\":\"camera_process_exited\",\"retry_backoff_seconds\":5.0,\"affected_camera_count\":4}",
+    "{\"timestamp\":\"2026-11-11T17:29:51.871112Z\",\"level\":\"ERROR\",\"logger\":\"stream_fleet_openvino\",\"message\":\"camera process exited; restart scheduled\",\"pid\":9,\"camera_id\":\"capacity-02\",\"stream_session_id\":\"46e2c771-ca1e-43f0-92fe-8bc44c47d12b\",\"event\":\"camera_process_exited\",\"camera_process_pid\":51,\"exit_code\":-6,\"retry_reason\":\"camera_process_exited\",\"retry_backoff_seconds\":5.0,\"affected_camera_count\":4}",
+    "{\"timestamp\":\"2026-11-11T17:29:51.874359Z\",\"level\":\"ERROR\",\"logger\":\"stream_fleet_openvino\",\"message\":\"camera process exited; restart scheduled\",\"pid\":9,\"camera_id\":\"capacity-03\",\"stream_session_id\":\"6e5b98f7-c636-436a-94ab-d9b9e80b0f25\",\"event\":\"camera_process_exited\",\"camera_process_pid\":51,\"exit_code\":-6,\"retry_reason\":\"camera_process_exited\",\"retry_backoff_seconds\":5.0,\"affected_camera_count\":4}",
+    "{\"timestamp\":\"2026-11-11T17:29:51.875869Z\",\"level\":\"ERROR\",\"logger\":\"stream_fleet_openvino\",\"message\":\"camera process exited; restart scheduled\",\"pid\":9,\"camera_id\":\"capacity-04\",\"stream_session_id\":\"f63b553f-5aaa-42f1-bfec-632dca57edf2\",\"event\":\"camera_process_exited\",\"camera_process_pid\":51,\"exit_code\":-6,\"retry_reason\":\"camera_process_exited\",\"retry_backoff_seconds\":5.0,\"affected_camera_count\":4}"
+  ],
+  "known": "First shared worker segfault/stack-smashing abort at initial graph startup; supervisor recreated worker and all4 eventually fresh. No kernel OOM/GPU reset in checked interval. Actual nativefaultingfunction not identified from Pythontrace. Steady completion also below criteria, independently.",
+  "pending": "GDB-instrumented same-image diagnostic; not capacity evidence"
+}
+
+Main646236 and waitingpost856474 stopped NEEDS_REVIEW correctly; no future tests silently proceeded. At17:35:25UTC launched diagnostic-only same-image four-camera8fps60second replay under existing thermalguard875127, bridge875128, GDBwatcher875126. It attempts to catch native SIGSEGV/SIGABRT in the explicitly owned group worker and saves full native stacks/mappings. No global ptrace/core settings, runtime image, gate, policy or input pixels changed. Debugger scheduling may perturb this run, so no diagnostic PASS is capacity. One-hour/role/HTTP/API/pixel checks still pending. Never call this crash an ordinary capacity boundary.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T17:41:22.570782+00:00
+
+{"utc": "2026-11-11T17:41:08.226586+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "INVESTIGATING_NATIVE_STARTUP_CRASH", "reason": "RuntimeError: Native failure requires investigation: turbo-off-next-SA-4x8", "completed": 33, "case": "bounded-native-startup-preload-repeats", "diagnostic": {"utc": "2026-11-11T17:41:08.226586+00:00", "pid": 887409, "command": ["taskset", "-c", "14,15", "python3", "scripts/isolated_validation/run_native_startup_repeats.py", "--root", "/home/admin1/Documents/sentry-validation-20261111-c14", "--count", "6"], "scope": "Bounded diagnostic-only repeats, fatal-signal tracer positive control passed, no image change"}}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Native startup crash: first debugger repeat negative, signal tracer validated — 2026-11-11T17:41:32.375663+00:00
+
+C14 GDB startup diagnostic diag-native-startup-SA4x8-gdb-r1 completed without SIGSEGV/SIGABRT. Its throughput probe was FAIL, and debugger attachment changes scheduling; no capacity or fix claim. Original C14 startup crash remains an unresolved FAIL under existing INC-023 (not a new duplicate incident family). Updated incident entry saves original four-camera report and new capture_native_crash.py.
+
+Added test-only native_crash_trace.c and explicit --diagnostic-crash-tracer support to the qualification harness. It is a read-only fatal-stack/stack-check trace in a mounted preload, not baked runtime/model/policy code. Every traced invocation is marked diagnostic with its library hash. Native handler/backtrace is best-effort and not async-signal-safe, so not a production handler. Positive control deliberately null-read in a network/device-free instance of actual C14: exit139 and native function addresses printed, original fatal behavior preserved. Compiler, source and library hashes/logs retained in native-crash-tracer-build.
+
+At17:41:08UTC diagnostic startup-repeat controller887409 started up to six sequential four-camera all-app8fps runs using the original failed command,30second observed period/no warmup plus the tracer. Thermal guard and all original CV gates/model/input pixels stay unchanged; each command/status/raw capture archived. Stops on actual native signal or guard exclusion. No spontaneous fault reproduction means NOT_REPRODUCED, not FIXED. Main capacity/hour/postchecks remain held for investigation, not running in parallel. Off-host mirror, host/GPU/NPU/process and kernel observations continue.
+
+Added offline sustained-run trend analyzer (math/short-duration exclusion smoke checked) and an off-host final review watcher script, but final watcher has NOT been launched and cannot qualify a failed/short run. They do not change native execution or schedule workloads. All final hour/mixed-role/API/HTTP/pixel checks still pending.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T17:49:08.588901+00:00
+
+{"utc": "2026-11-11T17:48:50.444716+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "INVESTIGATING_NATIVE_STARTUP_CRASH", "reason": "RuntimeError: Native failure requires investigation: turbo-off-next-SA-4x8", "completed": 33, "case": "gpu-compiler-threads-one-control", "diagnostic": {"utc": "2026-11-11T17:48:50.444716+00:00", "pid": 903386, "command": ["taskset", "-c", "14,15", "python3", "scripts/isolated_validation/run_native_startup_repeats.py", "--root", "/home/admin1/Documents/sentry-validation-20261111-c14", "--count", "6", "--diagnostic-hook", "/home/admin1/Documents/sentry-validation-20261111-c14/repo/scripts/isolated_validation/gpu_compilation_threads_hook.py", "--case-prefix", "diag-gpu-compile1-SA4x8"], "scope": "Supported GPU compilation threads1 vs baked default16, diagnostic only, no candidate change"}}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Actual native stack captured: Intel OpenCL compiler startup fault — 2026-11-11T17:49:50.088307+00:00
+
+{
+  "utc": "2026-11-11T17:49:50.088307+00:00",
+  "candidate": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088",
+  "component_localization": "SIGSEGV libopencl-clang.so.16 -> libigdfcl.so.2 -> libigdrcl -> OpenVINO GPU plugin on a TBB compilation worker during startup",
+  "fault_model_not_identified": true,
+  "root_concurrency_mechanism_not_proven": true,
+  "mitigation_not_proven": true,
+  "diagnostic_run": "optimization_evidence/2026-11-11-remote64-c14/remote-artifacts/runs/remote64-c14/diag-native-startup-SA4x8-preload-r3/raw-sentry-v8-capacity-4.5m26sn_p",
+  "baked_gpu_compile_threads": 16,
+  "controlled_gpu_compile_threads": 1,
+  "controlled_pid": 903386,
+  "official_property_reference": "https://docs.openvino.ai/2026/api/c_cpp_api/group__ov__runtime__cpp__prop__api.html",
+  "similar_upstream_report_different_model_hardware": "https://github.com/openvinotoolkit/openvino/issues/38235",
+  "scope": "Similar upstream stack corroborates component category, not proof of same cause/fix; controlled setting is supported but still experimental. No candidate, gates or models changed."
+}
+
+The third preload repeat reproduced after two no-fault repeats, so bounded repeater stopped automatically (887409 exited). Earlier GDB non-reproduction was not a fix. Full native stack saved native-compiler-crash-stack.txt; function/offset chain includes libopencl-clang+0x33168e8, Compile+0x1c89 and OpenVINO/TBB. No source-pixel, tracker, policy or prefetch function is in the captured native failing stack. This identifies the failing component, not the exact model/kernel or corruption mechanism.
+
+Controlled diagnostic903386 now requests COMPILATION_NUM_THREADS=1 on GPU-targeting GVA instances before PLAYING, compared with baked GPU default16. Both GPU/NPU advertise supported property; inference streams, requests, batches, precision, transforms and all production gates are untouched. Testhook is explicit and hashed, so runs do not qualify unmodified C14 capacity. Do not bake a workaround until measured. A first property-enumeration probe omitted supplemental render groups and could not enumerate GPU; it is retained as test setup exclusion. Corrected probe with image-equivalent groups verified GPU/NPU default16. Container lacks rg; a package-inventory subcommand using it was ineffective, not a model failure.
+
+A resume-only controller improvement was prepared locally to verify exact complete command and terminal status before reusing ledger rows, and optionally retain a named already-reviewed native FAIL while measuring independent points. It has NOT been deployed/resumed; no FAIL was changed to PASS. No new image or push. All changes/evidence preserved in handoff.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T17:52:31.266580+00:00
+
+{"utc": "2026-11-11T17:52:11.525649+00:00", "controller_pid": 646236, "power_scope": "CPU turbo disabled", "image": "sha256:03a24b49f6eeb5edf6889c965e984490b7a07af8742ee474a4bc10439156a088", "capacity_qualified": false, "status": "INVESTIGATING_NATIVE_STARTUP_CRASH", "reason": "RuntimeError: Native failure requires investigation: turbo-off-next-SA-4x8", "completed": 33, "case": "gpu-compiler-one-corrected-hook-control", "diagnostic": {"utc": "2026-11-11T17:52:11.525649+00:00", "pid": 909070, "command": ["taskset", "-c", "14,15", "python3", "scripts/isolated_validation/run_native_startup_repeats.py", "--root", "/home/admin1/Documents/sentry-validation-20261111-c14", "--count", "6", "--diagnostic-hook", "/home/admin1/Documents/sentry-validation-20261111-c14/repo/scripts/isolated_validation/gpu_compilation_threads_hook.py", "--case-prefix", "diag-gpu-compile1-fixed-SA4x8"], "scope": "Corrected and independently smoke-validated compile1 diagnostic; original hook attempt excluded"}}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Compiler-control hook setup corrected and independently checked — 2026-11-11T17:53:42.382294+00:00
+
+First compilation1 hook attempt903386 captured PyGObject pre-initialization fake parse_launch function, so it produced NotInitialized exceptions and never applied the compiler setting. This is a diagnostic harness mistake, NOT a candidate CV or compilation1 failure. Stopped controller then guard903394 for normal cleanup; raw failure and diag-gpu-compile1-SA4x8-r1-exclusion.json retained. Corrected hook calls Gst.init before saving real parser functions. Separate actual-image smoke passed parse-launch, parse-bin and repeated Gst.init property receipt without running inference. Revised repeat helper stops on any fatal diagnostics or missing control markers, rather than blindly repeating invalid setup.
+
+At17:52:11UTC corrected controlled repeats909070 began under prefix diag-gpu-compile1-fixed-SA4x8. First run logs14 GPU-targeting GVA property receipts (4 primary,4 face,4 fire, shared scene and OCR); native actual result pending. Original C14 image/gates/models unchanged. Symbol lookup of stripped OpenCL-clang offsets yields only nearest exported CheckCompileOptions, no line info; do NOT claim that uniquely resolves every failing internal function.
+
+Local capacity-harness regression suite still71/71passed after explicit diagnostic tracing flag. No updated product image built or pushed, no new qualified capacity boundary or hour result.
+
+
+### Candidate mitigation source prepared, not yet built — 2026-11-11T17:58:42.664289+00:00
+
+Prepared internal gva_inference_options.gpu_compilation_ie_config and graph-option wiring only in primary/face/fire and GPU-containing secondary targets. NPU-only targets unchanged. The function bounds COMPILATION_NUM_THREADS(default1, internal A/B override16 available), rejects invalid values, logs actual compilation option. It does not change streams/nireq/batch/device/precision/preprocessing/tracking/production thresholds or desired state. Fifteen boundary/target unit checks passed. Dockerfile.sentinel-v8-gpu-compilation stages a thin candidate over actual C14; not built yet pending corrected repeated controls.
+
+Reversing ONLY the new edits reproduces actual C14 hashes exactly: surface852d7fba...7221 and secondarydfd24129...1b61 verified by a read-only baked-file hash probe. This avoids accidentally bundling earlier unbaked edits. Source/context staged under R14/artifacts/c15-build/context; no new active image, publication or contract edits.
+
+
+### C15 built locally after six clean diagnostic compilations; qualification not started — 2026-11-11T18:07:41.747127+00:00
+
+Corrected six compiler1 repeats completed with no native fatal, fresh4 cameras, UTC sanity and scene coverage. Each throughput report still FAIL at4×8; that is retained, not a startup/mitigation PASS or capacity claim. Conditional build gate verified all6reports and no active CV before building thin candidate localhost/sentinel-cv:v8-c15-gpu-compile1, Docker config sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac. All75 parent C14 layers preserved,78total; User/Env/Cmd/Entrypoint/WorkingDir identical. Build under R14/artifacts/c15-build/report.json with source hashes, commands and logs. No publication.
+
+C15 only adds internal compilation_num_threads1 option and explicit log on GPU-containing GVA graphs, three-file helper/wiring and15baked regression cases. Models, schemas, production gates, transforms, inference concurrency/precision unchanged. It requires fresh baked/native tests without the Python hook and no inherited C14 PASS. Next: new remote64-c15 root, baked checks, repeated uninstrumented startups, one-camera foundation, fresh5/8/10frontiers, selectedhour and API/pixel/HTTP/latency/mixed-role postchecks. No C15 test run yet.
+
+Disk preflight: root/tmp filesystem dropped to about5GB free, /home about6.9GB. Docker has many stopped owned test containers from canceled/thermal startup runs. A bounded cleanup937347 preserved sanitized logs and compressed runtime state before removing only owned stopped C12/C14 containers:30considered,22removed,8skipped because state archive could not be confirmed. About1.89GB root space recovered (6.9GB free). No images/volumes/running containers/unrelated services removed. Full report in R14/artifacts/owned-stopped-container-cleanup/report.json. Remaining planned disk action is verify duplicate /tmp raw files against immutable archive manifests and replace duplicates with links, preserving archived/offhost evidence; not done yet. Do not silently lower6GiB guard floor.
+
+All C14 main/post controllers exited NEEDS_REVIEW after original actual native error; no capacity/hour background job currently runs. Observer635788/nativefollower635789 and local mirrors still run. Corrected control909070 and build930779 exited. .64 remains isolated with turbo OFF; original restoration still required at eventual campaign end. Source fleets1278408 and1479227 still active on.92.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T18:13:09.368115+00:00
+
+{"utc": "2026-11-11T18:10:18.102935+00:00", "status": "PREPARING_FRESH_C15_BAKED_CHECKS", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "controller_pid": null, "capacity_qualified": false, "power_scope": "CPU turbo disabled, original0 saved for restoration", "note": "New image, no C14 passing result inherited; existing C14 compiler startup crash remains historical FAIL and candidate mitigation unqualified"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T18:16:11.788989+00:00
+
+{"utc": "2026-11-11T18:15:53.756839+00:00", "controller_pid": 953826, "status": "RUNNING_UNINSTRUMENTED_STARTUP_REGRESSIONS", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "power_scope": "CPU turbo disabled", "case": "startup-baked-SA4x8"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Fresh C15 qualification started, owned mirrors/metrics moved — 2026-11-11T18:17:52.550324+00:00
+
+C15 config44051227...1bac now has fresh baked unit/policy/three-validator PASS (actual report under newroot artifacts/baked-checks; includes15new compiler-boundary cases). No runtime/schema/model overlay. Fresh remote root /home/admin1/Documents/sentry-validation-20261111-c15; local optimization_evidence/2026-11-11-remote64-c15. Root artifacts symlink to /tmp/sentry-remote64-c15-artifacts so guard monitors the root filesystem with newly recovered headroom; local evidence is continuously mirrored. This is not published durable storage.
+
+Verified duplicate cleanup941667 compared original regular-file sets and every SHA against completed immutable archives, replaced only byte-identical duplicate /tmp raw trees with links to their archives. Changed/mismatched raw captures skipped. Raw path references remain valid, archived/offhost evidence retained. Freed about1.61GB root space, about8.51GB free afterward. Full R14/artifacts/verified-raw-dedup/report.json records each path/hash. Original6GiB guard floor not lowered.
+
+Old C14 observers635788/nativefollower635789 stopped cleanly after all six controls. New C15 observerkeeper948487 and nativefollower948488 run12h, renew3h metric segments. Local C15 mirror1512671/status1512672/results1512673/native-offhost1512674 use exact new candidate assertion and complete remote paths; old L14 watchers stopped. Kernel reader33765 and older L12 offhost/kernel mirror remain read-only, no inference. Sources: people50 fleet1278408, ANPR8 fleet1479227, controlled TLS server1512154/publisher1512166 restarted on.92 using same ephemeral CA (not installed in image).
+
+Bootstrap953826 now runs actual uninstrumented C15 three-start regression through child953827. First4×8startup had no native fatal and its raw throughput FAIL is retained. Secondrepeat waits for cooldown, not stuck/paused native inference. After3clean starts (actual fresh health, UTC and scene coverage, no test hooks), bootstrap requires a new1×8SA120s foundation PASS; only then it launches full continuation capacity/hour and exclusive postchecks. All start commands, exact image, source roles, reports and failure scopes saved. No C14 PASS inherited and no known-native-failure bypass flag used.
+
+Prepared newroot count plan: scene5[1,17,18],8[1,13,14],10[1,11,12]; all-app5[1,4,5,6],8[1,2,3,4],10[1,2,3,4], with fresh refine on failures. Full actual native errors remain fail-fast. New main/post child PIDs will be in R15/artifacts/native-batch-launch.json after foundation. No one-hour result or C15 camera maximum exists yet. Existing INC-023 remains unresolved/unqualified until final native checks; six controlled and one uninstrumented no-fault starts are mitigation evidence, not proof of elimination.
+
+No push. Original turbo0, stopped user units and only our runtime condition drop-ins/masks still require restoration at final campaign end. User goal remains active.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T18:20:14.873205+00:00
+
+{"utc": "2026-11-11T18:20:11.224117+00:00", "controller_pid": 953826, "status": "RUNNING_NATIVE_FOUNDATION", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "power_scope": "CPU turbo disabled", "case": "baseline-all-people1x8"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C15 fresh uninstrumented startup gate completed — 2026-11-11T18:21:43.862694+00:00
+
+All3 uninjected startups completed with fresh4camera health, correctUTC and scene coverage and no native fatal. Their4×8rate FAILs remain unchanged, not capacity passes. Bootstrap953826 advanced to baseline-all-people1x8; guard964397 began with cooldown. Native foundation pending, no C15 maximum/hour result yet. Local read-only completion/audit watcher1516115 now watches exactCID15 and will preserve terminal failures or assemble completed-batch evidence; it does not mutate/restore host, publish or qualify wholecatalog. Source/metrics/mirrors remain active as recorded. Campaign overview and INC-023 identify active C15 while retaining the C14 compiler fault.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T18:23:37.501684+00:00
+
+{"utc": "2026-11-11T18:23:25.270819+00:00", "controller_pid": 970925, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-anpr5", "completed": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C15 one-camera native foundation PASS, full batch launched — 2026-11-11T18:25:42.597134+00:00
+
+Fresh baseline-all-people1x8 passed120steadyseconds at about7.987completedFPS, no diagnostic hook/tracer. Steady paired identity profiles: face25, body91, gait44, scene59; scene coverage/UTC sanity passed. Exact counter-derived completed work and raw report retained under R15/artifacts/runs/remote64-c15/baseline-all-people1x8. This is one tested replay/configuration, not a higher-camera capacity or hour claim.
+
+Bootstrap953826 exited after launching main970925 and postchecks970926 at18:23:25UTC. Main currently turbo-off-next-anpr5; subsequent fixed positives/recovery then freshS/SA5/8/10 searches and selectedonehour are queued. Postchecks waits exclusively for a passing actualhour before API faults, pixel parity, independent marker latency, HTTP, shared-TCP5consumers, nativeelementtiming and explicit scene-everywhere mixed identity/vehicle roles. Main and postcommands/PIDs are recorded in R15/artifacts/native-batch-launch.json. Active pointer updated to actual live controllers.
+
+Exact candidate remains44051227...1bac, local only; all production gates/contract frozen. Nine observed no-native-fault starts (6diagnostic+3uninjected) plus currentfoundation support continued mitigation testing, not proof of compiler defect elimination. Existing C14nativecrash remains FAIL and every4×8throughput FAIL retained. Heat guard/mirrors/observers/locally read-only completionreview1516115 active. Originalhostpower/services not restored yet because campaign is active. No push.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T18:26:39.832666+00:00
+
+{"utc": "2026-11-11T18:26:23.145687+00:00", "controller_pid": 970925, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-fire-clear5-mixed-repeat", "completed": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Baked test-count correction and new-file coverage — 2026-11-11T18:28:05.679202+00:00
+
+Review found run_baked_checks intentionally mounts a frozen host TESTS snapshot (runtime remains baked). R15 snapshot copied the existing332tests, so the broad result is332passed+22subtests, not347 in one invocation, and it did not include the15new compiler-option tests. Earlier handoff wording “includes15new cases” was incorrect. A separate actual-image new-test invocation now removes only the tests-directory mount, retains test dependencies/config and executes the baked /opt/traffic-pilot/tests/test_gva_compilation_options.py against baked helper. Its report is R15/artifacts/baked-compilation-options/report.json; check actual result. CPU limited0.5 and overlaps a functional ANPR fixture, not a capacity case. No new product image/source change. Broad332/30policy/3validator result remains valid in its stated scope.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T18:29:42.338590+00:00
+
+{"utc": "2026-11-11T18:29:22.861893+00:00", "controller_pid": 970925, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-all-people8", "completed": 2}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Latest monitoring checkpoint — 2026-11-11T18:29:56.744957+00:00
+
+Separate actual baked compiler-option execution passed15/15 in0.09s (no tests-directory/runtime mount). Broad existingtest snapshot332+22subtests,30policy,3validators also passed. No count is being inherited or inflated. Main970925 passed fresh ANPR positive fixture, then ran fire-suspected/clear fixture; source is originalrecorded720p10. Lateststate is in active C15CAMPAIGN_CURRENT/CURRENT/POSTCHECKS_CURRENT, watcher1516115 and exact-image mirror remain live. Capacity/hour/postchecks not complete. No claim of full production readiness or stock-power capacity.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T18:32:44.745978+00:00
+
+{"utc": "2026-11-11T18:32:38.985590+00:00", "controller_pid": 970925, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-all-people10", "completed": 3}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-11T18:36:07.365116+00:00
+
+{"utc": "2026-11-11T18:35:54.924203+00:00", "controller_pid": 970925, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-outage-all2x5-availability-oracle", "completed": 4}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic remote64-c15 evidence-review checkpoint — 2026-11-11T18:39:27.484827+00:00
+
+Native/postcheck campaign stopped for review; no completion claim. {"utc": "2026-11-11T18:39:13.017997+00:00", "controller_pid": 970925, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "NEEDS_REVIEW", "reason": "RuntimeError: Functional failure requires review: turbo-off-next-outage-all2x5-availability-oracle", "completed": 5}
+
+
+### Automatic native campaign checkpoint — 2026-11-11T18:39:30.054162+00:00
+
+{"utc": "2026-11-11T18:39:13.017997+00:00", "controller_pid": 970925, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "NEEDS_REVIEW", "reason": "RuntimeError: Functional failure requires review: turbo-off-next-outage-all2x5-availability-oracle", "completed": 5}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### User completion-status audit — 2026-11-12T03:56:57.769952+00:00
+
+{
+  "utc": "2026-11-12T03:56:57.769952+00:00",
+  "status": "STOPPED_ON_ISOLATION_FAILURE_NOT_FINISHED",
+  "stopped_utc": "2026-11-11T18:39:13Z",
+  "stopped_IST": "2026-11-12T00:09:13+05:30",
+  "passed": [
+    "three uninstrumented starts without observed native fatal",
+    "one-camera8fps foundation",
+    "ANPR5 positive",
+    "fire-clear5 positive/clear",
+    "all-people8",
+    "all-people10",
+    "existing332unit+22subtests",
+    "15separate baked compiler-option cases",
+    "30policy and3validators"
+  ],
+  "failed": "two-camera5fps outage/isolation peer-performance assertion; target recovered; no fatal native log",
+  "peer_windows": [
+    {
+      "phase": "outage",
+      "completed_fps": 4.097,
+      "selected_fps": 3.997,
+      "last_frame_age_seconds": 1.057
+    },
+    {
+      "phase": "recovery",
+      "completed_fps": 5.096,
+      "selected_fps": 5.096,
+      "last_frame_age_seconds": 0.869
+    },
+    {
+      "phase": "recovery",
+      "completed_fps": 5.096,
+      "selected_fps": 5.096,
+      "last_frame_age_seconds": 0.186
+    },
+    {
+      "phase": "recovery",
+      "completed_fps": 4.997,
+      "selected_fps": 5.097,
+      "last_frame_age_seconds": 1.0
+    },
+    {
+      "phase": "recovery",
+      "completed_fps": 5.096,
+      "selected_fps": 4.996,
+      "last_frame_age_seconds": 0.582
+    },
+    {
+      "phase": "recovery",
+      "completed_fps": 4.997,
+      "selected_fps": 5.097,
+      "last_frame_age_seconds": 0.559
+    },
+    {
+      "phase": "recovery",
+      "completed_fps": 5.097,
+      "selected_fps": 4.997,
+      "last_frame_age_seconds": 0.943
+    },
+    {
+      "phase": "recovery",
+      "completed_fps": 5.097,
+      "selected_fps": 5.097,
+      "last_frame_age_seconds": 0.916
+    },
+    {
+      "phase": "recovery",
+      "completed_fps": 5.096,
+      "selected_fps": 5.096,
+      "last_frame_age_seconds": 0.736
+    },
+    {
+      "phase": "recovery",
+      "completed_fps": 4.997,
+      "selected_fps": 5.097,
+      "last_frame_age_seconds": 0.487
+    }
+  ],
+  "not_run": [
+    "fresh capacity search5/8/10FPS",
+    "one-hourstress",
+    "remaining recovery fault regressions",
+    "agent API fault postchecks",
+    "prefetch pixel parity",
+    "independent marker latency",
+    "HTTP",
+    "shared TCP5consumers",
+    "native stage tracing",
+    "mixed-role deployment checks"
+  ],
+  "scope": "Read live remote state plus retained case evidence. Observers remaining alive are not active CV tests. No all-tests-done or full qualification claim."
+}
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:04:41.404656+00:00
+
+{"utc": "2026-11-12T04:04:37.300634+00:00", "controller_pid": 1806036, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING_ISOLATION_RECHECK", "reason": "RuntimeError: Functional failure requires review: turbo-off-next-outage-all2x5-availability-oracle", "completed": 5, "case": "retry-outage-all2x5-20261112-r1", "diagnostic": {"utc": "2026-11-12T04:04:37.300634+00:00", "case": "retry-outage-all2x5-20261112-r1", "guard_pid": 1806036, "bridge_pid": 1806039, "command": ["taskset", "-c", "14,15", "python3", "scripts/isolated_validation/run_guarded_case.py", "--root", "/home/admin1/Documents/sentry-validation-20261111-c15/artifacts/runs", "--run-id", "remote64-c15", "--case", "retry-outage-all2x5-20261112-r1", "--engine", "docker", "--min-free-disk-mib", "6144", "--min-available-ram-mib", "4096", "--max-attempts", "3", "--max-runtime", "5400", "--sample-interval", ".5", "--hot-samples", "9", "--max-cooldown", "86400", "--", "taskset", "-c", "0-15", "python3", "scripts/v8_capacity_probe.py", "--engine", "docker", "--image", "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "--port", "18380", "--startup-timeout", "360", "--warmup-seconds", "20", "--steady-seconds", "120", "--sample-seconds", "10", "--activity", "active", "--memory-limit-mib", "24576", "--capture-gallery-limit", "128", "--capture-gallery-interval-seconds", "10", "--cameras", "2", "--fps", "5", "--profile", "SA", "--recording", "/home/admin1/Documents/sentry-validation-20261111-c15/fixtures/people1080p30.mp4", "--outage-camera", "1", "--outage-after-seconds", "25", "--outage-seconds", "18"], "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "scope": "Same image/gates/strict peer rate oracle; repeat original failure, no overwrite or PASS substitution"}}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### User explicitly requires continuous progress; outage failure is a test timebase bug — 2026-11-12T04:08:38.333819+00:00
+
+{
+  "utc": "2026-11-12T04:08:38.333819+00:00",
+  "original_report": "/home/admin1/Documents/sentry_cv/optimization_evidence/2026-11-11-remote64-c15/remote-artifacts/runs/remote64-c15/turbo-off-next-outage-all2x5-availability-oracle/raw-sentry-v8-capacity-2.2ftmhyoi/report.json",
+  "original_result_unchanged": "FAIL",
+  "classification": "TEST_ORACLE_COUNTER_VS_POLL_TIMEBASE_MISMATCH",
+  "reanalysed_peer_assertion_passed": true,
+  "reported_poll_seconds": 10.006541144000948,
+  "actual_counter_seconds": 8.164000000000001,
+  "peer_selected_fps": 4.8995590396864275,
+  "peer_completed_fps": 5.022048015678588,
+  "threshold_fps_unchanged": 4.5,
+  "source": "Counter timestamps recovered from the same-payload steady sample; counter values matched exactly and HTTP record times within1millisecond. Independent1s observer also shows continuous progress.",
+  "fix_scope": "Harness only. No image, production policy, FPS target or contract change. Fresh corrected test still required."
+}
+
+User: do not stop unnecessarily before goal; all links already available. Reconnected root SSH tool session12958 (old14666 expired). Same .64 bootbff139d2, turbo1, servicesinactive, no running CV container, maxCPU48C, enoughRAM/disk before resuming. Originalsource50fleet1278408/ANPR8fleet1479227/TLS1512154+1512166 alive, TCP19101/19401/TLS18554 reachable. No new image or runtime change.
+
+Launched unchanged-oracle repeat retry-outage-all2x5-20261112-r1, guard1806036/bridge1806039 at04:04:37UTC, preserving originalFAIL. Meanwhile matched originalsame-payload steady snapshots and1sobserver:177→218completed frames cover57.086→65.25uptime(8.164s), NOT10.006s between HTTP polls. Correct counterclock gives5.022completedFPS and4.900selectedFPS; all peer freshness/PID/error checks pass. OriginalFAILnotrewritten. Added actual reporter uptime/freshness to snapshot and used that monotonic clock;79harness tests PASS including this exactregression plus true slow/stale/frozen/missing-clock cases. No thresholdsrelaxed.
+
+Controller now supports a fresh named isolation rerun plus explicit continuation of independent nonfatal functional/recoveryFAILs while retaining unresolvedresults. Native fatal/resource/cleanup errors still require immediate diagnosis; no release qualification bypass. New testscripts staged toR15; currently running repeat loaded oldscript and remains unchanged. Main continuation not restarted yet; next launch uses correctedfreshcase and --resume with exact-command validation. Existingobservers948487/948488 remain alive but need renewal before12hdeadline06:12UTC. Completionwatcher1516115 exited onoldfailure and must restart for resumedbatch.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:09:04.704282+00:00
+
+{"utc": "2026-11-12T04:09:03.607668+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-outage-all2x5-counter-clock-20261112-r2", "completed": 5}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:12:27.262243+00:00
+
+{"utc": "2026-11-12T04:12:21.595671+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-reconnect-controlled-SA-8", "completed": 6}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:14:28.805150+00:00
+
+{"utc": "2026-11-12T04:14:22.990145+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-native-hang-controlled-SA-8", "completed": 7}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:16:30.361533+00:00
+
+{"utc": "2026-11-12T04:16:12.423098+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-prefetch-missing-pts-controlled-SA-8", "completed": 8}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:18:11.657632+00:00
+
+{"utc": "2026-11-12T04:17:59.819818+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x5", "completed": 9}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Continuous campaign resumed, recovery verified, no policy/image change — 2026-11-12T04:20:14.945040+00:00
+
+User explicitly requires continuing until goal and confirms stream links already supplied. Frozen C15 config44051227 remains unchanged. Main1814636 resumed exact-command ledger; corrected fresh outage PASS, controlled reconnect PASS, native inference-hang recovery PASS, actual prefetched missing-PTS regression PASS. Original outage FAIL remains in ledger with independent counter-clock reanalysis; new permanent INC-030 overlaps OBS-02/OBS-03/PERF-07, no extra scenario count (282 total,30 incident families). Counter clock fixes test timing, not CV production timestamps or gates.
+
+Capacity S/SA at5/8/10FPS now running; no current maximum claim. Controller retains ordinary independent functional failures instead of ending batch. Updated search extends beyond prior boundary counts if all planned points pass, up to schema50. Live controller loaded earlier search, so postcontroller will detect any unbounded truncated frontier and exact-command resume updated search before declaring it complete. No FPS criteria relaxed.
+
+Postchecks waiter1835199 (third revision while idle, predecessors exited) waits exclusively for main completion. A pre-execution controller review caught top-level guard status/result mismatch: actual guard has status and per-attempt result. Added terminal/cleanup/attempt validation with11 unit regressions. Postchecks independently retain failed phases, continue safe independent checks and record all phase verdicts. Full final reporting no longer aborts merely because an hour or package audit failed; it reports actual verdicts. Those changes have not yet been exercised through the full native postcheck batch.
+
+Observer renewal at04:19:22UTC: old948487/948488 terminated cleanly; keeper1835853 and native follower1835854 started24h segments, preserving old observations. Analyzer now includes both observations and observations-20261112; synthetic external audit regression verifies both samples counted. Local mirror1512671/status1512672/results1512673/native1512674 remain alive; completion review watcher1966617 renewed24h. Mirror rsync0. Both handoffs maintained. Active pointer corrected.
+
+Local focused harness/controller/registry/observer audit:105PASS (79 capacity harness,14 registry,11 guard integration,1 segmented hardware audit). Registry had stale current-candidate values in generic new_image_status and missing INC-029 reciprocal memberships; historical scoped evidence retained separately, generic templates reset NOT_RUN and links repaired. Historical original CSV execution fields unchanged (digest regression passes). No new image, runtime/contract/policy changes, publication or Git push.
+
+Remaining: capacity frontier and selected1hourstress; agent API faults, original-pixel prefetch parity, independent marked latency, HTTP, sharedTCP5consumers, native-stage timing, identity role budgets and mixed-resolution roles, final package/JPEG audit and resource trends. Actual Management/agentstorage remains outside user boundary. Thermal guards pause/retry; cleanup/resource/native fatal must be diagnosed, not silently qualified. Host turbo/service isolation restoration remains required at actual completion.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:21:14.069088+00:00
+
+{"utc": "2026-11-12T04:20:57.657442+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-17x5", "completed": 10}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:24:16.364545+00:00
+
+{"utc": "2026-11-12T04:24:03.918280+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-18x5", "completed": 11}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Live source refresh and broader harness checks — 2026-11-12T04:24:28.722141+00:00
+
+From .64 all six user RTSPS paths camera01/ch9/ch10/ch16/traffic1/traffic2 successfully returned stream metadata. camera01/traffic1 H2641080; traffic2 HEVC1080; ch9/ch10/ch16 HEVC2560x1440. This is FFprobe availability, not image decode qualification. User TCP9001–9010 refused connections. Recorded user-source-availability-20261112.json; controlled50-source TCP replay remains active, no source-blocked campaign stop. Added actual native image checks for six separate live RTSPS sources at8FPS and a six-source mixed5FPS fleet. Postwaiter1841931 now waiting for main; prior waiter replaced while idle to load those new tests. CV capacity run not restarted. No user credentials requested.
+
+Local offline harness suite223PASS in4.06s, excluding test_policy_scenarios.py because host does not expose baked runtime pipeline module. Initial broad collection failed solely for that absent host PYTHONPATH, not a runtime-model failure; policy30cases already passed against actual baked candidate. Interim fresh package audit11cases/11840packages/971savedJPEGs,0errors; not final capture completion, recognition accuracy or agentfsync guarantee. Short17x5 scene-only currently running, not yet a verdict.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:27:18.790972+00:00
+
+{"utc": "2026-11-12T04:27:12.136391+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x8", "completed": 12}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:30:21.208256+00:00
+
+{"utc": "2026-11-12T04:30:07.872548+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-13x8", "completed": 13}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:33:23.633995+00:00
+
+{"utc": "2026-11-12T04:33:05.982928+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-14x8", "completed": 14}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:36:26.055115+00:00
+
+{"utc": "2026-11-12T04:36:06.140558+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x10", "completed": 15}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:39:08.240501+00:00
+
+{"utc": "2026-11-12T04:39:01.886491+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-11x10", "completed": 16}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Capacity progresses; pre-execution regression coverage review — 2026-11-12T04:39:40.107308+00:00
+
+C15 short scene-only18x5 PASS (completed4.964–4.994FPS/cam,57pairedsceneimage/vector packages percam over120s);13x8 PASS (7.945–7.996);14x8 PASS (7.865–7.939, worst sampled completed-window ratio.9403). Search presently11x10. These are not maxima: all planned5/8 counts passed, so exclusive postcontroller must extend updated search before finalizing. Main1814636 retains its already-loaded original plan; no CV interruption to alter it. Search-extension handler reuses only exact-command matching terminal rows. All-app frontiers/hour still pending.
+
+Postwaiter1871321 loaded final pre-execution queue. Prior waiting helpers were terminated while idle to stage controller fixes and additional fresh checks; active native cases were not restarted. Role budget now reaches8/8 identities at allFPS if lower points pass. API failure output ownership restored in finally so failed evidence can be mirrored. Fresh15-case TLS matrix added forC15: earlierC12 TLS passes cannot qualify this image. Six live RTSPS sources plus mixed6cam run remain queued. User source TCP refusal does not halt controlled TCP cases.
+
+Confirmed currentenp2s0 link1000Mbps/full; cumulativeRXerrors/drops0, cumulativeTXdrops20 (not attributed to this campaign). Device-holder snapshot shows desktop/system consumers only at that between-case instant; no other CV model process identified. Do not claim zero total nodeGPUactivity or remove required desktop/OSservices. Hardware audit17x5 GPUcompute median78.77%, video32.98%;18x5 compute81.64%, video35.85%;CPUtempmax72/76C. These engine values differ from the health GT-active-residency values, and must not be summed. New observer segments are included. Resource progress JSON archived; no full-hour qualification yet.
+
+Runbook Current State corrected from staleC14 toC15 and30incidentfamilies. Generic registry new-image statuses remainNOT_RUN; prior scope evidence retained. Syntax and11guard-integration unitchecks passed after controller changes; earlier223offlineharness and30actual-bakedpolicy cases retained with their respective scopes. No runtime/image/contract/gate/model change and no publication.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:42:10.564607+00:00
+
+{"utc": "2026-11-12T04:41:59.992433+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-12x10", "completed": 17}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:45:12.959673+00:00
+
+{"utc": "2026-11-12T04:44:58.203694+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-1x5", "completed": 18}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:48:35.566959+00:00
+
+{"utc": "2026-11-12T04:48:16.108617+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-4x5", "completed": 19}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:51:37.913286+00:00
+
+{"utc": "2026-11-12T04:51:34.250813+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-5x5", "completed": 20}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C15 continuous native checkpoint and disk preservation — 2026-11-12T04:52:13.732797+00:00
+
+Main1814636 continues without pause. Scene-only11x10 PASS;12x10 FAIL due completed-window ratios.893288(cam04)/.898701(cam07), despite mean9.504–9.744 and selected/scenecoveragePASS, no nativefatal. True completed-work deficit, not the earlier HTTPclock bug. OriginalFAILretained; no FPS criterion changed. All-app1x5 PASS with923totalpackages,412evidence,70scene/129body/39face/6gaitvectors overwholecase (not steady-only counts). All-app4x5 nowPASS and5x5starting; live results remain automatic inRESULTS_CURRENT, no sustained/universalmaximum claim.
+
+At next case startup, verified-duplicate housekeeper1891817 finished in3.157seconds entirely in startup phase. For21completed C15 rawtrees it checked identical regular-file sets and every source/archiveSHA, then replaced onlyduplicate /tmp raw copies with symlinks to immutable archives. All raw paths/evidence remain accessible, offhost archives retained. Reclaimed333.3MiB without lowering6GiBguardfloor. Source/endedphase proof and all per-file manifest identities inR15/artifacts/verified-raw-dedup-20261112/report.json. No steady-phase housekeeping overlap recorded.
+
+Pre-execution edge review added actual-image bad-first-source mode to recovery helper and future continuation: reserve a local RTSP port without listening, put that source first, require healthy peer startup,Ready,unchangedPID/fresh counter-clock selected+completedFPS and validpeer package/session whilebadcamera staysunavailable/0frames. This is the missing whole-imageDEP-05 check, distinct from earlier pureGStreamer TLSbadleader check. It will run during mandatory updated frontier extension; not yet executed/PASS. Existing modes retain exact camera-set checks and now explicitly reject missing finalsession metadata. Recovery helper snapshots its own code,capacityhelper andcaptureagent hashes in new output. No runtime/policy/schema/image change. Syntax and90focused harness/guard tests PASS after mode addition.
+
+Postwaiter1871321 is latestidle helper; includesfreshC15 TLS15cases andAPI11faults,parity/latency/HTTP/sharedTCP/native-timing/full8camidentitybudget/mixedroles/liveRTSPS. Previous idlewaiter revisions/logs kept; running CV cases never restarted to reload them. Current runbook points toC15 and30incidentfamilies; both handoffs maintained. Actualone-hour and remainingchecks still pending, no push/publication.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:55:00.559573+00:00
+
+{"utc": "2026-11-12T04:54:52.376204+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-6x5", "completed": 21}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T04:58:23.200715+00:00
+
+{"utc": "2026-11-12T04:58:10.537756+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-1x8", "completed": 22}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T05:01:45.782562+00:00
+
+{"utc": "2026-11-12T05:01:26.442752+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-2x8", "completed": 23}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T05:04:48.120667+00:00
+
+{"utc": "2026-11-12T05:04:40.487612+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-3x8", "completed": 24}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T05:08:10.744470+00:00
+
+{"utc": "2026-11-12T05:07:56.540132+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-4x8", "completed": 25}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T05:11:13.123700+00:00
+
+{"utc": "2026-11-12T05:11:12.659047+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-1x10", "completed": 26}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C15 8FPS frontier and independent stage-work analysis — 2026-11-12T05:14:17.493130+00:00
+
+Main1814636: all-app2x8 PASS (slowest7.9712FPS,worstwindow.98697);3x8 PASS (slowest7.8860,worstwindow.94483);4x8 FAIL (slowest7.41493,worstwindow.83138), no nativefatal. Proceeding all-app10FPS, then selected1hour at3x8. These are current short-test points, not a physical hardware ceiling or inherited historical16cam claim. Scene on every camera. No image/gates/schema/model change.
+
+Added read-only analyze_stage_work.py +2synthetic regressions (PASS). Uses cumulative invocation counts and lifetime-mean deltas fromfreshsame-reporter snapshots inside steady windows, per-camera epoch/session checks, explicit counter-coverage interval, actual per-frame modelrequest multiplicity. ProducesJSON/CSV, not per-callp95/kernel-time claims. Existinghardware analyzer accounts for renewedobserversegments. Latest26case hardware progress analysis:5camall-app5FPS NPUmedian46.875%,GPUcompute45.20%,CPUtempmax84C;6camfail NPU54.825%,GPUcompute53.83%,CPUtempmax90C. Node-scope hardware samples; not summable, not saturated-device proof.
+
+6camcounter-covered policy span means~105–115ms; selected-BGR materialization~57–60ms; body schedulerqueue~10–12ms. These are overlapping/blocked wall-time spans, not proof of pureCPUconversion cost or an identified driver cause. Kept currentfrozenbaseline; no speculative model/device/ROI/async rewrite. ActualGStreamer-element timing and independently markedlatency remain queued. Steady means/per-callback rates exported stage-work-progress-20261112.json/.csv.
+
+Read-only local completion watcher2161300 replaced1966617 to include finalstage-work report in final audits. Currentpostwaiter1956056 (r7) waitingexclusively. Queued realRTSPS checks nowexplicitly mixedactivity, because valid physical streams can enter intendedmotion-quiet mode; thesearefunctionalchecks, notbusy-capacity measurements. Controlled busy capacity stillrequires actualinferredframes and alloriginalFPS/scenecriteria. No silent weakening of those comparisons.
+
+Confirmedhour diskforecastfromactualrawarchives:3x8 archive13.1MiB/packages5.3MiB overwhole~160s;5x5archive15.5MiB/packages7.8MiB. Boundedgallerymeans fullhournotlinearJPEGgrowth; currentroot~7.05GiB free. No needlower6GiBguardfloor. Startup-only verifieddedup retainedallbyteidentical archives aslinks. AllPIDupdates andscripts recorded, bothhandoffs maintained, no publish/push.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T05:14:35.762779+00:00
+
+{"utc": "2026-11-12T05:14:26.624145+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-2x10", "completed": 27}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T05:17:58.448452+00:00
+
+{"utc": "2026-11-12T05:17:40.671228+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-3x10", "completed": 28}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T05:21:00.637655+00:00
+
+{"utc": "2026-11-12T05:20:54.775061+00:00", "controller_pid": 1814636, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-all-3x8-one-hour", "completed": 29}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T06:22:28.115203+00:00
+
+{"utc": "2026-11-12T06:22:15.705382+00:00", "controller_pid": 2161853, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-bad-first-source-controlled-SA-8", "completed": 30}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C15 hour continues; post-performance deployment and motion tests prepared — 2026-11-12T06:22:56.745570+00:00
+
+Latest main1814636 has29terminalrows; selected3x8all-app hour running sinceabout05:21UTC, healthy near24FPSaggregate, memoryabout3.24GiB by06:19, temperature70C latest (periodic peaks retained), no nativefatal/restart observed sofar. DO NOT callhourPASSuntil rawterminalreport. All-app shortfrontiers5@5,3@8,2@10; next6/4/3failed genuinecompleted-work thresholds. Scene-only18@5/14@8arelowerbounds awaiting extension;11@10PASS12FAIL. No image/gate/policy/contract/model change. MainfrozenC15config44051227.
+
+Postwaiter2144377(r11) waiting exclusively. Previous idle helper revisions preserved (r1–r10) and replaced withoutrestartinganyrunningCVcase. Extra queuedchecks close real gaps: whole-imagebad-first-source duringmandatoryextension, fresh15TLS/11API, prefetchpixelparity, markerANPR1x8 pluspeoplefleetatpassingSA8count, native quiet→people→quiet+scenecadence, HTTP, sharedTCP5clients, nativeelementtiming,8cameraidentitybudgets5/8/10,mixedroles2/8, sixrealRTSPSsinglechecks+mixed6fleet, then disposableK3s/containerd integration. Physical livechecks explicitly mixedactivity; busycapacity criteria stillunchanged.
+
+Prepared markedpeople1080p30 fromexactsameMOT17sourceSHA516f135cb80a0f30ef9de47769160826d4e895865cb076f1013d6d2c654b6c21. Markedoutput5982fbc6b2d5f9a9a76c67397ccc3627ed4b8a178cd1a35ccd5efa587e6c1128,169.38MiB,120s/3600frames; markedtestisaseparateworkload,notunmodifiedaccuracy/parityproof. Preparedmotionclipblack45/people60/black45seconds,150s1080p30withoutchangingpixelmarkersinquiets; SHA7bb49dcf730ee83d4a11424b3eafc10658e016ee24f552eeea760ef709fe11f3,83.63MiB. Both encodedONLYon.92atlowCPUpriority, copiedto.64at8Mbps, verifiedSHA/sourcehash; no remoteencoderorGPUworkduringhour. FixtureproofsR15/artifacts/marked-people-fixture-ready.json andmotion-fixture-ready.json. Rootfreeabout6.74GiB; privatefixturescopiesaretestbudget,6GiBCVguardnotlowered.
+
+Newanalyze_motion_transitions.py+7pureoraclecasesPASS: requiresfreshsame-epochcounterclockQ/A/Q, cannotcallfrozen/stale/alwaysactiveaquiet/wakesuccess. NativecheckalsodecodesfullsceneJPEGstoconfirmblackvspeopleandrequiresquiet4–7secondsceneintervalsplusactiveintervals≤3seconds. CounterFPSandpixel-cadenceboundsaretestoracles,notruntimegatechanges. Nativeexecutionstillpending. All234offlineharnesstestsPASSin3.87s(excludinghosttest_policy_scenarioswhichalreadyhas30actual-bakedpasses).
+
+Newkubernetes_current_image.pyisPREPARED,NOTYETEXECUTED. ItusesinstalledK3sv1.36.3+containerd2.2.1,fullyseparateCRIroot/state/socket,snapshots,K3sdatadir,kubeconfig,ports,node/CIDRsandprivatecgroupRoot. Existinghistoricalkubernetes_check.pyhardcodesOpt79andcouldaddresstheoriginalCRI; DO NOTRUNit. NewhelperimportsDockerimagebystreamingintoprivateCRIwithdiscard-unpacked-layers,splitcontent/tmpvsimagesnapshots/home. Copy-preparationbudget2GiB/root,2GiBprivatefs; beforeandduringactualCVpoditsROOTflooris6GiB/RAM4GiB. Originalnativecapacityguardsremain6144MiB. Noimagecopy/clusterstartedwhileperformancecasesrun.
+
+NewK8scheckusesnonroot10001,privilegedhostNetworkdeviceaccess(actualdevicepluginsecurityprofileNOTqualified);directUDScaptureagentAPI,neverManagement. Verifiesactualcgroup4CPU/8192MiBfromhealth,VAdecode/GPUprimary/NPUidentityplacement,allfourpositiveembeddingprofiles+JPEGbytes,projectedConfigMaprevision2withstreamsessionpreservedandrevision2inacceptedpackages,podreplacementnewUID/sessionwithfreshoutput. KubeletprivatecgroupRootpreventsorphanreconciliationoftheoriginalkubepods;owntransientsliceholder,explicitcustomCRIendpointsforkubectl/crictl/ctr,originalk3s/controlservicesmustremaininactive. Backupsandrestoresoriginalnodecredentialbytes/mode/owner/timewithoutloggingthem;ephemeralcredentialsstayprivateoutsidemirroredartifacts. Cleanupstopsprivatepods/tasksbeforedaemons;onlyderivedprivateruntimecopiesremoved,retainbackuponcredentialrestorefailure. ThermalguardSIGTERMhandlercleansprivateCRIandcool/retryretainsseparateattemptdirs.13focusedconfig/guardtestspassed;thisisnotnativeK8sPASS.
+
+CgroupisolationdesigncheckedagainstprimaryKubernetes1.36.3sources:https://raw.githubusercontent.com/kubernetes/kubernetes/v1.36.3/pkg/kubelet/cm/container_manager_linux.go andhttps://raw.githubusercontent.com/kubernetes/kubernetes/v1.36.3/pkg/kubelet/cm/cgroup_manager_linux.go .Logicalcgroupfsrootnamesmaptosystemdslices;usingaseparateCRI/datadiraloneisnotenoughtoavoidtheoriginalpodcgroupnamespace. ScriptisnotapartofCVimageandchangesnoproductionthresholds.
+
+Originalhostrestorationstillpendingatactualcompletion:turbooriginal0,onlyourisolationdropins/marker,originalservicesasrecorded;donotrestorewhiletestscontinue. Currentglobalobservers1835853/1835854andlocalmirror/status/results/nativewatchersremainactive;read-onlycompletionwatcher2161300waitsforpostendandwillwritepackage,JPEG,hardware,stage-workandhourtrendreports. NoGitpushorregistrypublicationauthorizedbythiscampaign. PreserveeveryFAIL,exclusionandsetupissue;doNOTclaimall282catalogcasesexecuted.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T06:23:49.154041+00:00
+
+{"utc": "2026-11-12T06:23:47.285532+00:00", "controller_pid": 2161853, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-20x5", "completed": 31}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T06:27:11.748327+00:00
+
+{"utc": "2026-11-12T06:26:57.567151+00:00", "controller_pid": 2161853, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-19x5", "completed": 32}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T06:30:14.143414+00:00
+
+{"utc": "2026-11-12T06:30:07.961902+00:00", "controller_pid": 2161853, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-16x8", "completed": 33}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C15 continued validation — 2026-11-12T06:33:13.284632+00:00
+
+User requires uninterrupted independent testing with existing camera URLs. Runtime/image/models, production policy and V8 contract unchanged. Active main2161853 extends scene-only boundaries; postcontroller2144377 owns it as child while waiting for search to finish: DO NOT terminate/reload that parent because signal handler terminates active main. Already loaded postcontroller won't see a newly staged phase, so one fresh bad-first r2 is queued behind the exclusive POSTCHECKS.lock after the original postbatch; it never overlaps performance work. Its source/command is archived at L15/deferred-bad-first-r2.py. Updated postscript also includes the same phase for future fresh invocation, not the running one.
+
+Exact hour all3x8 PASS:3600.391671s steady,360 samples, per-camera completed means7.94318/7.93003/7.93958FPS, worst window ratios.93412/.930825/.942703, scene pairs1756/1754/1756 with1692 required each, zero unready snapshots/nativefatal. Offline sustained analysis L15/one-hour-sustained-analysis-20261112.json: cgroupmemory3096.20–3244.52MiB; whole-hour fitted+2.373MiB/min, last30minutes+1.475MiB/min. This is positive memory growth, NOT flat/leak-free proof. CPUmedian3.4395cores,p953.9579,max4.245. Three-camera one-hour replay is a bounded workload qualification, not all resolutions/sites/maximum capability.
+
+Initial bad-first-source-SA8 FAIL preserved: peer had a15-second test-only startup deadline, logged initial surface timeout and verified recovery in6.736s before baseline. All7 baseline/observation samples thereafter Readytrue/fresh,PID51 unchanged, lifetime reconnects/errors=1/1 constant, selected and completed about7.87–8.12FPS. Old oracle rejected any nonzero lifetime counter. New oracle requires integer/nonnegative baseline, unchanged counters throughout observed window, all original freshness/readiness/PID/counter-clock/rate checks still enforced. Decrement/reset/increment/missing/invalid counters fail.98 focused harness/controller cases PASS including8 new counterhistory tests. Derived L15/bad-first-counter-baseline-reanalysis-20261112.json says corrected peer progress true; this is reanalysis, NOT newly executed nativePASS. Fresh r2 ordinary bad-first test uses baked first-frame timeout35s instead of test-specific15s; other fault-injection modes retain documented15s. No production threshold changed.
+
+Scene-only18x5 PASS,19x5 and20x5 FAIL on completed-work windows, no nativefatal. Scene16x8 running now; previous14x8 onlylowerbound. All-app short5/3/2 at5/8/10 remains current controlledbusy corpus result, scene everycam. Every failure/exclusion retained. All282catalog cases are not yet executed; never relabel a setup error or imageFAIL as PASS. No push/publication.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T06:33:16.537813+00:00
+
+{"utc": "2026-11-12T06:33:12.190089+00:00", "controller_pid": 2161853, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-15x8", "completed": 34}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T06:36:18.930122+00:00
+
+{"utc": "2026-11-12T06:36:15.043217+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "tls-regressions", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+C15 offline verification update2026-11-12:242host harness casesPASS(4.14s), excludingalready-bakedpolicy module. Hour capture independentlyaudited81274packages/32774evidencemetadata/20848embeddingmetadata/128savedJPEGs:zeroerrors, eachsavedJPEGdecoded/hash/shapechecked; norm/profile/parent/frame/presencelinkscheckedforallcapturedmetadata. ThisisagentAPIcaptureintegrity,notreal-agentdiskdurability/Management. InitialauditCLIinvocationpassedrawdirratherthancampaignrootandfound0cases;preservedasinvalidinvocation,notimagefailure; directaudit-r2isactualproof. Deferredfreshbad-firstPID2185941waitsforexclusivepostend; startup-onlySHAverifiedrawdedupPID2188197waitsforsafestartupwindow,retainsallrawpaths/archivebytes.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T06:36:59.451704+00:00
+
+{"utc": "2026-11-12T06:36:39.408041+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "agent-api-regressions", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T06:37:40.056002+00:00
+
+{"utc": "2026-11-12T06:37:34.654640+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-marked-latency-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T06:41:02.788398+00:00
+
+{"utc": "2026-11-12T06:40:57.107633+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-marked-people-latency-SA-3x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C15 postchecks progress — 2026-11-12T06:44:17.368793+00:00
+
+Main2161853 finished extended shortfrontiers: scene-only18@5/14@8/11@10, immediate19/15/12failed; all11bindings5@5/3@8/2@10, immediate6/4/3failed. Theseare120sbusy1080p30replay/turboOFFpoints,notphysicalmax. FreshTLS15/15PASS,agentAPI11/11PASS. MarkedANPR1x8PASS independentPES-to-APImedian478.52ms,p95584.01ms,max606.66ms(54steadyscenesamples),startupseparatelyrecorded. Markedpeople3x8nowrunning.
+
+Postpixelparityfailedbeforeanynativecase: baseline-command.jsonis{command:[...]},oldhelperattemptedbase[:]onadict. Parsernowacceptsexplicitrecordenvelopeorlegacyargv, rejectsinvalid/incompleteforms;8newpuretestsPASS. PatchedhelperstagedtoR15. OriginalFAIL/tracebackretained; **freshnativepixelparityrerunSTILLREQUIREDafterexclusivepostbatch/deferredbadfirst**; donotmarkfixednativePASS. Existingrunningparentusesalreadyevaluatedphaseandwillnotretryitautomatically. NoCV/runtimechange.
+
+Verifiedduplicate housekeeping completedonlystartup:15newrawtrees exactlySHA/filesetmatchedimmutablecompletedarchives,433.62MiBduplicatesreclaimedin4.137s,start/endphase startup. Alloldpathsretainedaslinkstoarchives; rootfreeabout6.7GiBafterhousekeepingthennewmarkerartifacts. Noarchivedevidence/model/imagebytesremoved.
+
+Currentreports: L15/CAPACITY_AND_HOUR_CHECKPOINT_20261112.md explicitlypartial; hardware-progress-20261112-hour.json and stage-work-progress-20261112-hour.json cover36completednativeintervals. Hourrawdecoded29.924–29.926FPSpercamera,selected8,completed7.93–7.94. HourGPUcompute median39.07%/p9544.81%;NPUmedian41.02%/p9552.12%;CPUmaxsensormedian75/p9584/max90C,packagepowermedian22.20W. Metricsnode-scopednotexclusivekernelutilization. BGRselectiveinvocationwallmeanabout41.67msfirstcam; activepolicy49.76ms; fullframeprocessing107.48ms. Gaitbackgroundupdateabout60–63msat2.66calls/s/camera; theseareoverlappingwallspans,notadditiveCPUcost. Nohardwarebottleneckrootcauseinferred.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T06:44:25.372447+00:00
+
+{"utc": "2026-11-12T06:44:16.132438+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "marked-people-latency-analysis", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T06:44:45.629638+00:00
+
+{"utc": "2026-11-12T06:44:26.735862+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-motion-quiet-people-quiet-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T06:48:28.499792+00:00
+
+{"utc": "2026-11-12T06:48:16.353762+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-http-S-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T06:51:30.868224+00:00
+
+{"utc": "2026-11-12T06:51:12.430644+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-shared-tcp-S-5x5", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C15 motion-control finding — 2026-11-12T06:52:57.023226+00:00
+
+{"utc": "2026-11-12T06:52:57.023074+00:00", "native_image_config_id": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "raw_report": "optimization_evidence/2026-11-11-remote64-c15/remote-artifacts/runs/remote64-c15/post-motion-quiet-people-quiet-SA-1x8/raw-sentry-v8-capacity-1.jgaf_91t/report.json", "probe_passed": true, "motion_control_passed": false, "counter_pattern": ["active"], "black_scene_JPEGs": 56, "people_scene_JPEGs": 30, "finding": "No quiet counters despite56 independently decoded black scene JPEGs; two smoke-suspected packages contain320x320 all-zero JPEGs. Native fire evaluation can legitimately hold motion active if it reports positives. Which inference/preprocessing/postprocessing stage produced those positives remains unconfirmed. Offline .92 CPU/OpenVINO2024.6 FP32 raw-zero reference maxsmoke=.04445 differs from native observed output but cannot by itself establish GPU/native numerical parity. Do not call either motion gate broken or model accuracy cause yet.", "next_check": "Exclusive current-image black-frame diagnostic: capture native raw fire ROI confidence/tensors and model hash, compare direct same-image/device prepared inputs vsGVA, then pick/verify trulynegative fixture. Preserve gates/policy. Test a full motion cycle long enough to include quiet before/after regardless of startup phase; initial150s steady started after firstblack portion.", "pending_pixel_rerun": "Archive command parser fixed8tests; run existing pixel_conversion_parity.py after postbatch/deferredbadfirst, originalFAIL retained."}
+
+Independent markedpeople3x8PASS:54steadyscenemarkers/camera,median373.35/406.07/444.01ms,p95572.78/651.82/621.93ms,max675.75/804.45/698.72ms. ThisincludesPES→decode/model/policy/JPEG→agentAPI,excludescapture/encoding/actualagent/Management. HTTPnative1x8nowrunning;postbatchcontinuesindependentcases. Noimage/gatechange.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T06:54:33.285047+00:00
+
+{"utc": "2026-11-12T06:54:15.647005+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-native-stage-timing-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C15 ongoing postchecks and queued diagnostics — 2026-11-12T06:56:30.208152+00:00
+
+HTTPnative1x8PASS(mincompleted8.00868,worstwindow.99128). SameTCPURL5independentcameraIDs×5FPSPASS(mincompleted4.99459,worstwindow.98377),sceneeverycam. NativeGStreamer-stage tracer1x8 SA nowrunning, theneight-cameraidentitybudget5/8/10,mixedroles,sixliveRTSPSsources+mixedfleet,privateK8s. Parent2144377exclusivelockstillactive; doNOTstartanynewremoteinferenceconcurrently.
+
+MotionnegativefixturefindingremainsUNRESOLVED: allblacksceneJPEGSverified, blackfireevidence320×320exactzero, two smoke-suspectedevents. AnofflineCPU2024.6localFP32referenceoflocalfireIRzeroarrayrawmaxsmoke.04445; nativeconfidencesnotcapturedbyminimalagentmetadata. LocalreferenceSHAfireXMLf6a4483aa6cdb02f435c845758342a7b0aa8fa833ed587c5cb5e13b3ae73eed9,BIN406c2c2b69e3eee6f542763b90fd857f573b68fa6986f8905bb2797fbbeda8efwasNOTverifiedagainstactualC15bakedfireIRyet; donotinferGPU/converter/modelcause. Prepared/staged scripts/isolated_validation/fire_blank_parity_probe.pyforAFTERexclusivepostbatch+deferredbadfirst:readsactualbakedmodel+procSHA,comparesCPUFP32reference/GPUdefault/GPUFP32/directandGVAOpenCVGPUonidentical320x320uniformpixelinputs. DiagnosticCPUisexplicitreferenceonly,notproductionfallback. NOTRUNyet; py_compileonly.
+
+Remainingrequiredmanualafterpostbatch: (1) freshpixelparityrerunusingfixedcommandparser; (2) fireblacknative/directparitydiagnostic; (3) verifiednegativequiet/wake/quietrerun(fullcycle>=300sifnecessarytobracketcoldstart; old150sstartedafterinitialquietandallsamplesactive). DoNOTdeclaremotionPASSpartiallyorchangeemissionthresholds. OriginalFAILsretained. Deferredbadfirst2185941automaticallyrunsafterexclusivepostcontrollerreleaseslock,withproductiondefaultfirstdeadline; nooverlap.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T06:56:34.815227+00:00
+
+{"utc": "2026-11-12T06:56:32.508659+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-role-budget-eight-4identity-5fps", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T06:59:57.493959+00:00
+
+{"utc": "2026-11-12T06:59:43.759542+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-role-budget-eight-8identity-5fps", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:02:59.828403+00:00
+
+{"utc": "2026-11-12T07:02:57.968733+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-role-budget-eight-6identity-5fps", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:06:22.460302+00:00
+
+{"utc": "2026-11-12T07:06:10.169636+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-role-budget-eight-5identity-5fps", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C15 stage and output-volume measurements — 2026-11-12T07:09:06.304877+00:00
+
+NativeelementtracerPASS criticalsamples primary667/face668/ada665. {"decoder@0x72deb81a9b30": {"samples": 1334, "min_ms": 0.852757, "p50_ms": 33.759701, "p95_ms": 42.3787521, "max_ms": 19643.039717}, "motion@0x72deb8440960": {"samples": 690, "min_ms": 2.235632, "p50_ms": 3.4637985000000002, "p95_ms": 8.609957249999992, "max_ms": 10.925829}, "policygate@0x72deb82f3aa0": {"samples": 669, "min_ms": 0.244528, "p50_ms": 0.357932, "p95_ms": 1.1233326000000003, "max_ms": 21.084389}, "firedet@0x72deb83de2b0": {"samples": 173, "min_ms": 2.119589, "p50_ms": 3.099913, "p95_ms": 7.740443200000006, "max_ms": 23.503816}, "primarydet@0x72deb88bed10": {"samples": 667, "min_ms": 5.263444, "p50_ms": 6.363686, "p95_ms": 9.985646899999999, "max_ms": 17.406863}, "facedet@0x72deb88bf840": {"samples": 668, "min_ms": 0.060216, "p50_ms": 0.093333, "p95_ms": 15.658326149999999, "max_ms": 29.657431}, "faceclass@0x72deb82dd690": {"samples": 665, "min_ms": 0.027565, "p50_ms": 0.046175, "p95_ms": 36.460631199999995, "max_ms": 55.815216}}
+
+Theseelementlatencydistributionsinclude startup/warmup/steady andwaiting,notpurekerneltime;decoder19.643smaxiscoldstartupincluded,notsustaineddecodelatencyclaim. Genericsecondaryinferinstancesnotassignedtomodelswithoutidentityproof. Exactnative-element-latency.jsonretained. HourJPEG-onlysteadyoutput3.611245Mbit/saggregate(1.2050/1.2102/1.1961percamera); excludesvectors/JSON/protocol/retrybytes. Fullagentend81274packagesincludesstartup/cleanup; steadycutoff80839. Atfinalhealth:admitted81282=durable81256+coalesced26,backpressure408,exhausted0,protocol_errors0,pending0. Donotcomparethathealthcutoff81256directlytofinalagent81274asloss.
+
+Eightcameraidentitybudget5FPS:4identity+4scenePASS;8identityFAIL(mincompleted3.44485,worst.61379);6identityFAIL(min4.26564,worst.79067);5identitycurrentlyrunning. IdentityprofileSIFBGdiffersfromall11bindingsSA,soitscapacitymustbeseparate. Allsceneimages/vectorsstillrequired. Shorttestsarenotonehourcapacity.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:09:24.877606+00:00
+
+{"utc": "2026-11-12T07:09:22.380810+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-role-budget-eight-2identity-8fps", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:12:47.451952+00:00
+
+{"utc": "2026-11-12T07:12:30.590649+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-role-budget-eight-1identity-8fps", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C15 budget frontier and fire-model identity checkpoint — 2026-11-12T07:13:48.487600+00:00
+
+Eightcameras5FPS:identity4PASS,5/6/8FAIL;5case mincompleted4.72613<4.75andwindow.88249<.9. Eightcameras8FPS:identity2FAIL minmean7.62873>=7.6butonewindow.8958838<.9; identity1nowrunning. Thisnearboundaryneedsrepeatafterbatch; doNOTtreatoneshortFAILasphysicalcapacitylimitordropstrictwindowcriterion. Eightcamera10FPSbudgetandmixed/live/K8sstillqueued.
+
+ActualbakedfireXML/BIN/procSHAread-onlyverifiedinownedcontaineratpost-role-budget-eight-2identity-8fps(noinference): artifacts/baked-fire-files-sha256-20261112.json. BothmodelSHAexactlymatchlocalreference,procSHA480ce4c12b1584e8373f42de0fec2ddbee22124b6a0bc1215a1142057810d44d. Native-versus-direct**same-image**GPU/CPUinferenceSTILLNOTRUN;oldOpenVINO2024CPUreferencecannotestablishGVA/GPUbehavior. SyntheticCPUblackcontentwith114horizontalpadding180/240pixelsalsomaxsmokebelow.14;noevidenceforpaddinghypothesiscause. Preparedfire_blank_parity_probe.py nowincludesdirectCPUFP32/GPUdefault/GPUFP32plusnativeGVAdefault/explicitFP32diagnosticvariants,properrectfields,reportedprecisionhintandactualmodel/procSHA. ThesearediagnosticsONLY; nooutputthreshold/device/productionprecisionchange.
+
+FOLLOWUP_REQUIRED_AFTER_POSTCHECKS.jsonlistspendingextras. Main2144377stillownsPOSTCHECKS.lock;deferredbadfirst2185941waits.NoothernativeCVworklaunched.NoGitpush/imagepublication.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:15:49.838980+00:00
+
+{"utc": "2026-11-12T07:15:38.773805+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-role-budget-eight-2identity-10fps", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:18:52.178208+00:00
+
+{"utc": "2026-11-12T07:18:46.960903+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-role-budget-eight-1identity-10fps", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:22:14.773553+00:00
+
+{"utc": "2026-11-12T07:21:55.247531+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-mixed-people1080-vehicle720-2x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:25:17.086584+00:00
+
+{"utc": "2026-11-12T07:25:05.451601+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-mixed-people1080-vehicle720-8x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C15 mixed roles and monitoring checkpoint — 2026-11-12T07:26:30.173440+00:00
+
+Budget8camera10FPS:identity2FAIL mincompleted7.0311/worst.60118;identity1FAIL min8.78191/worst.81951. Scene-only8x10previouslyPASS,soatthisshortcriterionnoextraidentitycameraqualifiedwithin8camerafleetat10FPS;thisisnotuniversaldevicecapacity. Two-cameramixedperson1080p+vehicle720pboth8FPSPASS min7.9830/worst.98241,required3personmodalities+plate_readpositiveandsceneeverycamera. Eightmixedcurrentlystarting. SixliveRTSPScases+mixedsix+privateK8sstillqueued.
+
+Model-IRrt_infomarksfireOpenVINOexport2026.3.1,whileC15runtime2026.2.0;notbyitselfproofincompatibility. ActualbakedSHAverifiedasrecorded. Nativemodel/procdiagnosticSTILLpendingafterexclusivebatch; donotspeculaterootcauseofblacksmokeoutputs. Stage-levelAdaFacecomputationstillnativeeverythirdeligibleframe,whereasPythoncandidatequality/pose/emissiongatesrunlater;thatdistinctionmustremainvisibleinreport. Noproductionoptimizationpatchmadeinthisturn; onlytestoracles, diagnostics, evidence andcontrollers.
+
+SHA/file-setverifiedrawdedupr3freed221.9MiB,r4freed120.7MiB,start/endstartupboth. Rootfree6.2GiBcurrentactivecase;preparedr5nextsafestartupforlivegalleryheadroom.Noarchivebyteslost. Everyremote6400memory/6GiBdisk/thermalboundstillenforced;noneweakenedforscores. Allwatchersmirror/status/results/native/completionalive,rsync0lastverified.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:28:19.507540+00:00
+
+{"utc": "2026-11-12T07:28:17.756449+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-live-rtsps-1-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:31:42.092625+00:00
+
+{"utc": "2026-11-12T07:31:33.713272+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-live-rtsps-2-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:35:04.804435+00:00
+
+{"utc": "2026-11-12T07:34:49.662850+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-live-rtsps-3-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:38:07.103711+00:00
+
+{"utc": "2026-11-12T07:38:05.673761+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-live-rtsps-4-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C15 live-source progress — 2026-11-12T07:39:11.355228+00:00
+
+Live RTSPS camera01 and ch9 each passed 1camera×8FPS with all bindings enabled (mixed-activity functional checks). Their slowest completed means were7.97848 and7.97965FPS, worst window ratios.97099/.96918, with no nativefatal. ch10 is running; ch16,traffic1,traffic2,the combinedsix-sourcefleet and Kubernetes still follow. These live checks are not diverse-site sustained-capacity qualification.
+
+Mixed1080p person +720p ANPR workload:2cameras×8FPS passed;8cameras×8FPS failed (minimum completed3.89112,worstwindow.42128) without nativefatal. Preserve that actualloadfailure separately from successful selected64FPSaggregate.
+
+Correction to an earlier compressed checkpoint typo:the native guard RAM reserve is4096MiB, disk reserve6144MiB; “remote6400memory” was not a setting. No guardthreshold changed. Verifiedduplicater5freed94.28MiB in startup. Rootfreeabout6.14GiB. Read-only Docker disk inventory showed zero buildcache and onlytwo small dangling images; noimages,containers,volumes or unrelatedprogramdata were removed. Docker logicalsize/reclaimable figures are not trusted asphysicalfree-space measurements. Rootstatvfs/guardis authoritative. OldC12–C14rawduplicatecandidatescontained0regularbytes, so no extra cleanup there.
+
+Followup JSON now also lists actual plainRTSPmedia and HTTPSpositive input coverage; plainRTSP404/TLS probes alone are not media/decode validation. These are pending, not credited asPASS. Keep originalpostcontroller anddeferredbadfirst exclusive; no newCVworkoverlap. The firemodel native/direct diagnostic and correctedpixelparity remain after that batch. No runtime/image/policy/schema change,push orpublication.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:41:29.588231+00:00
+
+{"utc": "2026-11-12T07:41:21.694212+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-live-rtsps-5-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:44:52.244771+00:00
+
+{"utc": "2026-11-12T07:44:38.153170+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "post-live-rtsps-6-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C15 evidence-storage preparation — 2026-11-12T07:46:11.867374+00:00
+
+Root reserve is near6GiB while all values must remain saved. Prepared `L15/relocate_completed_evidence.py` and copied it toR15. It waits for a no-container WAITING_COOLDOWN window, pauses ONLY the Python thermal-guard supervisor (never a native/media/model process), rechecks that no owned CV container exists, and resumes that supervisor in `finally`. It copies up to512MiB of old terminal/clean `turbo-off-next-*` case directories toR15/completed-evidence-storage on the separate home filesystem. It verifies both file sets and every SHA against the original before replacing canonical case paths with stable directory symlinks and reclaiming only the old verified duplicate. A precommit record names original,backup and destination; errors retain/restore data. Home must retain5.5GiB before the later3.2GiB privateCRI snapshot. No performance interval runs during this maintenance window; no threshold is lowered. Execution queued now; do not markcomplete until its report.
+
+Readonly mirror restarted1512671→2872758 and completion reviewer2161300→2872759 with rsync `--copy-dirlinks`, so relocated remote case directories are copied as actual local directories. No CV test restarted. Otherlocalwatchers1512672/1512673/1512674remain. Currentpost2144377/deferred2185941unchanged. On reboot, symlinked canonical paths resolve directly to home storage; no bindmount/systemd/fstab change was introduced. NoDockerimage/container/volume or unrelateddata removed.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:46:33.607244+00:00
+
+{"utc": "2026-11-12T07:46:25.212677+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 2144377, "case": "kubernetes-current", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:46:53.913731+00:00
+
+{"utc": "2026-11-12T07:46:42.919115+00:00", "controller_pid": 2144377, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "POSTCHECKS_FINISHED_REQUIRES_REVIEW", "completed": 35, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "kubernetes-current", "stage": "postchecks", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}]}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:54:19.755628+00:00
+
+{"utc": "2026-11-12T07:54:14.972810+00:00", "controller_pid": 2357680, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-blank-native-direct-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}]}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:55:00.261183+00:00
+
+{"utc": "2026-11-12T07:54:41.245864+00:00", "controller_pid": 2357680, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 35, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-blank-native-direct-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:55:40.782945+00:00
+
+{"utc": "2026-11-12T07:55:40.217280+00:00", "controller_pid": 2359681, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-blank-native-direct-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:56:21.285449+00:00
+
+{"utc": "2026-11-12T07:56:06.509948+00:00", "controller_pid": 2359681, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 35, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-blank-native-direct-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:57:42.428128+00:00
+
+{"utc": "2026-11-12T07:57:27.577828+00:00", "controller_pid": 2362764, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-blank-native-direct-r3", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T07:58:22.962665+00:00
+
+{"utc": "2026-11-12T07:58:02.835763+00:00", "controller_pid": 2362764, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 35, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-blank-native-direct-r3", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:03:26.921419+00:00
+
+{"utc": "2026-11-12T08:03:06.716356+00:00", "controller_pid": 2370994, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-integrated-pixels-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:05:08.212180+00:00
+
+{"utc": "2026-11-12T08:05:00.625523+00:00", "controller_pid": 2370994, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 35, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-integrated-pixels-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:07:30.083020+00:00
+
+{"utc": "2026-11-12T08:07:18.232750+00:00", "controller_pid": 2378031, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 35, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-aspect-matrix-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:07:50.348999+00:00
+
+{"utc": "2026-11-12T08:07:47.447870+00:00", "controller_pid": 2378031, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 35, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-aspect-matrix-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:14:15.515905+00:00
+
+{"utc": "2026-11-12T08:14:08.042840+00:00", "controller_pid": 2387954, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-integrated-pixels-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:16:17.097192+00:00
+
+{"utc": "2026-11-12T08:16:02.134471+00:00", "controller_pid": 2387954, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-integrated-pixels-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C15 follow-up campaign checkpoint — 2026-11-12T08:16:38.464167+00:00
+
+The original postcontroller2144377 has exited. Its original POSTCHECKS_CURRENT.json remains immutable status history; CAMPAIGN_CURRENT now tracks individually launched exclusive follow-ups. Every original guard/model report remains preserved. **No runtime/image/model/production-policy/schema change has been made in this turn.** No push/publication.
+
+Original batch outcomes: TLS15/15 andagentAPI11/11 PASS; markedANPR1x8 andmarkedpeople3x8 independentlatency PASS; nativeHTTP1x8,sharedTCP5x5 and nativeGStreamertrace PASS. Eight-camera identity budgets(sceneeverywhere):4identity at5FPS PASS;5/6/8identity at5FPS FAIL;1identity at8FPS PASS,2identity at8FPS narrowlyFAIL(.8958838window vs.9);1/2identity at10FPS FAIL. Mixedpeople1080p+vehicle720p2x8 PASS,8x8 FAIL(mincompleted3.89112). Workflow phase statusPASS for an allow-capacity-failure search means the search executed; it does NOT override a failing raw capacity report.
+
+LiveRTSPScamera01,ch9,ch10,ch16 each1x8 PASS. traffic1(5thsource) FAIL mincompleted7.21187,worst.74858,no nativefatal. traffic2(6thsource) was resource-excluded when root disk crossed6144MiB reserve; six-sourcecombined also excluded. These must be rerun with fresh names after storage relocation, not counted as runtime failures or passes. Automatic deferredbadfirst-r2 also exited2 before native execution because the guard reserve failed; preserve its guard and label as resource-excluded, not an actual nativeFAIL. The original badfirst-r1 counter-oracle failure and derived reanalysis remain separate; fresh default35s native proof is still pending.
+
+Kubernetes first attempt actually failed setup at containerd import: `ctr: "--discard-unpacked-layers" requires "--local" flag`. This is a harnessCLI error, not an image/pod result. Fixed in scripts/isolated_validation/kubernetes_current_image.py via isolated_image_import_command()adding--local.3K8sconfigtests+8pixelparsingtests PASS. Added--output-name safeidentifier for a fresh rerun directory; use e.g.kubernetes-current-local-import-r2 to retain old attempt-1. Actual privateCRI/pod test not yet passed. Original node credential preservation is recorded in its report; old private daemons/data cleaned by helper. Preparation permits2GiB disk, actualCVstillrequires6GiB; no native guardreserve relaxed.
+
+Storage relocation PASSED at07:50UTC.9old terminal/clean turbo-off-next case directories copied with matching file sets and everySHA toR15/completed-evidence-storage, canonical paths replaced with stable directorysymlinks.488004472logicalbytes relocated; rootfree rose6421028864→6918942720bytes, homefree6143827968bytes. Proof:artifacts/storage-relocations-20261112.json(includesfullfilehashes). Source-before/destination/source-after verified; duplicate old root copies only reclaimed. No native/model process paused: original parent was alreadygone, so maintenance heldPOSTCHECKS.lock with noownedCVcontainer. Earlier idle storage-helper setupfailure(parentPIDgone) preserved as storage-relocations-20261112-setup-not-run.json andr2log; no data moved bythatfailure. No bindmount/fstab/systemd change. Nativeguardroot reserve6144MiB/RAM4096MiBunchanged.
+
+Readonly mirror nowPID2872758 uses rsync--copy-dirlinks; relocated remote cases become real local directories. Otheractivewatchers1512672(status),1512673(results),1512674(nativeoffhost). Completionreviewer2872759 died on transientrsyncpermission error from the excludeddeferredguard's0700directory; permissionsnowrepaired andmirrorrsync0again. Restartcompletionreviewer AFTER/betweenfollowups or performfinalofflineaudits manually; do NOTpretend it isstillrunning. New guard followups use remote_case_bridge evenfornoncapacitydiagnostics to maintainreadability. AllactivecaseslivebehindPOSTCHECKS.lock.
+
+One-shot followup wrapper is L15/launch_followup.py copiedtoR15. Usage via root Popen:python3 R15/launch_followup.py R15/<command.json>. It requiresnoexistingownedCVcontainer, holdsPOSTCHECKS.lock through guard+bridge, writesseparate launch/command/exit evidence and updatesCAMPAIGN_CURRENT. It preserves earlier failures, chownsevidence in finally, leaves statusFOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW. It does not automaticallymarkwholecatalogcomplete orrestorehost/push. Next launch nowrecordscompleted=len(continuation-ledger)instead of stale35.
+
+**Important new integrated fire finding:** Original motioncontrol throughputPASS butcounterpatternalwaysactive andblacksceneJPEGscontinued2s, no5squietcadence. Same frozenC15 standalone direct/native diagnostic r3 completed5variants:CPUFP32blackmaxsmoke.044447;GPUdefault(FP16hint).121460;GPUFP32.043755;standaloneGVAdefault andGVAexplicitFP32 both noROIs. LocalfireIRactualbakedSHAverified; noassumedmodelmatch. Native aspect/request matrixalsofullyexecuted:PAR1/1vs16/9,nireq1vs2,30FPS,andFP32variant ALLhadnoROIonblack. Therefore **PARorrequestcountaloneisNOTshowncause; donotpatchpixel-aspectorprecisionbasedonhypothesis**.
+
+Integratedfullpipelinepixeltrace r1(guardPASS,diagnosticnotcapacity) proves320x320BGRpixelsmin=max=0 enteringfiredet, withsamevisiblepixelsleavingyetROIlabelsmokeconfidence0.79296875,bbox[1,1,318,319]. AllactualfireinputcapscarryPAR16/9. Itproducedsmoke-suspectedwithcorrectlyblackevidence; hazardpredicate/gatestillrequires5balancedpositives≥.65. Exacttrace andfirst32unique.npyframes are in original raw delivery/fire-path-diagnostic, archivedunder runs/remote64-c15/followup-fire-integrated-pixels-r1/raw-sentry-v8-capacity-1.jmfqtcxj. Hooksource is frozen config/sitecustomize.py with diagnostic-hook SHA. This narrows the problemtointegratedmodel/buffer/contextbehavior butdoesnotidentifytherootcauseyet.
+
+Current active followup **controller2387954**, casefollowup-fire-integrated-pixels-r2. Updated read-onlyfire_path_diagnostic_hook.py now capturesactualfiredetproperties(model/proc/device/ie-config/sharedID/nireq/batch),rawGstbufferbytes/SHA/nonzerocount,GstVideoMeta(strides/offsets),independentvisiblepixelSHA,caps,ROIoutputs,policyqualification/evidence,andmotionobservevehicle/fire/negativecounts. It copiesfirst32uniqueinputs(.npy+.buffer) withoutchangingpixel/model/decisionvalues. Thisrunshouldexplainwhetherrawmemory/properties/sharedcontextdiffersfromstandalone. **Do not launch concurrent native work.** Existingr1andmatrixremainuntouched.
+
+Diagnostic scripts/drivers/command files:repo scripts/isolated_validation/fire_blank_parity_probe.py;fire_path_diagnostic_hook.py. L15 fire_model_probe_driver.py,r2,r3;fire_aspect_probe_driver.py;fire-*-followup-command*.json. Standalone r1failedbeforeGVA onmissingworkerPythonpath; r2failedbeforeGVA onGst.init(None)unsupported; bothcompleted3directruns retained. r3fixedsys.path/Gst.init([])andcompleted. Matrixdriver nowcopiesexecutedprobeintoartifactandrecordsSHA. Earlierstandalonehelperversionswerenotselfsnapshotted; donotclaimfullharnessSHAforr1–r3, thoughallmodel/prochashes,commands,reports remain. Fullintegratedhook runsdoarchiveexactdiagnostichooksource automatically.
+
+Remaining:finishintegratedfire-rootcause diagnostic andfix actualruntimeonlywhenproved;freshpixelparity(nativeparserfixedbutnotrerun);freshbadfirstdefault35s;traffic2andcombinedlivefleet afterdiskexclusion;K8swith--local/freshoutputname;near-boundary8cam2identity8FPSrepeat;actualplainRTSPmedia(controlled18555/recovery)andHTTPSpositiveinputcoverage;thenverifiednegativefullquiet→active→quietatleastonecompletecycle(300sifneededtocoverwarmup). FOLLOWUP_REQUIRED_AFTER_POSTCHECKS.jsonrecordsitems,butupdate statusesfromreal reports. All282catalogvariantsarenotexecuted. Hostrestoration(turbooriginal0,ownisolationdropins/originalservice states)stillpendingatactualcompletion; keepenvironmentisolatedduringtests.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:18:38.953512+00:00
+
+{"utc": "2026-11-12T08:18:30.811998+00:00", "controller_pid": 2395195, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-auto-batch-matrix-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:19:19.464985+00:00
+
+{"utc": "2026-11-12T08:19:00.073856+00:00", "controller_pid": 2395195, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-auto-batch-matrix-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:22:01.518307+00:00
+
+{"utc": "2026-11-12T08:21:43.398601+00:00", "controller_pid": 2400019, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-native-first-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:22:21.779102+00:00
+
+{"utc": "2026-11-12T08:22:06.631183+00:00", "controller_pid": 2400019, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-native-first-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:25:24.155414+00:00
+
+{"utc": "2026-11-12T08:25:18.924800+00:00", "controller_pid": 2405371, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-raw-output-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:27:25.708207+00:00
+
+{"utc": "2026-11-12T08:27:12.916652+00:00", "controller_pid": 2405371, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-raw-output-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### C15 integrated fire investigation — 2026-11-12T08:29:08.876909+00:00
+
+Current active followup controller241xxxx must be read fromCAMPAIGN_CURRENT.json; launchjuststarted `followup-fire-batch1-integrated-r1`. Its diagnostic hook changes ONLYthefireelement batch-size fromdefault0to1. A second prepared butNOTYETRUNcase `followup-fire-fp32-integrated-r1` changesONLYthatfireelement's INFERENCE_PRECISION_HINT tof32,keepingbatchdefault0. SameC15image/models/gates; these are execution experiments,notpublishedruntimepatches orcapacityclaims. Command JSONfiles andhooksourcearearchivedbycapacityharness. Do not launch FP32untilbatch1hasfinished.
+
+Integrated r2 trace completed withPASSdiagnosticexecution (not capacity). RAWinput buffer is307200bytes,allzero,VideoMeta320x320,BGR,stride960,offset0. Pixel/raster SHA7818f5542a0404157573be6cffc0e0c8e68ce3c0f5d17d07ccdd9313fb700baf. Actual firedetproperties: smoke_fire.xml,fire_rgb_model_proc.json,GPU,opencv,COMPILATION_NUM_THREADS=1,nireq2,batch-size0,model-instance-idfire-shared-group-0-shard-0,full-frame. ROIresultsmoke.79296875; motionobservationsvehicle_hitfalse/smoke_hittrue/miss0confirmthepositiveholdsactiveinference. Noimage/stridegarbage wasfound.
+
+Standalone matrices allcompleted:noROIonblackforPAR1/1or16/9,nireq1or2;explicitbatch1orauto0;withorwithoutsharedmodelID;GPUdefaultorFP32. Native-first(importGVA beforePythonOV)alsoallnegative; loadedOVlibrarieswerePython2026.2packagepaths,soimportorderaloneisnotthereproducer. These hypothesis controls wereexecutedandnegative; donotrepeat themasnewrootcauses. MatrixdriverssnapshotexecutedprobeandSHA.
+
+Integrated raw-output experiment `followup-fire-raw-output-r1`(raw /tmp/sentry-v8-capacity-1.m70p_4v8) completed. Itreplacedonly GVA YOLO outputconversionwithraw_data_copyviaGVainference,sameIR/inputpreproc. Firstall-zeroinput yieldedraw12600F32tensor maxfire.123046875/maxsmoke.79296875. ThushighscoreexistsBEFOREbounding-boxpostprocessing;doNOTfixbyreplacingNMS/converter. Rawtensorfirst_black_raw_output.npyandtracecapturedin delivery/fire-path-diagnostic. ThisdiagnosticintentionallyhasnohazardROIoutputs,soitsmotionreleaseorabsentfireeventsisNOTaproductionfixorqualification. ItconfirmedgatecountsnegativescorrectlywhenmodelROIinputisnegative.
+
+Currentremainingchecksunchanged:source6/fleetresourceexcludedreruns,K8s--local/freshoutput,pixelparity,badfirst-r3,nearboundaryrepeat,RTSP/HTTPSpositive,fullmotioncycleafteractualrootcausefix. Parent postbatch ended;followupsindividualexclusive via R15/launch_followup.py. completionreviewer2872759isnotrunning;mirror2872758andstatus/results/nativewatchersalive. Rootfreeabout6.3GiB,noreserveweakened. NoCVmodel/GVAthreshold,productionpolicy,schemaorimagechangeorGitpush.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:29:27.504104+00:00
+
+{"utc": "2026-11-12T08:29:07.932591+00:00", "controller_pid": 2411742, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-batch1-integrated-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:31:08.786920+00:00
+
+{"utc": "2026-11-12T08:31:01.933995+00:00", "controller_pid": 2411742, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-batch1-integrated-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:32:50.077728+00:00
+
+{"utc": "2026-11-12T08:32:48.910881+00:00", "controller_pid": 2418007, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-fp32-integrated-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:34:51.687115+00:00
+
+{"utc": "2026-11-12T08:34:44.952180+00:00", "controller_pid": 2418007, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-fp32-integrated-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:42:37.958308+00:00
+
+{"utc": "2026-11-12T08:42:30.062264+00:00", "controller_pid": 2432934, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-raw-fp32-output-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:44:39.568028+00:00
+
+{"utc": "2026-11-12T08:44:26.086382+00:00", "controller_pid": 2432934, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-raw-fp32-output-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:47:21.657038+00:00
+
+{"utc": "2026-11-12T08:47:08.091046+00:00", "controller_pid": 2440513, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-fp32-motion-cycle-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12 — verified integrated fire score discrepancy and isolated repair candidate
+
+Goal remains complete isolated V8 validation, 5/8/10FPS capacity with scene on every camera, latency/resources, edge recovery and one-hour stress; no contract or production gate changes, no publication. User explicitly asked to keep progressing and already supplied streams. C15 historical one-hour/capacity results stay scoped to C15.
+
+C15 actual fire input307200 bytes all zero (SHA7818f5542a0404157573be6cffc0e0c8e68ce3c0f5d17d07ccdd9313fb700baf), correct BGR stride960/meta, same baked model/proc. Integrated raw output smoke=.79296875. Fire-only batch1 did not fix. Fire-only GPU f32 removes false ROI and permits six evaluated negatives to release inference. Integrated raw f32 smoke=.04375478997826576 exactly matches direct GPU f32 reference; no new confidence/temporal threshold. Standalone GVA default/f32 matrices were negative, so exact internal compiler/kernel cause remains unconfirmed. Preserve all failed controls and raw traces, including followup-fire-raw-fp32-output-r1/raw-sentry-v8-capacity-1.cgfhms32.
+
+Local runtime edits: gva_inference_options.py adds explicit validated f32 option; surface_stream.py passes it only for firedet. Defaults and primary/SCRFD unchanged.22 focused unit tests PASS. Extracted actual C15 parent files and diffed candidate: only intended fire/helper changes. New incident INC-031 overlaps existing282cases; all new-image statuses start NOT_RUN. Five-minute full motion cycle now running on C15 with explicit diagnostic fire-only override (controller2440513, followup-fire-fp32-motion-cycle-r2). No C16 image built yet; baked full-cycle/positive/regression/capacity reruns still required. Do not call C15 repaired or claim C16 inherits C15 hour PASS.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:53:06.144065+00:00
+
+{"utc": "2026-11-12T08:53:05.385484+00:00", "controller_pid": 2440513, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-fp32-motion-cycle-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:54:06.999830+00:00
+
+{"utc": "2026-11-12T08:54:03.332635+00:00", "controller_pid": 2453033, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-pixel-parity-c15-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12 follow-up — FP32-only proposal FAILED the full integrated motion test
+
+Supersedes the provisional fire-only repair conclusion above. The 300-second real gvadetect test (followup-fire-fp32-motion-cycle-r2, raw-sentry-v8-capacity-1.zsy1edi0) still emitted smoke ROI .57942956686 on verified zero pixels, effective f32 hint confirmed. Counter pattern remained [active], no quiet scene gaps. Throughput report PASS is NOT motion-functional PASS. The earlier single-run ROI negative and separate raw-copy .04375479 did not establish repeatable real-detector repair. Do not build/publish/qualify C16 with this change. Two local runtime edits remain EXPERIMENTAL and must not be treated as an approved fix. New Dockerfile context prepared only; no C16 build. Exact cause now requires comparing real converter/preprocessing outputs, not assuming precision alone solves it.
+
+Independent corrected pixel parity launched controller2453033 under the same exclusive lease. Main C15 capacity/hour historical results remain unchanged and scoped. Initial analyzer used system Python without cv2, then reran with existing venv and saved the real functional FAIL. All values and failures retained; no thresholds changed.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:57:09.311955+00:00
+
+{"utc": "2026-11-12T08:57:08.698666+00:00", "controller_pid": 2453033, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-pixel-parity-c15-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:58:30.459888+00:00
+
+{"utc": "2026-11-12T08:58:10.834250+00:00", "controller_pid": 2460775, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-fp32-converter-r3", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T08:59:51.501893+00:00
+
+{"utc": "2026-11-12T08:59:36.479585+00:00", "controller_pid": 2460775, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-fp32-converter-r3", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 2}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:00:52.345201+00:00
+
+{"utc": "2026-11-12T09:00:51.534589+00:00", "controller_pid": 2465943, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-fp32-converter-r4", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 2}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:01:53.094158+00:00
+
+{"utc": "2026-11-12T09:01:46.178585+00:00", "controller_pid": 2465943, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-fp32-converter-r4", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 2}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:04:55.553866+00:00
+
+{"utc": "2026-11-12T09:04:54.126936+00:00", "controller_pid": 2472379, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-fp32-converter-r5", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 2}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12 — pixel parity completed; real converter read-only trace
+
+C15 prefetch off/on pixel parity PASS:293 common PTS/source images,0 byte/hash differences. Prefetch-off instrumented20s throughput check FAIL remains; this is pixel correctness PASS only. Real converter GDB capture succeeded in r4 (camera telemetry PID mapped via NSpid), GPU f32 input tensor[1,6,2100],50,400 bytes, smoke .04375478997826576 and no black ROI/release1 in that run. r3 initial debugger targeted transient plugin scanner and captured nothing; failed diagnostic retained. r5 only attach on black ROI condition did not reproduce positive within run; end-case waiter stopped, no runtime stopped. r2 long-run .57943 failure remains authoritative evidence FP32-only insufficient. No C16 image built.
+
+Disk headroom becoming tight under unchanged6GiB reserve. Preparing lossless SquashFS of terminal capacity case directories and old closed observer segment, with exclusive no-CV lease, every source/destination SHA checked before replacing duplicate plain files by stable links. Local mirror retains expanded evidence. New archive and remount command must be preserved (read-only loop mount is host-session state). No model/policy/camera configuration changed by storage maintenance.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:10:19.919309+00:00
+
+{"utc": "2026-11-12T09:10:00.673532+00:00", "controller_pid": 2479878, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-kubernetes-current-local-import-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 2}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:12:41.874383+00:00
+
+{"utc": "2026-11-12T09:12:38.540016+00:00", "controller_pid": 2479878, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-kubernetes-current-local-import-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:16:04.579224+00:00
+
+{"utc": "2026-11-12T09:15:50.157760+00:00", "controller_pid": 2488180, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-kubernetes-current-tmpfs-import-r3", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:18:26.448523+00:00
+
+{"utc": "2026-11-12T09:18:21.719849+00:00", "controller_pid": 2488180, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-kubernetes-current-tmpfs-import-r3", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12 — storage and private Kubernetes setup follow-ups
+
+Lossless closed-evidence compression complete:27 closed directories/old observer segment, source/mounted destination file lists and every SHA verified before replacing plain duplicates with stable symlinks. Archive289640448bytes, SHA06c4657576ded3910f33c7f6e98616bccb322674eafba5d25afad02fd961d188; copied locally and SHA verified in remote-storage/verification.json. Remote archiveR15/closed-c15-evidence-20261112.squashfs, read-only mountR15/closed-c15-evidence-ro. Mount/remount command and per-file proof in artifacts/storage-compression-20261112/report.json. Mount is temporary host state; after reboot remount that exact image to preserve remote links. Local plaintext mirror and compressed archive preserve all values. Root free after7024537600bytes, home5853753344bytes.
+
+K8s r2 importer CLI issue was repaired, but preparation crossed private snapshot disk reserve (1.89GBfree<2GiB), so the test was RESOURCE_EXCLUDED before any CV pod. Original credential preserved and private resources cleaned. New optional TEST-ONLY RAM image store uses existing /dev/shm tmpfs for disposable snapshots, preserving all root6GiB-load/2GiBprep, snapshot2GiB, availableRAM4GiB guards; explicit resource scope records image pages in node RAM, never capacity qualification. R3 import then completed, but the test's assumed CRIstatus.id==Dockerconfig assertion failed before pod creation. CRIreports9e1b44... with sameC15tag; exact underlying OCIconfig must be resolved and verified, not assume identity mismatch or waive the image check. Private cleanup/credential restoration passed. No image/runtime change from Kubernetes setup corrections.
+
+Live traffic1 stage evidence: selected8.004FPS, completed7.212FPS. Independent steady stage counters show24.067plate calls per completed frame,170.49calls/s,3.8566ms/model-invocation wall average versus139.298ms/full-frame span. About92.82ms per completed frame is sequential plate-call wall cost. Stage parents/children overlap; do not add their timings. This is a measured per-object execution bottleneck, not camera source failure. Derived stage report stage-work-progress-20261112-current-r2.json; earlier root invocation produced0cases and is retained as invalid invocation, not native failure.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:21:49.194926+00:00
+
+{"utc": "2026-11-12T09:21:32.089234+00:00", "controller_pid": 2496473, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-kubernetes-oci-identity-r4", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12 — K8s identity guard repaired without relaxing provenance
+
+Private CRIstatus.id9e1b44... may identify an OCI manifest rather than Dockerconfig44051227...; use bounded SHA-verified OCI descriptor traversal to verify the actual config bytes against frozen Dockerconfig and linux/amd64 platform. Do not accept tag/label identity alone.8 pure helper tests PASS, including config/manifest/index traversal, corrupted/substituted content/platform rejection and serialized escaped-history JSON redaction. `safe_output` now parses JSON before redacting values; the prior text redactor could leave serialized build-history JSON invalid. Earlier malformed sanitized output and failed assertions are retained. R4 private K8s rerun controller2496473 started with explicit tmpfs image store (functional-only, node RAM includes image pages). No CV runtime/image change.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:24:11.121447+00:00
+
+{"utc": "2026-11-12T09:24:02.831103+00:00", "controller_pid": 2496473, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-kubernetes-oci-identity-r4", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:28:14.326683+00:00
+
+{"utc": "2026-11-12T09:28:05.565481+00:00", "controller_pid": 2506058, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-kubernetes-manifest-pin-r5", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12 — actual C15 image ID kind established
+
+Docker inspect Descriptor for44051227... explicitly says application/vnd.oci.image.manifest.v1+json (17374bytes), not OCI configuration. Private CRIstatus.id9e1b44... content is the configuration (linux/amd64, sameRootFSdiffIDs,C15labels). Earlier summaries calling440...a configID were imprecise; preserved historical measurements field`image_config_id` is an engine-reported ID. Do not rewrite captured IDs. New native K8sR5 resolves the frozen manifest's cryptographic chain to the actual config and requires reportedCRI ID in that pinned chain.10 focused helpertestsPASS; original failed setup/equality attempts preserved. INC-032 added, overlapping282cases. R5controller2506058 running. No image or model changed.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:30:56.576799+00:00
+
+{"utc": "2026-11-12T09:30:42.507640+00:00", "controller_pid": 2506058, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-kubernetes-manifest-pin-r5", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:32:37.935108+00:00
+
+{"utc": "2026-11-12T09:32:35.443326+00:00", "controller_pid": 2512628, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-bad-first-source-SA8-r3", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12 — independent follow-ups scheduled, no unnecessary campaign stop
+
+After exclusive private-K8sR5, controller2512618 automatically serializes six prepared fresh cases: corrected native bad-first peer-isolationSA8r3; actual plainRTSPmediaSA1x8; traffic2liveSA1x8; sixliveRTSPS camerasSA6x5; repeat near-boundary eight-camera2identity+6scene@8FPS; explicitNPU fire diagnostic (NOT a production device-placement change). Uses unchanged resource/thermal guards and exclusive lease; each failure/setup/resource exclusion is preserved and independent cases continue. Status FINISHED_REQUIRES_SCOPED_REVIEW is not PASS; actual guard/native reports are authoritative. Commands and controller source saved in L15/R15 and artifacts/remaining-followups-20261112. No image built or pushed.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:34:19.202342+00:00
+
+{"utc": "2026-11-12T09:34:07.226911+00:00", "controller_pid": 2515576, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-plain-rtsp-SA1x8-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12 — bad-first native PASS; private Kubernetes setup path correction
+
+Fresh `followup-bad-first-source-SA8-r3` actual native report PASS, corrected lifetime-counter baseline checks, no change to original rate/freshness/original baked35s startup deadline. Original failed/resource-excluded attempts remain. Independent queue2512618 is now processing actual plainRTSPmedia, followed by traffic2 and sixlivefleet/identityboundary/NPUdiagnostic.
+
+K8sR5 cryptographic chain successfully verified frozen DockerOCI manifest44051227...→OCIconfig9e1b44.... K3s then exited BEFORE CV pod admission because kubelet's pod-resource Unix socket under the long home-directory private root exceeded Linux sockaddr_un path limit. Test-only kubelet root is now `/run/kubernetes-private-<nonce>/kubelet`;11 pure configuration/identity/redaction/socket tests PASS (113 together with pixel/capacity/motion harness tests). Preserve R5 setup failure as infrastructure, not image pipeline failure. R6K8s continuation waiter2517304 waits for current six native checks to finish, then runs fresh case with shorter socket path; no concurrent runtime. All private cleanup/original credential restoration passed so far. No C16 build/publication and firef32-only proposal remains unqualified.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:40:44.263046+00:00
+
+{"utc": "2026-11-12T09:40:27.783158+00:00", "controller_pid": 2526064, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-live-traffic2-SA1x8-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:43:46.664610+00:00
+
+{"utc": "2026-11-12T09:43:44.374511+00:00", "controller_pid": 2532630, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-live-six-SA6x5-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12 — failed experimental runtime change fully rolled back; live traffic2 PASS
+
+Restored only surface_stream.py, gva_inference_options.py and test_gva_compilation_options.py to actual C15 parent bytes (all pre-existing C15 work retained).15 original compiler-option tests PASS. Exact proposed FP32-only source,22-test version and Dockerfile archived locally under experimental-fire-fp32-source/ with SHA/rollback.json. Remote candidate-c16 marked EXPERIMENT_REJECTED_DO_NOT_BUILD and Dockerfile renamed .experiment-rejected. No C16 build/image/device/model/policy/contract change. No publication.
+
+Native traffic2SA1x8r2 completed guard/nativePASS. Six independent liveRTSPS camerasSA6x5 now running. PlainRTSPr1 failed startup because controlled fixture18555 was intentionally bound only127.0.0.1 on source .92; not a CV decoder defect. Started an additional own interface-bound192.168.1.92:18555 plainRTSP server/publisher (PIDs3366024/3366039) without touching existingTLS fixture. Source now independently probed from.64 asH2641920x1080. Preserve source-unavailable initial failure, require fresh named plainRTSP rerun (queued after current tests); do not reinterpret the failed run. Metadata/commands are in local-plain-rtsp-fixture/active-controller.json.
+
+Prepared native HTTPS source test with an ephemeral CA explicitly installed into GLib's default TLS database by a test-only startup hook. HTTPS verification is not disabled. Baked CV producer/decoder/gates remain unchanged; functional HTTPS path only, not default trust/capacity qualification. Driver, source/hook/commands retained, private key removed after test. Not run yet; run after current exclusive queue/K8s.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:47:09.234242+00:00
+
+{"utc": "2026-11-12T09:47:03.343571+00:00", "controller_pid": 2542057, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-identity-budget-2plus6-8fps-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:50:11.588132+00:00
+
+{"utc": "2026-11-12T09:50:11.450396+00:00", "controller_pid": 2542057, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-identity-budget-2plus6-8fps-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:50:31.856978+00:00
+
+{"utc": "2026-11-12T09:50:31.347498+00:00", "controller_pid": 2548466, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-explicit-npu-probe-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:50:52.132547+00:00
+
+{"utc": "2026-11-12T09:50:32.847961+00:00", "controller_pid": 2548860, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-kubernetes-short-socket-r6", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:53:34.250987+00:00
+
+{"utc": "2026-11-12T09:53:14.021131+00:00", "controller_pid": 2548860, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-kubernetes-short-socket-r6", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:55:56.093960+00:00
+
+{"utc": "2026-11-12T09:55:37.579506+00:00", "controller_pid": 2556328, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-https-positive-SA1x8-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T09:58:58.445405+00:00
+
+{"utc": "2026-11-12T09:58:53.456831+00:00", "controller_pid": 2556328, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-https-positive-SA1x8-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T10:01:20.323205+00:00
+
+{"utc": "2026-11-12T10:01:13.571609+00:00", "controller_pid": 2565970, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-plain-rtsp-SA1x8-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T10:04:42.937593+00:00
+
+{"utc": "2026-11-12T10:04:29.517611+00:00", "controller_pid": 2565970, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-plain-rtsp-SA1x8-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T10:20:56.266936+00:00
+
+{"utc": "2026-11-12T10:20:40.917270+00:00", "controller_pid": 2595215, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-kubernetes-explicit-SA-r7", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T10:27:00.920957+00:00
+
+{"utc": "2026-11-12T10:26:55.568986+00:00", "controller_pid": 2595215, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-kubernetes-explicit-SA-r7", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12 — K8s actual CV integration PASS; input-path checks completed
+
+Fresh K8sR7 actual frozen C15 image PASS, including complete private cleanup and original node credential restoration. ProjectedConfigMap/Secret input→worker revision1; revision2update preserves stream_session426ee459-...; actual pod replacement changes session to7ed6d7e7-.... Health correctly reports configured4CPU/8GiB CV limits. Replacement agent accepted147packages,55embeddings (face6/body30/gait7/scene12),3,632,246JPEG evidence bytes. This is real Kubernetes CV+capture-agent API handoff, not real-agent fsync/Management durability, device-plugin qualification or a capacity run. Explicit test ServiceAccount removes new-namespace default-SA race; image code unchanged. Every failed earlier setup attempt retained. Source/helper/commands hashed and saved under artifacts/kubernetes-current-explicit-SA-r7.
+
+HTTPSpositive with explicitly trusted ephemeral fixtureCA passed actual native media pipeline at8FPS. CAinstalled in GLib test database, no TLSverification disable; functional path scope only, not production certificate provisioning. Fresh plainRTSPr2 with corrected interface-bound fixture passed8FPS. Source and JPEG/vector associations captured; firstplain fixture-unavailable FAIL not relabelled.
+
+Repeat2identity+6scene@8 again failed unchanged completion thresholds (identitycams7.417/7.611FPS; minimumwindowratios.838/.878), confirming original near-boundary result was not enough. Live sixSA@5 failed per-camera completion, despite all6selected5FPS and scene coverage. OriginalC15 short frontier/hour scope stays conditional.
+
+### 2026-11-12 — archival maintenance, all logical recovery bytes preserved
+
+Local disk had~2.1GiB free, preventing bounded recordings. Old completed owned5,401,323,520-byte recovery tar was first SHAverified (b43a986c...), zero-extent sparsification preserved byteSHA but saved negligible space. Losslessly compressed intoRAM, decompressionSHA exactlymatched original, then transferred temporary complete compressed copy to.64 under exclusive no-CV maintenance lease. Remote SHA a4c61fb0... and file/directory fsync completed BEFORE localrawtar removal. Compressed4,433,595,215-byte archive then copied back locally, fsynced and actual readbackSHA verified. Only after this was temporary remote duplicate removed and storage reserves restored; no native guard lowered. Newfile optimization_evidence/2026-11-05-remote64-tlsfix2/recovery/remote-root-after-freeze.tar.zst; original tar bytes/all34,557members and metadata are recoverable with zstd. Original byteSHA unchanged; migration/restore command in ARCHIVE_STORAGE_MIGRATION_20261112.json and L15/closed-archive-storage-migration.json. Historical proofs retained unchanged.
+
+Reused already verified289MB SquashFS locally for27closed evidence directories; every local payload checked against readonly image before replacing plain duplicates, original local nanosecond file metadata retained in local-closed-evidence-storage-proof.json. NewlocalmountL15/closed-local-evidence-ro; remount exactimage after host reboot (no fstab modification). No measurement payload lost. Only local mirror paused briefly; native target tests continued. Mirror now keeps receiving directory links, automatically waits if localfree<2GiB, resumes without stopping.64tests. NewmirrorPID3572150. Localspace recovered~610MB in addition to compressedtar savings.
+
+### 2026-11-12 — frozen workload and explicitly scoped NPU concurrency experiment
+
+Recorded all6supplied RTSPS streams for60s, original compressed video, no reencoding; files11–21MB, codec/resolution preserved (ch9/10/16HEVC2560x1440; traffic2HEVC1080; camera01/traffic1H2641080). SHAverified persistent copies in L15/recorded-live-six-r3. Failed source-recorder attempts retained: firstlocaldiskreserve failure; secondlocalFFmpeg rejected `-rw_timeout` before opening; thirdusedverified RTSPdemuxer `-timeout` and all6exit0. This is test preparation, not an image failure. Frozen MediaMTX RTSPS replay18557 (localpublisher18556) startedPID3601122, publisherPIDs3601138–3601143; no model/data transforms.
+
+Read priorhandoff before retuning: Nov4two-lane trial failed on GPU and was never promoted; warnings against blind lane/queue increases remain. CurrentC15 plate is explicitly NPU, GPUcompiler scheduling/runtime/isolation/workload differ. A bounded NPU-only tensor prerequisite is running first, unchangedC15bakedruntime and same24crops, lanes1vs2; require exact input/output equality, finite values and actual positive maxconfidence≥.35. Eight local concurrency/timeout/ownership tests pass; native output equality not assumed. This is a new device-specific controlled hypothesis, NOT a claim oldGPUfailure is fixed. If tensor prerequisite fails, no performance adoption. Only if itpasses compare fixed six-stream workloads under both configurations, retain all failures and originalgates/rate acceptance. No newimage built or pushed; rejected fire-FP32-only runtime patch remains rolled back.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T10:38:10.012331+00:00
+
+{"utc": "2026-11-12T10:38:06.202773+00:00", "controller_pid": 2621875, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-plate-NPU-lane-parity-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T10:38:50.511340+00:00
+
+{"utc": "2026-11-12T10:38:31.448285+00:00", "controller_pid": 2621875, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-plate-NPU-lane-parity-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T10:49:18.897468+00:00
+
+{"utc": "2026-11-12T10:49:17.800915+00:00", "controller_pid": 2637919, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-frozen-six-SA6x5-NPUlanes1-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T10:53:42.452200+00:00
+
+{"utc": "2026-11-12T10:53:37.062461+00:00", "controller_pid": 2650042, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-frozen-six-SA6x5-NPUlanes2-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T10:58:05.974219+00:00
+
+{"utc": "2026-11-12T10:57:56.191463+00:00", "controller_pid": 2662054, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-frozen-six-SA6x5-NPUlanes1-r3", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12 continuation: user requires autonomous completion, fixed-workload comparison
+
+User confirmed all camera links are already supplied and instructed continued testing without unnecessary stops. Current `.64` sequence uses the same six saved60s RTSPS recordings, original codecs/resolutions, frozen C15 image, all11bindings and5FPS each, with plate NPU lanes1/2/1. First and second runs FAIL completed-work throughput despite selected-frame rates near30aggregate; the final lane1 repeat is running. No lane change adopted. This prevents confusing frame selection with completed work and avoids live scene changes invalidating comparisons. Native guard/cooldown, original thresholds, scene coverage and all failures remain intact.
+
+Updated INC-032 from pending to the independently proven privateK3s R7 PASS; future-image status stays NOT_RUN. Exact manifest/config chain, projected config/Secret, revision update, replacement session, cgroup health and associated face/body/gait/scene packages passed. Production device plugins and remote ingest are outside this scoped test. ACTIVE now distinguishes historical master fields from current follow-up and correct observer/mirror PIDs.
+
+Next bounded diagnostic is fire GPU low-precision-transform property isolation, verified against OpenVINO2026.2 source. This internal option is diagnostic only; same model/weights and original gates, no device fallback. Prior FP32-only full-cycle failure remains open. No runtime patch/image/policy/contract change or push has been accepted.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:02:29.369799+00:00
+
+{"utc": "2026-11-12T11:02:24.293365+00:00", "controller_pid": 2674687, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-gpu-lp-matrix-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:03:09.896652+00:00
+
+{"utc": "2026-11-12T11:03:06.616293+00:00", "controller_pid": 2674687, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-gpu-lp-matrix-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:04:10.757922+00:00
+
+{"utc": "2026-11-12T11:03:55.351403+00:00", "controller_pid": 2677258, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-fp32-no-lp-motion-cycle-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12 fixed six-recording NPU concurrency experiment finished
+
+All three180s runs FAILED completed-work capacity; each selected approximately30FPS aggregate and all scene output coverage checks passed, with no fatal native log. Completed aggregate: lanes1-r1=20.525FPS, lanes2-r2=19.588FPS, lanes1-r3=20.258FPS. NPU two-lane run is not an improvement across the fleet; retain lane1 default. Twenty-four-crop tensor parity passed earlier, but tensor parity does not qualify useful capacity. Full per-camera windows/resources/source metadata captured in NPU_CROSSOVER_RESULT.json plus rawreports. Source phase is not lockstep across containers; do not infer small causal gains from these three runs.
+
+Direct fire compiler diagnostic confirms actualGPU LP_TRANSFORMS_MODE reports true by default; disabling it is accepted/reportedfalse. Black smoke scores: defaultFP16 .12146, LPoffFP16 .08575, FP32 .0437548, FP32+LPoff .0448451. These direct observations alone do not reproduce integratedpositiveblack or prove a fix. Running full300s real gvadetect quiet/active/quiet with fire-only FP32+LPoff testhook, unchanged model/weights/thresholds; no production change.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:07:33.384981+00:00
+
+{"utc": "2026-11-12T11:07:19.102085+00:00", "controller_pid": 2677258, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-fp32-no-lp-motion-cycle-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 143}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:08:54.484204+00:00
+
+{"utc": "2026-11-12T11:08:52.945040+00:00", "controller_pid": 2685158, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-actual-input-capture-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 143}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:09:55.291283+00:00
+
+{"utc": "2026-11-12T11:09:46.482428+00:00", "controller_pid": 2685158, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-actual-input-capture-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 2}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:14:59.340887+00:00
+
+{"utc": "2026-11-12T11:14:58.194890+00:00", "controller_pid": 2694561, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-actual-input-capture-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 2}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12 diagnostic configuration rejected; reporting and storage corrected
+
+OpenVINO direct LP_TRANSFORMS_MODE works, but actual stock DLStreamer rejects this internal key in ie-config (`Unsupported inference param LP_TRANSFORMS_MODE`). Preserved full native initialization/recovery logs. Explicitly stopped only the owned diagnostic container and cancelled its guard (143); this is a rejected test override, not an unchangedC15 defect or a fix. No production option/source/image changed.
+
+Added read-only bounded fire-model input observation at the actual OpenVINO start_async boundary (matching SDK2026.2.0.21903); records model-specific input shape/type/strides/bytes, never writes a tensor or replaces a callback. Test-only LD_PRELOAD binary and build/source fingerprints are archived. First capture attempt resource-excluded before useful frames because root reserve crossed6GiB. Closed follow-up evidence was SHA-verified and losslessly frozen into second read-only SquashFS image: closed-c15-followup-evidence-20261112.squashfs (407,764,992bytes), mount closed-c15-followup-evidence-ro; report/remount proof artifacts/storage-compression-20261112-followups/report.json. Root free restored6.0→7.08GiB; reserves unchanged, every original path remains readable. Fresh captureR2 running, not capacity evidence.
+
+Fixed report renderer to join final independent follow-ups with main ledger without replacing historical failures. Six tests cover unfinished cases, no-report launch success, diagnostic instrumentation, resource exclusion, and duplicate historical failure preservation. Original case status files are intentionally excluded from general mirror; added a filtered final-guard snapshot with originalfileSHA rather than dropping verdict provenance. Current summary now includes97closed cases, not a claim that all282canonical tests passed. Hour completion wording corrected; memory growth qualification remains open. Updated stale pending follow-ups to actual scoped fresh native PASS/FAIL, original failures retained.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:17:41.392984+00:00
+
+{"utc": "2026-11-12T11:17:22.536429+00:00", "controller_pid": 2694561, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-actual-input-capture-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:18:42.212089+00:00
+
+{"utc": "2026-11-12T11:18:33.278960+00:00", "controller_pid": 2701289, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-baked-configuration-c15-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:19:02.524108+00:00
+
+{"utc": "2026-11-12T11:18:51.737668+00:00", "controller_pid": 2701770, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-actual-graph-capture-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:20:43.780811+00:00
+
+{"utc": "2026-11-12T11:20:31.751950+00:00", "controller_pid": 2701770, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-actual-graph-capture-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:22:04.843121+00:00
+
+{"utc": "2026-11-12T11:21:48.031408+00:00", "controller_pid": 2707163, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-captured-graph-replay-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:22:25.111772+00:00
+
+{"utc": "2026-11-12T11:22:23.291826+00:00", "controller_pid": 2707163, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-captured-graph-replay-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12 actual tensor/graph results; further fire isolation
+
+Correction to earlier wording: resource-excluded input-captureR1 did produce27useful actual-model inputs before guard cleanup, even though startup never qualified. All27black outputs had smokeROIs. Fresh read-only captureR2 produced32inputs but101blackoutputs had noROIs; it is an instrumented diagnostic, NOT evidence that the original fault disappeared. Fresh graph+input captureR1 again reproduced90/90positiveblack outputs. The observer can perturb allocation/timing; preserve all divergent runs. Actual submitted input is UINT8NCHW[1,3,320,320], stride[307200,102400,320,1], blackdataSHA7818f5…; actual graph and compile settings were captured through public Core::compile_model and InferRequest::start_async boundaries, without model/tensor/callback mutation.
+
+Exact precompile graph replay now completed on explicit CPUreference, defaultGPU and FP32GPU. Captured native graph and original floating-input graph produce EXACTLY equal full outputs for black on each device; CPUmaxsmoke.0444470/defaultGPU.121460/FP32GPU.0437548. Thus graph conversion alone is not established as cause; the full runtime has a different execution condition. No compiler flag/model replacement adopted. Next diagnostic tests original fire weights/model-proc and unchanged temporal/quality gates on explicitNPU in the full300s motioncycle, excluding GPU-only compile options. It is device-isolation evidence only until complete functional/positive/clear/load checks, not a hidden fallback or accepted placement change.
+
+Fresh exact-C15 baked validator check26casesPASS:1/8/16/50camera,default8FPS,invalidgeometry/apps/fields/Secret paths/URLs/51cameras/duplicateIDs,malformed/emptyJSON. Root-only syntheticSecret filesystem, no camera/model capacity claim.
+
+Second evidence archive SHA8fc29f4bc4a962711c8389cca1a9d35d8bd1a8a49d68e89616e20bfe4ce4d5a6,407,764,992bytes copied and verified locally.59closedlocaldirectories replaced by verified read-only archive references, every existing fileSHA checked before removing plain duplicate; original local filesystemmetadata retained in local-closed-followup-storage-proof.json. Localfree3.506GiB, remoteRoot~7GiB; alloriginalevidencepaths stillwork. Separate remount commands are saved for bothhosts; nofstabchange. Mirror restartedPID3801609, keep-dirlinks preserved, neverdeleteuniquedata.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:25:27.525612+00:00
+
+{"utc": "2026-11-12T11:25:07.665548+00:00", "controller_pid": 2712492, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-native-npu-motion-cycle-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:31:12.026593+00:00
+
+{"utc": "2026-11-12T11:31:01.675894+00:00", "controller_pid": 2723646, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-compiled-output-capture-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:32:53.376233+00:00
+
+{"utc": "2026-11-12T11:32:42.720858+00:00", "controller_pid": 2727183, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-native-npu-positive-clear-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12 fire native execution captured and first NPU full-cycle PASS
+
+Read-only input/completion getter capture now shows two actual nativeGPU InferRequest objects,16blackcompletions each: inputmax0 beforeandafter, raw outputmaxsmoke.79296875 before GVA postprocessing. ActualcompiledGPU properties: f16hint, LP_TRANSFORMS_MODEYES,2streams,LATENCYmode,2optimalrequests. Runtime graph serialized with actual kernel/precision metadata; originalweights/precompilegraph preserved. This rules out a UI/ROI/evidence association mistake for these rawtensor scores; exact GPUexecution cause stillunconfirmed.
+
+First explicitNPU originalmodel/thresholds full300s run PASS independentmotionanalysis: quiet/active/quiet/active/quiet;34scenequietgaps4–7sec and58activegaps≤3sec,0blackfireROIs across observednegativepixels. Testhook changes only fireplacement and removesGPU-specificcompileoptions; not yet acceptedruntimeimage/default. Fullgraph remains all11bindings. Positivefire/clear checkrunning, thenanother300scycle; originalGPU failuresretained. Analyzerfailedontargethostbecause cv2notinstalled inhostPython; ran successfullylocallyagainstmirroredimmutableevidence, nohostpackageinstall ornativefailureclaim.
+
+Fresh standalone exact-C15 validator26casesPASS. Currentper-requirementCASE_LEDGER now explicitlytracks9reviewedrequirementswithnarrowPASS/PARTIAL/FAILscopes; noinheritanceofolderimagePASSandnoclaimall282testscomplete. CFG06isPARTIAL: actualConfigMapprojectionpassed,URLSecretrotationstillrequiresowncase. The main summarynowincludesclosedfollowups/finalguards; genericdiagnosticPASSnevergivescapacity. No imagebuild,push,model/gate/contract changeaccepted.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:35:55.814337+00:00
+
+{"utc": "2026-11-12T11:35:41.183500+00:00", "controller_pid": 2732306, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-fire-native-npu-motion-cycle-r2", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:41:40.378897+00:00
+
+{"utc": "2026-11-12T11:41:35.457580+00:00", "controller_pid": 2743183, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-gpu-compile-serial0-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:44:02.301643+00:00
+
+{"utc": "2026-11-12T11:44:00.961550+00:00", "controller_pid": 2747938, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-gpu-compile-serial1-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 143}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:47:04.744440+00:00
+
+{"utc": "2026-11-12T11:46:53.988089+00:00", "controller_pid": 2752210, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "RUNNING", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-baked-policy-scenarios-c15-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 143}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:47:25.025557+00:00
+
+{"utc": "2026-11-12T11:47:11.230899+00:00", "controller_pid": 2752210, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "completed": 56, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 2144377, "case": "followup-baked-policy-scenarios-c15-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:54:51.004882+00:00
+
+{"utc": "2026-11-12T11:47:11.230899+00:00", "controller_pid": null, "power_scope": "CPU turbo disabled", "image": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac", "capacity_qualified": false, "status": "C15_NATIVE_WORK_COMPLETE_REVIEWED_OPEN_FIRE_GPU_FAILURE", "completed": 56, "note": "No new image qualification inherited. C16mitigation has fresh independent campaign. Existing C15 failures/capacity/stress preserved.", "pid": 2144377, "case": "followup-baked-policy-scenarios-c15-r1", "stage": "followups", "independent_phases": [{"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api", "status": "PASS"}, {"phase": "pixel-parity", "status": "FAIL", "reason": "AssertionError: prefetch-pixel-parity failed; inspect retained evidence"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "FAIL", "reason": "AssertionError: motion-transition-analysis failed; inspect retained evidence"}, {"phase": "http-input", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "PASS"}, {"phase": "mixed-roles-2x8", "status": "PASS"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "FAIL", "reason": "AssertionError: kubernetes-current failed; inspect retained evidence"}], "followup_exit_code": 0, "handoff_to": "/home/admin1/Documents/sentry-validation-20261112-c16"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:55:20.500193+00:00
+
+{"utc": "2026-11-12T11:55:19.356934+00:00", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "image_tag": "localhost/sentinel-cv:v8-c16-native-fire-npu", "status": "RUNNING", "run_id": "remote64-c16", "capacity_qualified": false, "power_scope": "CPUturboOFF, original0 mustrestore", "previous_root": "/home/admin1/Documents/sentry-validation-20261111-c15", "controller_pid": 2765745, "case": "c16-foundation-SA1x5", "stage": "followups", "completed": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T11:58:43.115695+00:00
+
+{"utc": "2026-11-12T11:58:33.243236+00:00", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "image_tag": "localhost/sentinel-cv:v8-c16-native-fire-npu", "status": "FOLLOWUP_CASE_FINISHED_REQUIRES_REVIEW", "run_id": "remote64-c16", "capacity_qualified": false, "power_scope": "CPUturboOFF, original0 mustrestore", "previous_root": "/home/admin1/Documents/sentry-validation-20261111-c15", "controller_pid": 2765745, "case": "c16-foundation-SA1x5", "stage": "followups", "completed": 0, "followup_exit_code": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:02:05.848106+00:00
+
+{"utc": "2026-11-12T12:02:05.540489+00:00", "controller_pid": 2781638, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-anpr5", "completed": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:05:09.596805+00:00
+
+{"utc": "2026-11-12T12:05:03.871338+00:00", "controller_pid": 2781638, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-fire-clear5-mixed-repeat", "completed": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12 C16 native-fire NPU candidate built; fresh campaign running
+
+User continues requiring autonomous testing/optimization using the already supplied links; no unnecessary stops, preserve all values and cool/retry. Explicit scope stays CV→agent API; models/gates/tracker/V8/wire unchanged, no publication.
+
+C15 fire diagnostics complete: two300s fullmotioncycles with fire explicitlyNPU PASS independent sourcepixel/counter checks; positive/clear casePASS with3suspected+3clear, scene/evidence/vector packages checked. Read-only actualGPU request capture proves both request objects return.79296875smoke on zero input before/after inference, not an evidence/UI association error. Original fullGPU inconsistency staysopen. Exactcapturedprecompilegraph vsoriginal graph direct CPU/GPU/F32GPU returns equalfulloutputs perdevice. GPUcompiletrace reproducedbadblack with fiveGPU/MULTI compilationsandZEROoverlap; rejected compilationoverlap hypothesis, intentionally stopped remainingunneededABBArepeats and retainedCANCELLEDintervention/setup evidence, not a userpause or PASS. No serialization fix adopted.
+
+Runtime candidate changes exactlysurface_stream.py andgva_inference_options.py: explicit nativefireNPU default and hardware-only internalGPU/NPUoverride (AUTO/CPU rejected), no GPUcompileoptions senttoNPU, truthfulfiredevice startup/health andCPUmetadata-bridge stage label. Sameweights, modelproc,320BGRpreprocessing,thresholds,nireq2,batchauto,productionconfirmation/clear/cooldown,allotherbranchesandwire.22focusedhelpertestsPASS locally. No experimental nativeLD_PRELOAD/debuggerhook is baked. OriginalC15policy injected30scenarios alsoPASS;26bakedvalidatorcasesPASS.
+
+New LOCALONLY immutable candidate tag localhost/sentinel-cv:v8-c16-native-fire-npu, Docker engineOCI manifestidentitysha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa, exactparent44…f1bac. ActualOCIconfigdigestnotyetindependentlyresolved; doNOTcallengineIDconfig. Buildcontext/provenance/diffs/command/log/BUILD_RESULT in L15/R15/c16-fire-npu-build. Firstbuildstoppedbeforelayers because hostlegacyDockerbuilderdoesnotsupport--progress; preservedattempt1, removedonlythatCLIoption, secondbuildPASS. User10001:10001restored. No apt/SDK/model/schema/policy rebuild orpush.
+
+FreshC16root /home/admin1/Documents/sentry-validation-20261112-c16, artifactsymlink /tmp/sentry-remote64-c16-artifacts. Local optimization_evidence/2026-11-12-remote64-c16. Repoclone4.3MiB, fixtures readonlyreferenceR15samebytes. Setup danglingartifactslinkissuefixed bycreatingtargetdirectory; no testcase/imagefailure. ActualfoundationSA1x5 PASS,4requiredmodalities+evidence/scenecoverage,0fatal. HealthactualplacementsfireNPU,primary/decodeGPU,plate/body/gaitNPU,faceGPU+NPU,sceneGPU,OCR MULTI. No C15 PASS inherited.
+
+Fresh maincontroller2781638, exclusivewrapper2781626. Commands CONTINUATION_COMMAND.json. NativeANPR5PASS completed4.99247FPS,worstwindowratio.990884. Nowfirepositive/clear thenpeople8/10,outage,actualnative reconnect/hang/badfirst/missingPTS,scene/all11boundarysearches5/8/10FPS and1houratfreshSA8passingboundary. Countplanspriorpoints guidebutdonotcapsearch; failedcasesretainallcounter/scene/fataldata. WrapperownsPOSTCHECKS.lock forwholebatch; DONOTlaunch anothernative/testcontainer besideit. Thermalguardsand6GiBdisk/4GiBRAMreservesunchanged. Per-case maintenanceonlywhennoCVload byte-verifiesclosedrawduplicates beforelinkreplacement, andlosslesslycompactclosedcases ifrootfree<6.75GiB. Model/runtimeunaffected.
+
+R16rootobserversPID2765449,nativelogfollower2765744; localmirror3955254,status3955255,results3955257,offhost3955258. R15observers1835853/1835854gracefullystopped andR15statusmarkedtransition; C15errors/resultsremain. OldR15localstatus/offhost1512672/1512674stopped toavoidstaleautomaticstatusspam; oldmirror3801609/results1512673stillfinishclosedhistoricalevidence. Newread_statusempty-main-ledgerindexerrorfixed (harnessonly). RendererjoinsclosedfollowupswithfinalguardSHA,neverpromotesdiagnostic/resourceexcluded/launcheronlyresult. Watchertriggerupdatedonsavedsource toincludeclosedguardmtime; runningresultwatchersneedrestarttoactivateupdatedtrigger.
+
+C16remainingaftermainbatch: freshTLS15/agentfault11/validator26/policy30/helper22,independentmarkedlatency/pixelassociationchecks, fullquiet/active/quietC16withouttesthook, live&recordedsixsources/mixedroles, HTTP/HTTPS/plainRTSP/sameTCP5clients, actualprivateK3s exactimage. Broad282catalogstillnotallqualified; accuracydeferred andManagementbeyondagentexcluded. Actualcapacitymustkeepcompletedvsselectedseparate andsceneeverycamera. HistoricalC15hour passedthroughputbutmemorygrowth2.373MiB/min fullhour,1.475last30min remainsunresolved, notflat.
+
+Host .64CPUturboOFForiginal0 and original k3s/apex-servicesisolation stillactive, restoreonlyatfinalend/userstopusingrecordedinventory. Do notstop .92sourcefleets whileC16 usesports19101..19150; originaluserRTSPSlinksandfixed6recordings18557remainavailable. No unrelateduserworktouched on.92.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:08:12.897897+00:00
+
+{"utc": "2026-11-12T12:08:01.948484+00:00", "controller_pid": 2781638, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-all-people8", "completed": 2}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:11:15.680431+00:00
+
+{"utc": "2026-11-12T12:11:14.318995+00:00", "controller_pid": 2781638, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-all-people10", "completed": 3}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:14:38.294408+00:00
+
+{"utc": "2026-11-12T12:14:38.259389+00:00", "controller_pid": 2781638, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-outage-all2x5-counter-clock-c16", "completed": 4}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:18:00.917221+00:00
+
+{"utc": "2026-11-12T12:17:52.782525+00:00", "controller_pid": 2781638, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-reconnect-controlled-SA-8", "completed": 5}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:20:43.048310+00:00
+
+{"utc": "2026-11-12T12:20:41.220111+00:00", "controller_pid": 2781638, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-native-hang-controlled-SA-8", "completed": 6}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:23:45.305093+00:00
+
+{"utc": "2026-11-12T12:23:31.087079+00:00", "controller_pid": 2781638, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-bad-first-source-controlled-SA-8", "completed": 7}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:24:05.589526+00:00
+
+{"utc": "2026-11-12T12:23:56.320477+00:00", "controller_pid": 2781638, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "STOPPED", "reason": "InterruptedError: User stop", "completed": 8}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:25:26.662037+00:00
+
+{"utc": "2026-11-12T12:25:22.897384+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-reconnect-controlled-SA-8-fixture-ca-r2", "completed": 8}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12 C16 valid core tests PASS; recovery fixture CA mistake repaired
+
+FreshC16 mainANPR5,fire/clear5,allpeople8,allpeople10 and18s two-cameraoutage PASS. Recoveryreconnect originalfailedbeforefaultinjection: TESTrelay's upstreamPythonSSLContextverifiescertificates, but I omitted --recovery-ca when switchingthecontroller toourselffsignedTLSfixture. Realselfcheck provesmissingCA→SSLCertVerificationError andprovidedpublicfixtureCA→verifiedtrue. Imagepeerconnectedunderitsapprovedlegacydefault and verifiedsource-recovery3.035s; no newimageTLSpolicyissueestablished. InitialFAIL and cancellednative-hang-attemptretained, notcalledPASSorhardwarecapacityfailure.
+
+Stoppedonlythemisconfiguredtestsequence,addedthepublictestCA tocontrollercommandandfreshnativecase suffixfixture-ca-r2. ExistingfivevalidPASScommandsarecheckedexactlyandresumed,notrerun. Addedfail-fastTESTrelayupstreamTLSpreflightbeforeCVlaunch,3puretestsPASS; no productionCArequirementorCVcode/imagechange. Oldcommandpreserved CONTINUATION_COMMAND-attempt1-no-relay-ca.json; updatedCONTINUATION_COMMAND.jsonandharnesssnapshotsretained. Rootwrappernow2841032 (readCONTINUATION_PID foractualchild). Postwaiter2824705 exitedbecausecontrollerstopwasexplicitrepair; newwaiterstartedafterresume,notnativeoverlap.
+
+Per-casecontrolstorageprocedure keepsunchanged6GiBdisk/4GiBRAMreserves,byte-verifiesclosedduplicatefilesbeforelinking,andlosslesslycompactsclosedcases ifbelow6.75GiBrootfree. Testhelperread_status empty-ledgerbugfixed; case/sensor/statushelpererrorsarenotmodeldecodingfailures. Newread-onlyobserverscontinue; allnativeworkserialized. RendererC15finalsummary108closedcasesincludesallfailurehistory; not282PASS. Runbook/currentcapacitypointerupdatedtotheactiveC16campaignandmanifesttype(044c…9dfa),C15hourcompletion/memorygrowthwordingcorrected.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:27:28.219531+00:00
+
+{"utc": "2026-11-12T12:27:22.981614+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-native-hang-controlled-SA-8-fixture-ca-r2", "completed": 9}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:29:09.509302+00:00
+
+{"utc": "2026-11-12T12:29:05.018807+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-bad-first-source-controlled-SA-8-fixture-ca-r2", "completed": 10}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:30:30.610625+00:00
+
+{"utc": "2026-11-12T12:30:30.324149+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "EVIDENCE_MAINTENANCE", "upcoming_case": "prefetch-missing-pts-controlled-SA-8-fixture-ca-r2", "completed": 11}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:30:50.870018+00:00
+
+{"utc": "2026-11-12T12:30:30.982286+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-prefetch-missing-pts-controlled-SA-8-fixture-ca-r2", "completed": 11}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:32:11.875699+00:00
+
+{"utc": "2026-11-12T12:32:09.007705+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x5", "completed": 12}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T12:33:13.681560+00:00 — C16 recovery PASS; remaining inputs explicitly queued
+
+Fresh C16 reconnect, native-inference-hang recovery, bad-first-source isolation and missing-PTS fault regression all PASS in corrected public-test-CA cases. The original test-setup failures remain preserved. All six supplied live RTSPS URLs returned metadata on the sender host; that is source availability, not an image/capacity result. Manifest copied into R16 for fresh native postchecks. Current main remains serialized and advances to 5/8/10 FPS capacity with scene on every camera, then the hour test.
+
+Extended not-yet-started postcheck helper with explicit HTTPS media (ephemeral trusted CA, strict verification, no image TLS bypass), plain RTSP, and the same six frozen diverse camera recordings used for previous-image comparison. HTTPS fixture verifies TLS/video before CV launch; test-only CA hook is recorded and not baked. Native frozen-fleet FAIL is retained as a capacity result, never relabelled PASS. No CV source/model/gate/schema change or push. All postchecks wait for main lease; no extra native load overlaps.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:35:14.244053+00:00
+
+{"utc": "2026-11-12T12:35:08.409473+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-18x5", "completed": 13}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T12:36:25.821006+00:00 — C16 identity and output integrity independently checked
+
+Read onlyDocker/containerdcontent and SHA-verified manifest044c9557…99dfa→OCIconfig45c7e310914d46ec5339b8e3b1ff613e14fe334290d297e8bd33d37da521530d; architectureamd64/user10001:10001. This islocalcontentidentity,notregistrypublication; originalrawreportfieldnames/valuesnotrewritten. Fullproofanddescriptorbytes: R16/artifacts/image-identity, mirroredL16/remote-artifacts/image-identity.
+
+Independentcompleted-packageauditcurrently7cases/5878packages/458JPEGs/0errors. Coversparent/camera/presence/frameIDs,profiledimensions/vectornorms,contiguouscapturedsequencesandJPEGsha/shape/decode; notsemanticidentity/Managementdurability. Stageandhardwareanalysesusealignedremotehostmonotonicwindows; modelinvocationwalltimesoverlapandarenotkerneltimings. Nativecapacity18×5scene-onlynowrunning; startupisnotPASS.
+
+20offlinecontroller/summary/recoverypreflighttestsPASS. NewHTTPSfixturegenuineTLSselfcheckPASS: trustedprivateCAsucceeds,defaulttrustrejects,andlistener/privatekeycleanupverified. Testonlyhookretainedinsourceproof,notimage. Allsource/provenancevalueskeptinL16/postcheck-tooling-provenance.json.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:38:16.697716+00:00
+
+{"utc": "2026-11-12T12:38:16.613592+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "EVIDENCE_MAINTENANCE", "upcoming_case": "S-19x5", "completed": 14}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:38:36.974831+00:00
+
+{"utc": "2026-11-12T12:38:25.753795+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-19x5", "completed": 14}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:41:39.397524+00:00
+
+{"utc": "2026-11-12T12:41:34.016173+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "EVIDENCE_MAINTENANCE", "upcoming_case": "S-1x8", "completed": 15}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:41:59.657882+00:00
+
+{"utc": "2026-11-12T12:41:43.094685+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x8", "completed": 15}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:44:41.755478+00:00
+
+{"utc": "2026-11-12T12:44:40.649187+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-14x8", "completed": 16}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:47:44.209636+00:00
+
+{"utc": "2026-11-12T12:47:42.831001+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "EVIDENCE_MAINTENANCE", "upcoming_case": "S-15x8", "completed": 17}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:48:04.495300+00:00
+
+{"utc": "2026-11-12T12:47:51.582363+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-15x8", "completed": 17}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T12:48:33.304140+00:00 — C16 capacity sweep is progressing
+
+Scene workload: 18×5 FPS PASS (completed4.9714–4.9999FPS, worst reporter-clock window ratio.9505, peak3645.14MiB, every-camera scene coverage PASS, no native fatal). Adjacent19×5 FAIL: minimum mean4.9311FPS but one window ratio.899239<.90. This is a narrow measured failure, not proof19camerasareimpossible. Bounded postcheck repeat is queued only for borderline failed boundaries (means>=95%, worst window88–90%); originalFAIL/frontier stay unchanged.
+
+Scene14×8 PASS: minimum completed7.8907FPS, worst window.9430, no native fatal. Scene15×8 is now running. SA(all11apps) capacity and fresh hour still pending. Current controller2841033/wrapper2841032; postwaiter2844134 waits on the native lease. No publication or CV/model/policy/schema change during these checks.
+
+Stopped historicalC15 mirror3801609 after its final successful sync, since C15 is closed. ActiveC16 mirror3955254 and observers/watchers remain running. All bytes stay under original/readonly archived paths. New controller-summary/recovery-preflight tests20PASS; HTTPS fixture verified strict trust and cleanup separately. Source URL availability file is now staged for native live checks; nominal FPS is not a measured frame rate.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:51:06.904453+00:00
+
+{"utc": "2026-11-12T12:51:02.627943+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x10", "completed": 18}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:54:09.351264+00:00
+
+{"utc": "2026-11-12T12:54:00.088093+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-11x10", "completed": 19}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T12:57:11.750584+00:00
+
+{"utc": "2026-11-12T12:57:06.727367+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-12x10", "completed": 20}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T13:00:14.090523+00:00
+
+{"utc": "2026-11-12T13:00:13.546179+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-1x5", "completed": 21}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T13:03:36.785462+00:00
+
+{"utc": "2026-11-12T13:03:30.067769+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-5x5", "completed": 22}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T13:06:59.385468+00:00
+
+{"utc": "2026-11-12T13:06:49.643665+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-6x5", "completed": 23}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T13:10:22.007655+00:00
+
+{"utc": "2026-11-12T13:10:11.865938+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-1x8", "completed": 24}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T13:13:06.640557+00:00 — C16 full-app boundary and measured stage costs
+
+Scene sweep completed: S18×5 / S14×8 / S11×10 PASS; adjacentS19/S15/S12 FAIL, no native fatal. S12 meanmin9.72586 FPS but worstwindow.891744; S19 worst.899239; these two narrow-window failures qualify for one separately named postcheck repeat. S15 meanmin7.36094/worst.811846 is not a borderline repeat candidate. Originals/frontier remain immutable.
+
+All11apps: SA1×5 PASS mean4.98979; SA5×5 PASS min4.94750/worst.96069; SA6×5 FAIL min4.65955/worst.84001/no native fatal. Selected aggregate near30 did not prove completed-work capacity. SA8FPS sweep now running; same models/gates/scene cadence throughout. Current main2841033 and postwaiter2844134 remain serialized.
+
+Offline aligned-stage comparison is saved in L16/SA5-SA6-stage-comparison.json. Frame-processing wall averages acrosscameras152.77–170.44ms for5 versus187.84–198.82ms for6. Bodyresultwait13.27–15.24ms versus20.93–22.41ms, bodyqueuewait3.79–5.88ms versus10.14–11.67ms; gaitbackground65.99–79.79ms versus75.03–82.80ms. Conversion spans52.46–72.86ms versus51.13–63.23ms; these overlap other work and cannot be summed or called pureGPUkernelcost. Not a single-root-cause proof or justification for another unmeasured rewrite. Current candidate stays frozen while qualification completes.
+
+Added L16/README.md reading guide with actual manifest/config distinction, scope/power envelope, report links, acceptance criteria and pending checks. All rawvalues remain in per-case reports, current stage/hardware analyses, mirroredobservations and both handoffs. No push/publication.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T13:13:24.373459+00:00
+
+{"utc": "2026-11-12T13:13:24.365515+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-3x8", "completed": 25}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T13:16:46.990398+00:00
+
+{"utc": "2026-11-12T13:16:43.012839+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-4x8", "completed": 26}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T13:20:09.622411+00:00
+
+{"utc": "2026-11-12T13:20:00.351819+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-1x10", "completed": 27}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T13:23:12.004359+00:00
+
+{"utc": "2026-11-12T13:23:10.232728+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "EVIDENCE_MAINTENANCE", "upcoming_case": "SA-2x10", "completed": 28}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T13:23:32.268214+00:00
+
+{"utc": "2026-11-12T13:23:13.343864+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-2x10", "completed": 28}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T13:24:52.451767+00:00 — C16 fresh SA8 boundary, network evidence and pending work
+
+SA3×8 PASS: minimum completed7.9412167FPS, minimumwindow.97328997. SA4×8 FAIL: minimum7.3956050FPS, minimumwindow.85657755; no native fatal. SA1×10 PASS9.97006284FPS/minwindow.98775188; SA2×10 now running. Next main steps remain adjacent3×10 then selectedSA8passingcount hour. Same C16image/no threshold changes.
+
+Checked actual .64 NIC: enp2s0 1000Mbps/full/carrier1; rxerrors0/rxdrops0/txerrors0/txdrops20 boot-lifetimecounter. The20TXdrops cannot be assigned to this campaign from one snapshot. New read-only network_link_observer.py pinned14,15 runs asadmin1 PID2956973 from13:14:30UTC, writes R16/artifacts/network-link, 24hbounded, no trafficcapture or networkchanges. Exact sourceSHA/command storednetwork-link-launch.json. Addthisownedobservertofinalcleanup. Earliercaseslackthissamplecoverage; no retrospective proof asserted.
+
+OriginaluserTCP9001–9010 availability rechecked13:24:33UTC: allConnectionRefusedError111. Saved/mirroredoriginal-tcp-source-availability-20261112.json. Six suppliedRTSPSURLsreturnedmetadata earlier and arequeuedforfreshnativechecks; controlledindependentTCP replayscontinuethecapacitysuite, so unavailableoldportsdonotstoptesting. Do not askuserforlinksalreadyprovided.
+
+Read oldhandoffbeforeproposinganotherbodyexperiment: Opt76alreadyhaswithin-framebodycrop-prep/inferenceprefetch;body2requestlaneswasmeasuredandREJECTEDafterbit-exactparity/no usefulthroughputgain (Nov5). Currentbodyqueuecostisnotanewlydiscoveredimplementationabsence. No furtherbodyasync/model/device/cadencechangeadopted. Sourcepolicyandcurrentimage stayfrozenfortesting.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T13:26:34.619851+00:00
+
+{"utc": "2026-11-12T13:26:29.394673+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-3x10", "completed": 29}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T13:29:57.266387+00:00
+
+{"utc": "2026-11-12T13:29:45.980755+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-all-3x8-one-hour", "completed": 30}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T13:41:16.378181+00:00 — C16 hour underway, observers and lossless local headroom
+
+All short boundaries now freshC16: scene18@5/14@8/11@10 PASS,next19/15/12FAIL. All11apps5@5/3@8/2@10PASS,next6/4/3FAIL. SA2×10 min9.95120FPS/window.97441; SA3×10 min9.38446/window.88513FAIL,notanativecrash. These are short conditional workload points, not hardware maxima or full qualification.
+
+Freshhourstartedroughly13:30UTC: case turbo-off-next-all-3x8-one-hour, raw /tmp/sentry-v8-capacity-3.r1e437gu. StillRUNNINGaround10minutes; doNOTmarkPASSorfinished. Controller2841033,wrapper2841032,postwaiter2844134. Selectedaggregate23–24FPSrecently, memory~3036MiB. Source/processing/output/currentreadinessandactualcompletedcounterwindowsremainrecorded.
+
+Root read-only cgroup observer3016401 started13:36:45UTC with exactcontainer-ID/labelvalidation, 4200sbounded; exitswhenownedcontainerdies. SavesR16/artifacts/hour-cgroup-memory.jsonl.gz pluslaunch/hash/log. Firstpartialbreakdown~3032MiBcurrent/1748MiBanon/1255MiBfile/26MiBkernel; memoryeventsall0. Itbeginsafterhourstart,notretrospective. Addtofinalowned-observercleanupalongwithnetworkobserver2956973. Thememoryincreasehasnotbeencalledaleakormadeflat.
+
+LocalC15finalevidencemaintenancecompleted13:30:59UTC:19closedcaseswithterminalguard+cleanup proof losslesslyarchived98086912bytes, SHA d31b3d29ac049792e98fc388eed80135218c568a2c9e9d73cf582804f199fd6c. Everyfileset/SHAverifiedbothsidesbeforeANYdirectoryreplacement; metadata/remountcommandpersistedL15/local-final-closed-storage-proof.json. ReadonlymountL15/closed-local-final-evidence-ro; originalpathsremainreadablelinks. Freebefore2823327744B/after3496550400B. Low-prioritysinglecompressorCPU0,1onSOURCEhostonly,13:30:25–13:30:59UTC,overlapsinitial~20ssteadyhour; testhostunchanged,sourcefleetpinnedotherCPUs. No unrelated files/images deleted,no remote test stopped. OriginalC15mirror3801609wasalreadystoppedafterfinalsuccesssync. ActiveC16mirrorcontinueswith>3GiBlocalheadroom.
+
+Pendingafterhour: freshbakedunit/contracts, TLS15, agentAPI11, pixelparity, independentmarkedlatency, boundedborderlinerepeats(S19×5/S12×10), 300smotioncycle, HTTP/HTTPS/plainRTSP, fixedsixdiverserecordings, fiveTCPconsumers, nativestagetimings, role/mixedbudgets, all6liveRTSPSandactualprivateK3s. Allpostnativeworkwaitslease; no source/model/gate/schema editsorpublication. NewC16READMEreadingguideandcurrentresultstableareavailable.
+
+
+### 2026-11-12T14:17:44.536395+00:00 — C16 hour still running after45minutes
+
+Currentcase unchanged turbo-off-next-all-3x8-one-hour; controller2841033/rootPTY12958; raw/tmp/sentry-v8-capacity-3.r1e437gu. No completedPASSyet, no observedrestart/cooldown interruption. Latestcontainer3064.39MiB/temp73C/rootfree6.29GiB; selectedaggregate~24FPS, finalcompletedper-camera/scenecoverageverdictstillpending. Do notpromoteinterimrollingvalues.
+
+Addedread-onlybuildmetadatareview: OCIlabel2026.11.12-v8-c16-fire-npu-candidate, contract8.0/wire7.0/agent1.0/APEXFABRIC_CONTRACT_VERSION=v8; no staleC15buildENVfieldfound. Imagecontentidentityproofstill044c…9dfa manifest→45c7…530d config, inheritedC15prefix78layers→C1680layers. No newimage/CVsource/model/gate/schemaedit/push duringthesechecks.
+
+Partialcgroupanalysisfirst13:36:45→14:10:43UTC/2039samples: anon1747.195→1762.590MiB,file1252.152→1268.449MiB,kernel26.195→26.254MiB,shmem1116.816→1133.113MiB. Shmemisincludedinfile,NOTanadditionalquantitytosum. Allmemoryevents0. Thisispartial,notleak/rootcause/fullhourproof. Rawcollector3016401andnetworkcollector2956973remainread-only; addtofinalcleanup. Networkobserved43mcontinuous1Gb/fullwithRXerrors/dropsdelta0/TXdropsdelta0; boot-lifetime20TXdropsremainedunchanged. Node-widerate~35.34Mbit/sduringbroaderrecordingintervalnotCV-onlybitrate.
+
+C16README nowcomparescadencesagainsttheUSER-SUPPLIEDreference,notrerunbenchmark: face43v3eligiblebuffers,reference0.7FPSsecondarywithbody/plateeverythirdandsceneeveryseventhvsproductionqualifiedcalls/2sscene,640×360referencegaitvsoriginal-resolutiongaitprep, fakesinkvsJPEG/vector/agentpackages. Theseexplainworkloaddifferences,notproofallremainingcostisirreducible. Oldbodyprefetchandtwo-laneNPUexperimentsalreadydocumented; donotrepeatasnewfixes.
+
+Afterhourpostwaiter2844134stillmustlaunchupdatedfinish_campaign_c16.py underlease. NewtrustedHTTPSfixturemoduleisinstagedR16repo; driveraddsrootrepotosys.path. PosthelperincludesboundedborderlinerepeatsS19×5/S12×10withoutoverwritingoriginalFAIL/frontier. Allfreshinput/TLS/API/pixel/latency/motion/mixed/live/K3stestsstillpending; no blanket282PASSclaim.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T14:31:04.374506+00:00
+
+{"utc": "2026-11-12T14:31:03.861867+00:00", "controller_pid": 2841033, "power_scope": "CPU turbo disabled", "image": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa", "capacity_qualified": false, "status": "PLANNED_NATIVE_BATCH_FINISHED_REQUIRES_EVIDENCE_REVIEW", "completed": 31, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work."}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T14:45:31.402815+00:00
+
+{"utc": "2026-11-12T14:45:30.674416+00:00", "status": "RUNNING", "case": "c17-foundation-SA1x5", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "controller_pid": 3194840, "capacity_qualified": false, "stage": "foundation"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T14:47:20.557143+00:00 — C16 completed hour, actual queue defect found, C17 built and fresh validation underway
+
+C16hourPASS:3600.3771356ssteady/360samples. Minimummean7.94013209FPSpercam,worstwindow.90959546,0unreadysamples/0nativefatal. Memory3003.98–3080.12MiB,median3042.45,p953078.1155. Fittedwholehour+1.022172MiB/min,last30min+1.043061MiB/min; NOTflat/leak-free. CPUmedian3.6725cores,p954.06125,max4.28. Fullreport L16/one-hour-sustained-analysis.json;hardware/stagesfullanalysisstilltorefresh. CurrentC16lookaheadpostwaiter2844134wasstopped14:25ONLYbecauseunstartedpostchecksneededrepairedcandidate; nativehour/main2841033continuedunchangedandcompleted31rows. C16notpublished/notfullyqualified.
+
+INC-033confirmedagainstEXACTC16bakedsource copiedread-onlyDockerfs(SHAfc3b25addc384f0f6656cecde4829afb485e9717125a6ec443134916c2cb6389). Queuetest32same-scopecoalescedpackagesleftheap32/reachable2,097,152JPEGbyteswhilereporting1package/66,309B.16distinctscopeevictionsleft16semantic-indexpayloads/1,048,576Bwhilereporting0. Thisisabounded-retentiondefectUNDERBLOCKEDDELIVERY,notestablishedcauseoflivehourmemorygrowth. Exactcode/probe/results/sourceproofinL16/handoff-retention-review. Firstprobeattempt usednonexistentclient.enqueue(methodispersist), failedbeforequeueexercise; setupfailurepreserved.
+
+FixedONLYsentinel_v8_handoff.py: releaseownpayloadreferenceswithoutmutatingcallerrequests;removeevictedownedsemanticindexentry;immediatelyprunecancelledheapentrieswithsameprioritytuples;neverevictsubmittedrequests. Idempotentreleasepreservesnewersame-keyowner. Existinggates,payloadformats,retrydelays/priorities/admissionlimits,modelweights/cadences/devicesunchanged. New6unitregressionsPASS; againstoldbakedmodule4FAIL/2PASS; broaderlocalruntime+registry62PASS. Matrixnow33incidentfamilies(still282catalogcases),new-imageNOT_RUN. FixedpreexistingINC031/032missingbidirectionalcase-indexlinksandnew033links; initial61PASS/1catalogFAILpreservedinred-greenproof. SavedpermanentINC033regression inJSON/plans.
+
+BuiltLOCALONLYC17localhost/sentinel-cv:v8-c17-handoff-retention; engineOCI manifest sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe. ExactparentC16044c…9dfa; newmoduleSHAb352ee6a8f06f029e645ed9cd6df3343a30ef7817a94f4f5573fd14cb127f5f4. BuildproofL17/build andR17/IMAGE_BUILD_RESULT.json. Models/contracts/policyandallothercodeinherited. No registrypush. NeedseparateOCIconfigchainverificationforC17,notcallmanifestconfig.
+
+FreshC17bakedunit/policy/canonical+embeddedcontractsPASS. Initial11UnixagentAPIcasesPASS. Newblocked-coalescingr1 heap/indexboundsPASSbutsynthetichealthdegraded/unavailablewronglyusedreasonnone→2canonicalschemarejections (fixtureerror,notC17bug). Correctedstrictschema-compliantreasons/addeddetailedfixturevalidationlogs; separateblockedr2PASS:4actualHTTPworkerswaiting,64scenecandidates→1pendingheap/index/5retainedincludinginflight;68admitted=63coalesced+5durable;onlylatestscene(api-probe:73)reachedschema-checkingagent. Noexhaustion/protocolerrors/backpressure. Oldr1FAILretainedwithreview. NativeIPCprobeusesbakedrealclient/scheduler/UnixAPI,syntheticvector—notmodelaccuracy/capacity/realfsync. Newcaseisinthefuture12-casepostcheckbatch.
+
+Controlled18554TLSfixtureoldserverleafexpired2026-11-12T14:03:24UTC. C16TLSrecoverieswereearlier; detectedBEFOREC17nativechecks. RenewedONLYownfixtureCA/leaf7days, strictTLSselfcheckPASS; newMediatMtx489623/publisher489640 onsource.92. Config/proofL17/local-rtsps-fixture;oldfilesretained. NewpublicCAcopiedR17/fixture-source-ca.crt. RealcameraTLS/defaultlegacyunchanged; no productionCArequirement. PlainRTSPfixture3366024/3366039andfixedsix18557unmodified.
+
+NEWACTIVE: R17=/home/admin1/Documents/sentry-validation-20261112-c17;L17=.../optimization_evidence/2026-11-12-remote64-c17. Tinyrepo/toolssnapshotfromR16updatednewmodule/test/APIhelperonly,sharedimmutablefixtures,NOhistoricalreports/PASSinherited. Bootstrap3194840runsfreshc17-foundation-SA1x5thennewnativewrapper. Rootobserverskeeper3192690/nativefollower3192691/network3192692;oldC16keeper2765449/native2765744/network2956973gracefullystoppedafterhour. Oldcgroup3016401autoexitswhenoldcontainerdies. NewR17nativefollowercorrectoutputnative-live.logmatchesoffhosttail; oldC16followerwrotenative-followwhileoffhosttailwatchednative-live.log,soDO NOTclaimoldoffhosttailiscomplete; mirrorednative-follow/rawcontainerlogscontainactualC16evidence.
+
+Newlocalwatchers:mirror524934/status524935/results524936/offhostnative524937,allpinnedCPU0,1. GlobalACTIVE_CAMPAIGNpointsC17. OldC16localwatchersstillneedfinalizationafterlastsync3955254/55/58,4057273;notnewnativework. NeedstartC17postwaiterAFTERfoundation/mainrunsandrecordactualPID. Copiedfinish_campaign_c17.pyincludesnewAPI12,priorHTTPS/plainRTSP/fixedsix/borderlinerepeats; noC17postwaiterlaunchedyet. NativewrappermodifiedtofreshC17foundation/outage/suffix, noresumeC16history; C17fullsweeps/hourremainfreshscheduled. CPUturboOFF/isolationstillinforce;rootPTY12958valid;finalrestoreONLYatactualend.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T14:48:54.060682+00:00
+
+{"utc": "2026-11-12T14:48:47.495002+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-anpr5", "completed": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T14:51:56.493508+00:00
+
+{"utc": "2026-11-12T14:51:49.871418+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-fire-clear5-mixed-repeat", "completed": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T14:54:58.888438+00:00
+
+{"utc": "2026-11-12T14:54:48.765671+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-all-people8", "completed": 2}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T14:58:01.276151+00:00
+
+{"utc": "2026-11-12T14:58:00.657275+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "EVIDENCE_MAINTENANCE", "upcoming_case": "all-people10", "completed": 3}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T14:58:21.575214+00:00
+
+{"utc": "2026-11-12T14:58:03.598411+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-all-people10", "completed": 3}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:01:23.922296+00:00
+
+{"utc": "2026-11-12T15:01:18.747916+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-outage-all2x5-counter-clock-c17", "completed": 4}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:04:46.516821+00:00
+
+{"utc": "2026-11-12T15:04:37.013890+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-reconnect-controlled-SA-8-fixture-ca-r2", "completed": 5}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:06:48.084606+00:00
+
+{"utc": "2026-11-12T15:06:35.097389+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-native-hang-controlled-SA-8-fixture-ca-r2", "completed": 6}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T15:08:36.502005+00:00 — C17 native testing active, fresh proofs and controller details
+
+C17OCIchainindependentlySHA-verified: manifestf515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe→configa86fac9ded3bf9a015cd2e448edd55cdb3c1128ae164da9a8ae5682e4ff2e409; inheritsC1680rootfslayers→C1782. Nonroot10001:10001 andcontract8.0checked; notpublishedregistrydigest. ProofR17/artifacts/image-identity mirroredL17.
+
+FreshC17bakedtests360PASS/1deselected/22subtestsPASS;30policyPASS;bothbakedvalidatorsandcanonicalhostvalidatorPASS. Exclusionsaretheunused/rejectedparallel_background.pyexperimentalmoduleanditsonecorrespondinggaittest,alreadydeclaredinreport;activepathsnotomitted. APIoriginal11PASS plusblockedr2PASSsameC17; laterpostAPI12hasnewoutputpathpost-agent-api-regressions-data,sor1failureisnotclobbered. Postwaiteruses--skip-verified-baked-checksONLYforsameC17frozenimageproofthatpassedupfront—notC16inheritance.
+
+Foundationc17-foundation-SA1x5PASS(allface/body/gait/sceneexpectedoutputs), ANPR5PASS4.989727FPS/minwindow.987947, fire-clear5PASS4.994379/minwindow.993246, people8PASS7.983466/minwindow.985902, people10PASS9.965793/minwindow.977422. Two-camera18soutagePASS; repeatedreconnectPASS; nativehangfaultcurrentlyrunning. TheseareNATIVEVIDEOREPLAY/controlledsources,notthesuppliedliveRTSPSqualification,whichremainsqueued. Onecommentcalledfoundationlive;precisescopehasbeencorrected. No broadaccuracy/maxcapacity/productionreadyclaim.
+
+Mainwrapper3203929/controller3203930;freshpostwaiter3213597waitsformainbatchlease. ItsfirstlaunchassertcaughtEVIDENCE_MAINTENANCEstatusbetween casesanddidnotstartanything; relaxedonlytest-controllerlaunchchecktoallowRUNNING/EVIDENCE_MAINTENANCE,verifiedimageandfoundation,startedexactlyonewaiter. Nativework/gatesunchanged. RootPTY12958;R17read_statusrequiresrootforactiveprivateguardfiles.
+
+C17localwatchers524934/35/36/37active;offhostnative-logreceiving~478867bytes(correctnative-live.logpath). Rootread-onlykeeper3192690/nativefollower3192691/network3192692active. OldC16localstatus3955255/offhost3955258stoppedafterfinal;finalmirror3955254/results4057273stoppedafterrsync0andfinalstage/hardwareanalyses. C16finalanalyses25steadycaseintervals/GPU9529,host10028,process10031samples;rawrecordsretained,not25newPASSclaims. C16memorygrowthandqueue-defectcausalrelationshipnotestablished. Alloldsource/measurementvaluesreadablethroughverifiedlosslessarchives.
+
+GlobalACTIVE_CAMPAIGNnowC17;exactsourceofcurrentcaseisCAMPAIGN_CURRENT.json,manualstageisintentionallygeneraltoavoidstaleintercaselabels. C17fullcapacitysearch/hour/postinput/TLS/API/latency/motion/mixed/live/K3sstillpending. No modelembeddings/schema/policy/device/cadencechangebeyondpreviousC16fireNPUandthisC17schedulerreleasefix. No push. FinalrestoreCPUturbo0/servicesONLYaftergoal/userstop,notnow.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:08:49.742210+00:00
+
+{"utc": "2026-11-12T15:08:35.154636+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-bad-first-source-controlled-SA-8-fixture-ca-r2", "completed": 7}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:10:10.775722+00:00
+
+{"utc": "2026-11-12T15:10:03.110390+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-prefetch-missing-pts-controlled-SA-8-fixture-ca-r2", "completed": 8}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:12:12.314917+00:00
+
+{"utc": "2026-11-12T15:11:53.167720+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x5", "completed": 9}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:14:54.390532+00:00
+
+{"utc": "2026-11-12T15:14:52.564829+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-18x5", "completed": 10}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:18:17.090394+00:00
+
+{"utc": "2026-11-12T15:18:09.546224+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-19x5", "completed": 11}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:21:19.569784+00:00
+
+{"utc": "2026-11-12T15:21:17.793241+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "EVIDENCE_MAINTENANCE", "upcoming_case": "S-1x8", "completed": 12}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:21:39.838030+00:00
+
+{"utc": "2026-11-12T15:21:26.655762+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x8", "completed": 12}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:24:42.221950+00:00
+
+{"utc": "2026-11-12T15:24:24.030018+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-14x8", "completed": 13}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T15:25:17.678825+00:00 — C17 continuation, live sources and evidence preservation
+
+The user reaffirmed uninterrupted autonomous testing through the agreed goal. Main controller 3203930 and wrapper 3203929 remain active on .64; the postcheck waiter is 3213597. No second native workload was launched. Latest checked case: scene-only 14 cameras at 8 FPS. The fresh C17 scene-only 5-FPS search passed 18 cameras and failed 19 (minimum mean 4.8661 FPS, worst window ratio 0.89455). This is a short, workload-specific search; not sustained/general capacity. All nine preceding native regressions passed.
+
+The six-source RTSPS availability snapshot was missing from R17. Copied the preserved Nov12 12:28 UTC metadata snapshot from R16 to R17/artifacts/user-source-availability-20261112.json so the queued helper will actually execute all six live inputs and the mixed fleet. Copying availability metadata does not qualify sources or the new image; later live tests remain required. Original TCP 9001–9010 refused connections at the previous explicit check and are not replaced with fake sources. Controlled replay is separately identified.
+
+Read-only C17 hour memory watcher PID3284288 is waiting for the exact owned one-hour container. It records cgroup anon/file/shmem/kernel, events and pressure without launching inference. Script and command proofs live in L17/R17. Do not sum shmem on top of file because it is already included.
+
+Local closed C16 evidence was compacted losslessly: 31 terminal cases, every file set and SHA verified before replacement. Archive 96,317,440 bytes, SHA256 5f1ee429d112a054e7fe3d75bdc521d120bb11fff4d27561fbf3dc5b29856165; L16/remote-storage/closed-c16-final-local-20261112.squashfs. Read-only mount L16/closed-local-final-evidence-ro, original paths remain readable via links. Full remount command, original metadata and per-file hashes are in L16/local-final-closed-storage-proof.json. Freed approximately 507MiB (2,896,031,744 to 3,427,418,112 free bytes). C16 mirror/result processes were confirmed stopped before replacement. No raw evidence or failure was discarded; C17 and remote tests/source processes unchanged.
+
+Runtime/production policy/contract/models remain unchanged since C17 build; no image push or publication. Capacity, fresh hour and queued postchecks remain unfinished.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:27:44.721900+00:00
+
+{"utc": "2026-11-12T15:27:33.808144+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-15x8", "completed": 14}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:30:47.164660+00:00
+
+{"utc": "2026-11-12T15:30:44.645952+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x10", "completed": 15}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:33:49.698067+00:00
+
+{"utc": "2026-11-12T15:33:42.130024+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-11x10", "completed": 16}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T15:36:43.996742+00:00 — C17 scope review and fresh capacity milestones
+
+C17 short scene-only frontiers so far: 18 cameras pass /19 fail at5FPS;14 pass /15 fail at8FPS. The15x8 failure had minimum completed mean7.33450FPS and minimum window ratio.800116, no fatal lines. Current case11x10. Native regression cases previously listed remain PASS; hour/postchecks unfinished.
+
+CAPACITY_TEST_MATRIX active metadata now points to C17 with separate verified OCI manifest/config IDs; C16 retained in history. Protocol links to actual current result files; no historic result promoted. INC033 implementation/scoped-evidence fields now name C17 baked-unit and blocked IPC/agent r2 passes, while whole incident completion remains open pending load; first invalid synthetic health-reason fixture failure is retained.
+
+L17/TEST_SCOPE_REVIEW.md explicitly separates this batch from the broader282-case/twelve-profile catalog. It records that INC010 plate admission-state handling still needs its direct refusal/accept reproducer; code inspection is not a fresh repair or a native PASS. Scheduler/API faults do not close policy admission semantics. No runtime changes were made, and this note must not turn an enabled-but-unexercised use case into qualified positive work.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:36:52.116449+00:00
+
+{"utc": "2026-11-12T15:36:47.734895+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-12x10", "completed": 17}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:39:54.540875+00:00
+
+{"utc": "2026-11-12T15:39:54.315608+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-1x5", "completed": 18}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:43:17.124682+00:00
+
+{"utc": "2026-11-12T15:43:10.666529+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-5x5", "completed": 19}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T15:43:59.124871+00:00 — INC010 directly reproduced; narrow source repair pending a new image
+
+While the unchanged C17 native campaign continued, the permanent incident review found plate emission helpers updating sent-state even when local handoff refused admission. Added scripts/isolated_validation/test_policy_admission.py. The initial offline test collection failed because a mounted /test-support path had too few parents; corrected only the test path and preserved the initial source/error. Against the unmodified baked C17 implementation (no runtime overlay, no GPU/NPU devices), the corrected direct tests produced2FAIL/2PASS: plate_read and plate_outcome incorrectly advanced state; face/body behaved correctly. Raw R17/artifacts/policy-admission-r2/stdout.log and commands retained. This is a real uncovered policy-to-handoff edge, not an OCR/quality-gate failure.
+
+Prepared source-only change in runtime_v8/services/worker/pipeline/v8_events.py: only mark plate/outcome state and adaptive outcome after accepted admission; keep a selected candidate window on refusal in all three callers; cache refused event/evidence package for stable IDs/source time/JPEG bytes on retry; clear pending outcome cache after an accepted read. No detector/OCR confidence, timing, consensus, correction thresholds, tracking/presence/zone gates, model/device, schema or contract changes. Local source is now ahead of frozen C17. Do NOT claim C17 contains this fix. Source snapshot/status are L17/pending-policy-admission-fix/.
+
+Explicit offline source-overlay validation (not a baked/new-image/native PASS) gives36PASS:6new focused tests +30existing policy scenarios, including idle/frame timeout retaining the selected result without another OCR observation. Separate outputs R17/artifacts/policy-admission-source-patch and -r2; first34PASS snapshot before two caller tests added. New-image baked/native/API and performance checks remain necessary before release. INC010 registry updated with these scoped proofs; no push or C18 build performed yet.
+
+C17 scene short search now18pass/19fail@5,14pass/15fail@8,11pass/12fail@10.12x10 minmean9.58490 and worstwindow.873777, no fatal lines. Current main stage all-app capacity. NativeC17 workload/image/controller unchanged; continue measurements rather than silently relabeling them as patched-image results.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:46:39.759165+00:00
+
+{"utc": "2026-11-12T15:46:30.147837+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-6x5", "completed": 20}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:48:21.067982+00:00
+
+{"utc": "2026-11-12T15:48:07.984402+00:00", "controller_pid": 3203930, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "NEEDS_REVIEW", "reason": "RuntimeError: Resource/sensor/thermal/cleanup block requires diagnosis: BLOCKED_RESOURCE_PRESSURE", "completed": 21}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:50:42.965346+00:00
+
+{"utc": "2026-11-12T15:50:40.295870+00:00", "controller_pid": 3339969, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-6x5-resource-r2", "completed": 21}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T15:51:23.972172+00:00 — Disk guard exclusion diagnosed and resumed without lowering reserves
+
+C17 SA6x5 crossed actual free-root6GiB reserve midrun. Guard terminated child cleanly: BLOCKED_RESOURCE_PRESSURE / EXCLUDED_RESOURCE_ABORT / cleanup_ok=true. No native container remained. It is an excluded resource attempt, not a throughput/native failure or capacity frontier. Original row/files retained. Main and dependent waiters stopped themselves pending review; this is expected guard behavior, not user cancellation.
+
+Read-only storage audit found314MiB of closed C15 observation logs on root. No process referenced that old run. At an idle boundary (no C17 CV container), copied /tmp/sentry-remote64-c15-artifacts/observations-20261112 to R17/closed-c15-observations-preserved, preserved ownership/mode/times and verified every regular file SHA/file set before replacing originals with a readable symlink. No socket/other data touched. R17/artifacts/c15-observation-storage-preservation.json holds all fingerprints/metadata/proof. Root free6,428,213,248→6,757,187,584 bytes; home free4,683,788,288 afterward. Added this one-time verified maintenance to future pre-case idle maintenance; no active benchmark was subjected to the copy.
+
+Explicit reviewed retry mapping retains original excluded case and uses fresh turbo-off-next-SA-6x5-resource-r2 with identical producer settings/image and unchanged6GiB/4GiB/thermal limits. Controller source before alias and original command/log saved. Resume validates old blocked guard and cleanup, and requires --resume; existing PASS/FAIL cases reused only when exact complete commands match. C17 controller now3339969/wrapper3339968; postwaiter3340742 and hour-memory watcher3340743 restarted after the resumed state was verified. Original continuation-resume artifact was missing; now explicitly staged for any later boundary-extension helper. Main remains C17, source-only admission repair still not baked. No push.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:54:05.723689+00:00
+
+{"utc": "2026-11-12T15:54:00.234788+00:00", "controller_pid": 3339969, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-1x8", "completed": 22}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T15:57:28.370376+00:00
+
+{"utc": "2026-11-12T15:57:14.836892+00:00", "controller_pid": 3339969, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-3x8", "completed": 23}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:00:30.750857+00:00
+
+{"utc": "2026-11-12T16:00:26.942853+00:00", "controller_pid": 3339969, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "EVIDENCE_MAINTENANCE", "upcoming_case": "SA-4x8", "completed": 24}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:01:11.268475+00:00
+
+{"utc": "2026-11-12T16:00:53.162099+00:00", "controller_pid": 3339969, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-4x8", "completed": 24}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T16:01:56.301497+00:00 — C18 local build prepared while unchanged C17 measurements continue
+
+C18 built ONLY at the existing serialized idle maintenance boundary, with no native CV container running, not concurrently with a measured hold. It inherits C17 and copies only v8_events.py then py_compile. Four changed methods confirmed by AST versus extracted actual C17 source: _emit_plate_read, _emit_plate_outcome, _plate_idle_timeouts, _plates. Other class methods identical. Parent sourceSHA949cf8e990f3a9539833c10a9805d2fd1bd035a0f97dcf31c67ee9724d058a72; patchedSHA6085c9358f1737b7e5e908939a71a8be542c3ee7b276fdf64f8dc2d2c1723865.
+
+New tag localhost/sentinel-cv:v8-c18-plate-admission; Docker engine/OCI manifest sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d; separatelySHAverifiedOCIconfig sha256:a6474e223e33be398c85e36bbec2c4ade3eca8f93e8bbedafa3037068d2c435a. Exact content-store blobs archived; inherited82C17 rootfs layers→84C18; user10001:10001. R18=/home/admin1/Documents/sentry-validation-20261112-c18 currently contains build/artifact proof only. It is not yet the active campaign. L17/pending-policy-admission-fix has build/context/provenance/identity/status. No registry publication.
+
+Six permanent admission tests moved into standard runtime_v8/tests/test_policy_admission.py so future default unit runs include them. Original diagnostic script copies/commands remain in raw evidence and the pending-fix context. This move only changes test import-path detection, not runtime code; C18 baked tests still pending. INC010 stays open until repaired-image qualification. Parent C17 tests must NOT qualify C18 automatically.
+
+C17shortall-app result:5pass/6fail@5FPS (original6case disk-excluded and valid resource-r2 fail separately retained);3pass@8FPS,4currentlyrunning. Three-camera minmean7.949946/window.959740. C17hour and complete postchecks remain pending. Current C17controller3339969,postwaiter3340742,memorywaiter3340743; local/remote observers remain active.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:04:13.636299+00:00
+
+{"utc": "2026-11-12T16:04:05.282731+00:00", "controller_pid": 3339969, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "EVIDENCE_MAINTENANCE", "upcoming_case": "SA-1x10", "completed": 25}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:05:34.656899+00:00
+
+{"utc": "2026-11-12T16:05:22.192322+00:00", "controller_pid": 3339969, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-1x10", "completed": 25}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T16:07:43.939110+00:00 — Fresh C18 baked/API checks passed at an idle boundary
+
+Scheduled one-time C18 checks through the lease-owning C17 idle maintainer; no CV native hold was running. R18repo copied from the small R17harness snapshot (not results), then exact source patch and six permanent tests staged. No runtime implementation or schema mounted in actual baked check containers. C18fresh366unitPASS/1inactivefeaturedeselected/22subtestsPASS;30policyPASS;both embedded and canonical-host validatorsPASS. All12IPC/UnixagentAPI scenariosPASS, including blocked-coalescing. Proof R18/OFFLINE_CHECKS_RESULT.json and artifacts/baked-checks,agent-api-regressions, mirrored L18=/home/admin1/Documents/sentry_cv/optimization_evidence/2026-11-12-remote64-c18.
+
+No C18 native camera/capacity/stress qualification yet. C17 remains the active native campaign; current all-app10FPS one-camera search. SA3x8PASS and4x8FAIL(minmean7.2061/window.801905, nofatal). Source/registry metadata updated only with scoped C18offline evidence; no parent native result inherited. Native refusal/retry validation of INC010 remains a required step, not closed by the API scheduler tests alone. No push.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:08:36.911733+00:00
+
+{"utc": "2026-11-12T16:08:36.173695+00:00", "controller_pid": 3339969, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-2x10", "completed": 26}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:11:59.547118+00:00
+
+{"utc": "2026-11-12T16:11:51.595589+00:00", "controller_pid": 3339969, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-3x10", "completed": 27}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T16:13:57.141024+00:00 — Native policy refusal regression prepared, not yet executed
+
+Added explicit test-only policy_admission_fault_hook.py: actual fleet scheduler _admit rejects the first real plate_read/outcome for capacity-01 once, preserving production detections, pixels, gates and subsequent scheduler behavior. Captures source IDs/time, logical manifest+JPEG digest and evidence hashes; IPC returns genuine False to camera policy. Existing client assigns a new outer package_id per local admission, so comparisons deliberately exclude only that wrapper ID; observation/evidence IDs and bytes remain required to match.
+
+Added analyze_policy_admission.py to require injected refuse→matching admitted retry→exactly one schema/hash-validating agent capture for BOTH kinds; missing/unexercised kind or changed image/source/frame/time/JPEG/ID fails. Helper and negative-control oracle tests13PASS locally, no native/GPU claim. Files staged only in R18repo, permanent INC010 saved tests linked. L18/NATIVE_ADMISSION_TEST_PLAN.md records separate old-C17 negative control and new-C18 positive qualification required; no native test executed yet and none overlaps the continuing C17 search.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:15:01.833891+00:00
+
+{"utc": "2026-11-12T16:15:01.627501+00:00", "controller_pid": 3339969, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "EVIDENCE_MAINTENANCE", "upcoming_case": "all-3x8-one-hour", "completed": 28}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:15:22.097638+00:00
+
+{"utc": "2026-11-12T16:15:07.556526+00:00", "controller_pid": 3339969, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-all-3x8-one-hour", "completed": 28}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:20:26.154695+00:00
+
+{"utc": "2026-11-12T16:20:11.836111+00:00", "controller_pid": 3339969, "power_scope": "CPU turbo disabled", "image": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe", "capacity_qualified": false, "status": "STOPPED", "reason": "InterruptedError: User stop", "completed": 29}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:30:37.621776+00:00
+
+{"utc": "2026-11-12T16:30:02.276588+00:00", "status": "RUNNING", "case": "c18-foundation-SA1x5", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "controller_pid": 3432726, "capacity_qualified": false, "stage": "foundation"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T16:32:51.832400+00:00 — Controlled move from completed C17 short search to fresh repaired C18 validation
+
+Decision: C17 cannot be the final candidate because INC010 is directly reproduced. Its full short frontiers are complete; move remaining qualification to repaired C18 to avoid completing an obsolete-image hour/post suite and then repeating it. C17 hour was deliberately stopped after a few minutes, with clean guard/archive cleanup: CANCELLED, child-15, supervisor143, cleanup_ok=true; probe_passed=false. Controller's generic InterruptedError:Userstop text is its cancellation handler, NOT a new user stop request. Explicit R17/SUPERSEDED_BY_C18.json records operator-owned candidate supersession. Old main3339969/wrapper3339968dead, noC17nativecontainer. Postwaiter3340742 terminated before any old post load. Old root observer3192690/91/92 stopped cleanly; old hour observer ends with container. All prior PASS/FAIL/resource-excluded/partial records retained.
+
+Completed C17 short frontiers: scene-only18/19 at5FPS,14/15 at8,11/12 at10; all-eleven-app5/6 at5,3/4 at8,2/3 at10 (pass/fail counts). SA3x10 failed minmean9.265576/window.822528,no fatal. Original SA6x5 disk exclusion and valid resource-r2 fail remain distinct. These are C17 short replay measurements, NOT C18 passes or full production qualification.
+
+C17hour support-I/O note: to keep6GiBreserve, closed C15cases267MiB were copied/hash-verified fromroot tohome16:18:02.167→16:18:13.476UTC while the later-cancelled C17hour ran; no native pause or gate change, interval explicitlyretained/notremoved. Proof R17/artifacts/c15-runs-storage-preservation.json; all94internal links absolute, noIPC/specialfiles, everyfileSHAverified, oldpathsreadable. Rootfree6,481,432,576→6,756,966,400. This partial run must not be described as an untouched full-hour pass. Prior zero-container memory waiter completion renamed watcher-finished-before-resource-resume.json, currentpartialcgrouprecords retained.
+
+C18root control/harness files prepared from small R17source snapshot, NOT results. Sameguardreserve6GiBroot/4GiBRAM, turboOFF, thermalresume70/abort90, selected-frame/model gates unchanged. R18POSTCHECKS.lock symlinks R17globallease, preventing overlap. R18artifacts moved to /tmp/sentry-remote64-c18-artifacts only after every regularfile/directory/hash verified; original offline backup (including12inactiveUnixsocketentries) retained in R18/artifacts.before-rootfs-stage; ARTIFACTS_LAYOUT_PROOF.json records distinction. No image/runtime change. New hardware observers write directlyhome via R18/observer-storage-home with repo/CURRENT aliases and R18/artifacts/observations-home symlink, so monitoring does not eat rootguardreserve.
+
+C18rootkeeper3426314,nativefollower3426315,network3426316. Local mirror978254,status978255,results978256,offhostnative978257. Actualnative-live.log path correct. Fresh bootstrap3432726, postwaiter3432727, hourmemorywaiter3432728. C18foundation c18-foundation-SA1x5 currentlyRUNNING; then native_policy_admission.py runs real ANPR with one-shot actualscheduler refusal for plate_read/outcome, with independent admitted+agentIDs/time/JPEG verifier, under samelease. Helper and oracle13unitPASS; source test files staged R18repo after correcting copiedrepo ownership (initialSCPpermission failure changednoimage/test; successfulretryconfirmed). A compile-only bootstrap indentation error was caught beforewrite/launch and corrected; no native attempt came from it. New native failure writes NEEDS_REVIEW and prevents main start.
+
+After this foundation+newfaultregression pass, bootstrap starts fresh C18 main fixed/recovery/5-8-10capacity/hour sequence and queued posthelper; no C17 results reused. Fresh C18baked366unit/22subtests+30policy+12APIpass alreadyrecorded; do not repeat those without newchanges/failures. Canonical sixadmission tests now runtime_v8/tests/test_policy_admission.py. Pending native plan updated by actualbootstrap; no native C17 negative rerun is required because its baked2FAIL/2PASS red proof and strict13oracle controls already exist; C18realnativepositive required.
+
+Activeglobalandcapacitymetadata now C18, engine/manifest5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d, separatelyverifiedconfiga6474e223e33be398c85e36bbec2c4ade3eca8f93e8bbedafa3037068d2c435a. Models/devices/contracts/policyallinherited,4plate-admissionmethods only. Neither source/multiboxcontract norproductionthresholdschanged. No push, publication, restorationorfinalcompletion yet. Usergoalcontinues.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:33:19.706876+00:00
+
+{"utc": "2026-11-12T16:33:16.310212+00:00", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "controller_pid": 3441325, "status": "RUNNING", "case": "c18-native-plate-admission-SVX1x5", "stage": "native_policy_admission_fault", "capacity_qualified": false}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:36:22.133628+00:00
+
+{"utc": "2026-11-12T16:36:20.250385+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-anpr5", "completed": 0}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:39:24.569560+00:00
+
+{"utc": "2026-11-12T16:39:21.925479+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-fire-clear5-mixed-repeat", "completed": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:42:26.978665+00:00
+
+{"utc": "2026-11-12T16:42:20.952730+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-all-people8", "completed": 2}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T16:42:48.247245+00:00 — C18 foundation and real native admission regression PASS; main fresh batch running
+
+C18foundationPASS(allfourrequiredface/body/gait/sceneprofiles). Actualnativecase c18-native-plate-admission-SVX1x5PASS at16:36:14UTC. Testhookrefusedfirstrealplate_read andplate_outcome once each at the actual fleet scheduler, so genuineIPCFalse reached camera policy. BOTH original observations then had1matchingacceptedretry and1matchingagentcapture, identicalpresence/camera/sourceframe/observedAt andJPEGhash/bytes. Plate-readobs107f2460-4bda-42b6-a438-b70fde017216 sourcecapacity-01:49;outcome2d3a265a-13cf-4335-8aba-43713b1bca9d sourcecapacity-01:3. AgentAPI validated schema/IDs/JPEGbytes; no source/model/gate changes by hook. Rawcasecommands/hookhash,container.log,packages andreport are L18/remote-artifacts/runs/remote64-c18/c18-native-plate-admission-SVX1x5;independentverifier L18/remote-artifacts/native-policy-admission-result.json. OuterlocaladmissionpackageIDmaychange byexistingclientdesign;logicalobservation/evidence identityisexact,HTTP retriesunchanged. This closes the reproduced plate local-admission bug in the tested scope, not accuracy or every possible downstream failure.
+
+MainC18wrapper3447845/controller3447846 nowrunning. ANPR5PASS completedmean4.9940438FPS/minwindow.9831875,no fatal. Currentfire/clear5. Postwaiter3432727,hourmemorywaiter3432728,rootobservers3426314/15/16,localwatchers978254/55/56/57continue. Sameimage537352... andguards/turboOFF. Wrote explicit sameC18 --resume template artifacts/continuation-resume-20261112.json for any later boundary extension; no parent/excluded-row reuse.
+
+Fresh incident execution file L18/INCIDENT_RESULTS.json uses actual verified OCICONFIG a6474e... plus explicit engineMANIFEST537352... identitychain. INC010 markedPASS only after hashed bakedunit andactualnativeproofs satisfy its assertions/levels. Other32familiesremainNOT_RUN inthis execution checklist untiltheir ownscopedproofreview—not32observedfailures. Fail-closed currentgatequalifiedfalse preventsblanketreleasequalification. Canonicalmatrix stays allnew_image_statusNOT_RUN as a reusabletemplate perexistingregressionrule; implementation/scopedevidence separate. Catalogconsistency14testsPASS. Fault/oraclecontrols13PASS; exacttoolstdout/commands recorded CONTROL_TESTS_RESULT.json with recordedUTC (notinventedinitialexecutionUTC).
+
+C17localwatchers524934/35/36/37stopped afterfinalmanualrsync0 andSUPERSEDED_BY_C18.jsoncopied. C17finalstage/hardwareanalyses24steadycaseintervals,GPU5647/host5944/process5945samples—not24newPASSclaims. CancelledC17hour hasno finalreport.json; rawlogs/agentpartial/cgroup/guard data retained; do NOT inventa completedhouranalysis. AtC18idlepreflight, closedC17observations werecopied/hashverifiedtoR18home witholdpathsreadable; proofR18/artifacts/c17-observation-storage-preservation.json:rootfree6,720,724,992→6,794,080,256;homefree4,268,949,504. NewC18host/GPU/processobserver data writesdirectlyhome; no repeatingrootreserveissue hiddenbylowerthresholds.
+
+Nativequalificationremainsinprogress; no push, no restore, no end-of-goal claim. AllC18measurementsfresh.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:45:49.683849+00:00
+
+{"utc": "2026-11-12T16:45:35.827181+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-all-people10", "completed": 3}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:48:52.022727+00:00
+
+{"utc": "2026-11-12T16:48:48.956186+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-outage-all2x5-counter-clock-c18", "completed": 4}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:52:14.641894+00:00
+
+{"utc": "2026-11-12T16:52:09.352681+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-reconnect-controlled-SA-8-fixture-ca-r2", "completed": 5}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:54:36.448588+00:00
+
+{"utc": "2026-11-12T16:54:25.738597+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-native-hang-controlled-SA-8-fixture-ca-r2", "completed": 6}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:56:17.752467+00:00
+
+{"utc": "2026-11-12T16:56:07.922473+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-bad-first-source-controlled-SA-8-fixture-ca-r2", "completed": 7}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:57:38.803686+00:00
+
+{"utc": "2026-11-12T16:57:36.076203+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-prefetch-missing-pts-controlled-SA-8-fixture-ca-r2", "completed": 8}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T16:59:20.088656+00:00
+
+{"utc": "2026-11-12T16:59:14.265172+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x5", "completed": 9}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T16:59:32.834686+00:00 — Fresh C18 core regressions progressing; measured host facts
+
+C18main3447846: ANPR5PASS mean4.9940438/window.9831875; fire/clear5PASS; people8PASS mean7.9783354/window.9849306;people10PASS;two-camera outagePASS;repeatedreconnectPASS;nativehangfaultPASS;bad-firstsourcePASS. MissingPTSfaultcurrentlyrunning. Exactrawresults/ledgerauthoritative; capacity/hour/live/postchecksnotcomplete. No runtimechanges afterC18build. Sameimage537352manifest/configa6474e.
+
+Freshhostinventorycaptured16:58:03UTC inR18/artifacts/host-inventory.json: IntelCoreUltra9285H,16logicalCPUs,MemTotal32,333,408KiB,kernel7.0.0-30-generic,no_turbo1(disabled),enp2s01000Mbps/full. PCIentriesIntelArrowLake-PGraphics8086:7dd1rev03,IntelMeteorLakeNPU8086:7d1drev05(asreportedbylspciDB). Do notinferdefault-power capacity or per-cameraacceleratorutilization. Hardwareobserversremainread-onlywithhost/node scopes.
+
+C17finalstage/rawhardwareanalysesalreadycompleted24steadyintervals withGPU5647/host5944/process5945samples. First-camera C17SA3x8 means: bodymodelwall11.612ms/crop9.002calls/s(queue1.341ms),gaitbackground60.802ms/update2.655/s with15.517backgroundreuses/s,sceneGPUmodel16.684ms/.489calls/s(queue.402ms). These are scoped historical invocationwallmeans/countercoverage,NOTkernel/p95latency,NOTfreshC18proof andnotadditivetotals(parent/childspansoverlap). No new optimization decision or causality claim follows from them alone.
+
+INC010canonicalimplementationstatusnowFIXED_C18_BAKED_AND_NATIVE_IPC_AGENT_REFUSAL_RETRY_VERIFIED, whilethe reusablecatalognew_image_statusstaysNOT_RUN. ItsfreshC18executionrowPASSinL18/INCIDENT_RESULTSwithhashedproofs; overallincidentgatecurrentlyunqualifieduntilothersreviewed. Nativeplanmarkedcomplete; olderC17bakednegativecontrolpreserved, no redundantoldnativecontrolrun. No push/finalrestoration.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:02:22.524220+00:00
+
+{"utc": "2026-11-12T17:02:13.691554+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-18x5", "completed": 10}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:05:24.947910+00:00
+
+{"utc": "2026-11-12T17:05:19.882205+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "EVIDENCE_MAINTENANCE", "upcoming_case": "S-19x5", "completed": 11}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:05:45.222370+00:00
+
+{"utc": "2026-11-12T17:05:28.789950+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-19x5", "completed": 11}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:08:47.667699+00:00
+
+{"utc": "2026-11-12T17:08:46.106100+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x8", "completed": 12}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T17:09:10.105161+00:00 — C18 first fresh short boundary and added distinct GIL-held fault case
+
+All9freshC18main core regressions passed. Scene-only5FPS:18camerasPASS(minmean4.953566/window.942398),19FAIL(minmean4.582776/window.819075,no fatal). Advancingto8FPS. These are freshC18results, no C17inheritance. Resourceobserverhome storage active; rootreserve intact.
+
+Added test-only --native-hang-gil to v8_recovery_image_validation.py. Existing blockedcallbackwhiletime.sleep releasesGIL; new variant usesctypes.PyDLL(None).sleep(600), which holdsworkerGILwithoutkernel/acceleratormutation. Faultonceguard remains. Requires actual test_injected_native_gil_stall log, different parentPID restartingexactblockedchild, childexit-9, andexistingnewworker2camerafreshframes/package/session/UTCchecks. Does NOT claimrecoveryfromglobalGPU/kernelhang. NativevariantNOT_RUNyet, queued inR18finish_campaign_c18.py immediatelyafterfreshbad-first postphase. Serializedsamelease, sameguards/model/gates, noimagechange. Actualsource/roothelpercopiedtoL18.
+
+Newhelper/negativecontrols plusTLSpreflight13PASS. Validatesmissing/duplicatefaultpoint,wrongworker,missingkill,booleanPID,sameprocess,absentinjectioncannotpass. CanonicalINC007andPIPELINE_TEST_PLANupdatedsoexisting ordinarynativehangPASScannotbesilentlycountedasthisGILvariant. CurrentimageC18unchanged537352/a6474e. Noothernewoptimizationexperimentsorimagebuilds.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:11:50.176766+00:00
+
+{"utc": "2026-11-12T17:11:43.673653+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-14x8", "completed": 13}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:14:52.599977+00:00
+
+{"utc": "2026-11-12T17:14:52.488197+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-15x8", "completed": 14}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:17:55.038800+00:00
+
+{"utc": "2026-11-12T17:17:54.637995+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "EVIDENCE_MAINTENANCE", "upcoming_case": "S-1x10", "completed": 15}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:18:15.323516+00:00
+
+{"utc": "2026-11-12T17:18:03.444754+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-1x10", "completed": 15}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:21:17.741966+00:00
+
+{"utc": "2026-11-12T17:21:01.009813+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-11x10", "completed": 16}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:23:59.840367+00:00
+
+{"utc": "2026-11-12T17:23:59.138810+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "EVIDENCE_MAINTENANCE", "upcoming_case": "S-12x10", "completed": 17}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:24:20.138645+00:00
+
+{"utc": "2026-11-12T17:24:07.597598+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-S-12x10", "completed": 17}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T17:26:26.442292+00:00 — USER FREEZE: complete C18 checklist, no scope creep or unnecessary repeats
+
+Latest explicit user steering: "Freeze C18 and finish the existing checklist. Don’t add unrelated tests or rebuild unless a confirmed defect blocks the required functionality. Preserve completed results and justify any repeated tests. Give me the remaining test count and estimated completion time, then continue. Keep the required one-hour stress test." This supersedes any earlier open-ended optimization exploration. C18engine5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d/configa6474e223e33be398c85e36bbec2c4ade3eca8f93e8bbedafa3037068d2c435a frozen. No newoptimizationexperiments/models/gates/contract changes. Rebuild exception onlyforaconfirmeddefectblockingrequiredfunctionality, withreproducerandreason first. Capacityshortfallorunavailableexternalsource aloneisnotthisexception.
+
+Count/ETA delivered at17:15UTC (22:45IST): expected44–58remainingworkload/suiteexecutions,includingcurrentS14x8. Fifteenmainruns at17:13snapshot include14capacitypoints andONEFULL3600secondstresshold;29–43followupsincludeTLS15casebatchcountedasoneexecution,motion/pixel/markedlatency/transports/mixedroles/live6+fleet/nativeGIL/K3s. Variablecountscomeonlyfromexistingrole-budgetbisectionandpredeclaredborderlinerepeats; guideextensions/excludedattemptretriesmustlogreasonandupdateestimate. Estimated3.5–4.5hours,02:15–03:15IST13Nov ifnoblockingdefect/extendedcooling. DoNOTtreatforecastasphysicalcapacitycap or atomicassertioncount.
+
+L18andR18C18_FREEZE.json/FROZEN_REMAINING_CHECKLIST.md savethisexactscope/count/ETA/repeatrules. FullC18hourREQUIRED—noC16/C17substitution,partialstitching orshortening. CompletedC18baked366/30policy/12APIproofspreserved. Already-passedidenticalC18bad-firstSA8and12APIbatchwillNOTberunagain: futureposthelpernowverifiesexistingimage/command/guard/hashesandrecordsREUSED_PASS_SAME_FROZEN_C18_NO_NEW_RUN. Roothelperbackupbefore-freeze-dedupretained,actualnewhelpermirroredL18. Thisremovestwoqueuedduplicateworkloadlauncheswithoutdroppingassertions. Requiredparitypaths/differentload/source/FPSpointsaredistincttests;conditionalborderline repeat onlyunderpredeclaredmean>=95%/worstwindow88–90%rule;allotherrepeatsrequireexplicitreasonandretainoriginal.
+
+No newbenchmarks/imagebuildssincethefreeze. C18main3447846continues,postwaiter3432727,hourmemory3432728,rootobs3426314/15/16,local978254/55/56/57. Latest17:21UTC:S11x10running,16maincasesclosed;S18pass/19fail@5, fresh8FPSsearchcompletedandstoredfrontier. Localmirror0,localfree2.35GiB.
+
+Supportingstorageonly: startedlocalPID1216544 preserve_local_from_verified_remote_archives.py toreplaceCLOSED,immutableC17localcasecopieswithread-onlymountsofexistingremoteSquashFSarchives,eacharchiveSHAandEVERYoldlocalfileverifiedbeforeanyreplacement. Thisisnotanewtest/compressionexperiment/rebuild; itpreservesresultsandkeepsC18mirror2GiBreserve. OldC17writersverifiedstopped. Script/rootproofinL17/local-remote-archive-preservation.json,remountcommands/per-fileprooffromsavedremotecompressionreports;failbeforeverificationleavesoriginalsuntouched. Needinspectcompletion/anymaintenanceerror; activeC18runtime/rawdatauntouched.
+
+Continuewithoutendingturnjusttoreportprogress. No publication/push or hostrestorationuntilactualgoalcompletion/userstop.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:27:22.524256+00:00
+
+{"utc": "2026-11-12T17:27:14.338940+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-1x5", "completed": 18}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:28:03.000935+00:00
+
+{"utc": "2026-11-12T17:28:01.793959+00:00", "controller_pid": 3447846, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "NEEDS_REVIEW", "reason": "RuntimeError: Resource/sensor/thermal/cleanup block requires diagnosis: BLOCKED_RESOURCE_PRESSURE", "completed": 19}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T17:29:28.465031+00:00 — Supporting storage preservation completed; frozen C18 runs unchanged
+
+LocalclosedC17preservationPID1216544completed17:25:43UTC:24cases,24existingremoteSquashFSarchives176,766,976bytes, everyarchiveSHAandeveryoldlocalfileverified before read-onlylinkreplacement. Free2,460,737,536→2,731,257,856bytes. Allsourcepathsremainreadable; per-fileproofs,originalmetadataandallremountcommandsL17/local-remote-archive-preservation.json. No rawfailureslost; nocompression/benchmark/imageexperimentadded. LocalC18mirrorcontinues.
+
+RootC18activeSA1x5free6.05GiB, withinunchanged6GiBguardbutlittlereserve. Scheduledone-timeclosedC16observer-logcopy/hashpreservationtonextIDLEmaintenancestep;noactivenativeI/O/noimagechange/nolowerguard. Source/tmp/sentry-remote64-c16-artifacts/observations→R18homeclosed-c16-observations-preserved;oldC16keeperconfirmedstopped;proofwillbeR18/artifacts/c16-observation-storage-preservation.json. Thisisrelatedevidencehousekeepingonly, nottestscopeexpansion.
+
+C18S12x10failedminmean9.513415FPS/worstwindow.897259,nofatal;thereforeoneexistingconditionalborderlinerepeatmayapply(mean>=95%,window88–90%). ItmustretainoriginalFAILandjustifyvariability, notreplacefrontierwithfavorable rerun. S11x10pass;all-sceneactualfrontiers18/19@5,14/15@8,11/12@10forC18. Mainall-appcapacitynowrunning. Freezeinstructionunchanged;no rebuilds/newtests.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:44:57.068026+00:00
+
+{"utc": "2026-11-12T17:44:56.827538+00:00", "controller_pid": 3580041, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "EVIDENCE_MAINTENANCE", "upcoming_case": "reconnect-controlled-SA-8-fixture-ca-r2", "completed": 19}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:45:17.348131+00:00
+
+{"utc": "2026-11-12T17:45:06.449227+00:00", "controller_pid": 3580041, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-1x5-resource-r2", "completed": 19}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T17:45:35.456933+00:00 — Frozen C18 resumed after verified duplicate-storage correction
+
+Original turbo-off-next-SA-1x5 remains BLOCKED_RESOURCE_PRESSURE/EXCLUDED_RESOURCE_ABORT, child-15, cleanup true. It is not an image defect or capacity FAIL. Confirmed test-maintenance defect: inherited dedup-template selected onlyC16 and therefore missed C17/C18 raw copies. Corrected selector to16/17/18, added final-attempt cleanup verification; no runtime change. Proof artifacts/maintenance-dedup-113472523334760/report.json SHA f1188a43a6fe91c4dd78a4cc0df45af38273716be8d8cdd5558d20775357e150 records free6,550,806,528→7,314,948,096 (+764,141,568bytes), both regular-file sets/everySHA matched before link replacement. No unrelated Docker volumes/journals/OS data removed. Diskreserve remains6GiB.
+
+Reviewed alias turbo-off-next-SA-1x5-resource-r2 is the ONLY repeated excluded case. Original ledger/files retained. Existing18 valid completed main results reuse exact full commands; previousS12x10FAIL retained. C18controller3580041/wrapper3580040 resumed with--resume and resource-r2 log; postwaiter3580804/hour-memory3580805 restarted after oldwaiters exited on NEEDS_REVIEW. Existing observers/local mirrors remainlive. Files reviewed-excluded-retries.json and continuation-controller-resource-r2.log preserve reason/proof. No rebuild/model/gate/schema/device changes, no new tests/publication.
+
+Updated user estimate17:45UTC:39–53 remaining workload/suite executions, including currentretry, nineexpectedSAcapacitypoints andfull3600s stress; same29–43postscope variablebisection/borderlinerepeats. About3–4hfrom17:45UTC,02:15–03:15ISTNov13 absentextendedcooling/resourceexclusions/confirmedblockingdefect. Count remains forecast; first estimates preserved.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:48:39.933307+00:00
+
+{"utc": "2026-11-12T17:48:21.129283+00:00", "controller_pid": 3580041, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-5x5", "completed": 20}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:51:42.300052+00:00
+
+{"utc": "2026-11-12T17:51:39.221468+00:00", "controller_pid": 3580041, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-6x5", "completed": 21}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:55:04.944581+00:00
+
+{"utc": "2026-11-12T17:54:55.372840+00:00", "controller_pid": 3580041, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-1x8", "completed": 22}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T17:58:27.586097+00:00
+
+{"utc": "2026-11-12T17:58:08.269528+00:00", "controller_pid": 3580041, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-3x8", "completed": 23}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T18:01:29.916227+00:00
+
+{"utc": "2026-11-12T18:01:20.382822+00:00", "controller_pid": 3580041, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "EVIDENCE_MAINTENANCE", "upcoming_case": "SA-4x8", "completed": 24}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T18:01:50.180131+00:00
+
+{"utc": "2026-11-12T18:01:38.916458+00:00", "controller_pid": 3580041, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-4x8", "completed": 24}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T18:04:52.569655+00:00
+
+{"utc": "2026-11-12T18:04:51.922513+00:00", "controller_pid": 3580041, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-1x10", "completed": 25}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T18:08:02.165285+00:00 — Local closed-C18 evidence preservation, no test/image changes
+
+21 completed cases replaced with read-only mounts of existing SHA-verified remote archives; all archive files and all previous local file bytes checked first.155,283,456archivebytes; free2,521,968,640→2,760,667,136. ProofL18/local-remote-archive-preservation.json includes per-file hashes/metadata/remount commands. Only local mirror paused temporarily; remote native run and resource observers continued. Mirror resumedPID1399862 and excludes these immutable mounted closed paths, preserving them from rsync timestamp writes. No results lost or tests repeated. FrozenC18 unchanged.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T18:08:15.258552+00:00
+
+{"utc": "2026-11-12T18:08:02.702968+00:00", "controller_pid": 3580041, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-2x10", "completed": 26}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T18:11:17.579574+00:00
+
+{"utc": "2026-11-12T18:11:13.662006+00:00", "controller_pid": 3580041, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-SA-3x10", "completed": 27}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T18:14:40.221443+00:00
+
+{"utc": "2026-11-12T18:14:39.812199+00:00", "controller_pid": 3580041, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "case": "turbo-off-next-all-3x8-one-hour", "completed": 28}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T18:16:30.147466+00:00 — Frozen C18 short searches complete; full one-hour stress running
+
+Exact C18 preserved. Short frontier scene-onlyS:5FPS18PASS/19FAIL;8FPS14PASS/15FAIL;10FPS11PASS/12FAIL. All-eleven-apps-enabledSA:5FPS5PASS/6FAIL;8FPS3PASS/4FAIL;10FPS2PASS/3FAIL. All six first failing neighboring points had no fatal native lines; throughput/output criteria determine verdicts. These are dense1080ppeople TCP replay, CPUturboOFF, sceneoneverycam; not diverse-site hardwaremaximum, uninterruptedexactFPS orpositiveworkfromeveryenabledmodel. OriginalFAILs andresourceexcludedSA1attemptretained. No newimage/models/gates/contracts/device change.
+
+Full3600s steady stress nowrunning turbo-off-next-all-3x8-one-hour; start/warmup before steady asrecorded by actualharness. Roothourcgroup memoryobserver ownscontainer6c84af932f0f3f3d; livegzip grows, commandproofinartifacts/hour-cgroup-memory. Earlier watcher-finished.json records OLD0-container watcher that exited on priorresourceblock; itdoesnotmarkthisactivehourfinished. Newwatcher3580805 willwriteitsownfinalstateafteractualcompletion. Needactualfinalsteady_seconds>=3600 and per-camerawindow/outputchecks; noearlierimagehourinheritance. Remainingforecast30–44runs includingactivehour andsame29–43postchecks; plannedpostphasesunchanged.
+
+
+### 2026-11-12T18:49:16.949295+00:00 — Frozen checklist progress, hour midpoint
+
+Main ledger has28closed attempts, statuses{"BLOCKED_RESOURCE_PRESSURE": 1, "FAIL": 6, "PASS": 21}. Resource exclusion remains explicit; six neighboring-capacity FAILs remain immutable. These are not28PASSes. Fullhour still RUNNING at3cameras×8FPS; steady beganabout18:15UTC and isdueabout19:15UTC. No interruption at18:48UTC. Rawmemory/thermal/source/output logs and offhostmirror current. Postwaiter3580804/hourwatcher3580805 live. Localfree2.43GiB; remote guard latest6.57GiB. No rebuilds/newtests/runtimechanges. Remaining30–44 workload/suite runs includes currenthour andpre-existing29–43postscope.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T19:16:08.274750+00:00
+
+{"utc": "2026-11-12T19:16:02.748567+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "native-gil-blocking-parent-recovery", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T19:17:09.063955+00:00
+
+{"utc": "2026-11-12T19:16:52.973566+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "native-gil-hang-SA8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T19:17:16.512516+00:00 — C18 REQUIRED FULL HOUR COMPLETED PASS, follow-ups running
+
+Uninterrupted full3600.387367896008s steady onexactC18,3×8FPS, all11apps enabled, sceneeverycam. Guardattempt1 PASS/child0/cleanuptrue; no thermal/resource exclusion/restart/stitch. Per-camera completed FPS7.93645/7.92546/7.92721; weakestwindow.9192078. Scene pairedcoverage1759/1755/1755 overactualhour, eachaboveminimum1692. No fatalnative lines. Counterderivedmeanrange~3590s coversfirst-to-last10-second samples; actual steady interval isindependently3600.387s.
+
+360steady samples: cgroupmemory3043.70–3152.79MiB(median3113.12); containerCPU2.826–4.04cores(median3.4825); nodewideGPUactive73.08–82.62%(median77.725); nodewideNPUbusy25.33–56.61%(median42.075), NOTpercamera/modelutilization. Memorygrowth remainsquantifiedinONE_HOUR_ANALYSIS.json; throughputPASS doesnotclaimflat/leak-freeRAM. Source report raw-sentry-v8-capacity-3.g8m11crj/report.json andallrawguard/cgroup/logs preserved.
+
+Mainledger29attempts:22PASS/6neighborcapacityFAIL/1resourceexcluded. Mainwrapperfinished; posthelper3838809 nowtestingGILheldparentrecovery viaexistingfrozenphase. Oldbad-first/APIbakedproofsreused, notrerun. Allremaining29–43existingpostscope continues; noimagebuilds/newtests/gatethresholdchanges/publication.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T19:19:30.876115+00:00
+
+{"utc": "2026-11-12T19:19:21.637327+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "tls-regressions", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T19:19:51.119038+00:00
+
+{"utc": "2026-11-12T19:19:45.118767+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "prefetch-pixel-parity", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T19:22:53.492854+00:00
+
+{"utc": "2026-11-12T19:22:52.419038+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-marked-latency-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T19:26:36.456964+00:00
+
+{"utc": "2026-11-12T19:26:30.905987+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-marked-people-latency-SA-3x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T19:30:19.377384+00:00
+
+{"utc": "2026-11-12T19:30:13.113463+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "marked-people-latency-analysis", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T19:30:39.656184+00:00
+
+{"utc": "2026-11-12T19:30:24.365522+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-borderline-repeat-S-12x10", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T19:31:27.922870+00:00 — Frozen C18 recovery/TLS/pixel/marked latency PASS; only justified boundary repeat running
+
+GIL-blocking native-hang report passed=true andgil_blocking_parent_recovery_verified=true. TLSresults.json15casesPASS. Pixelprefetchdisabled/enabled parityPASSsameimage; two distinctpathsrequired, notidenticalPASSreruns. Existingbad-first/APIproofsreusedwithoutlaunch. MarkedANPR1×8 steady55samplesp95=555.316ms(max622.707ms); markedpeople3×8steady55/53/53samplesp95=572.320/637.371/603.151ms(max630.692/668.008/668.205ms). Zero missingmarkers/ambiguousrepeats/missingsenderpackets. LatencydefinitionfirstvideoPESpacket TCPsubmission→completepackageagentAPIacceptance; excludescameraencoder/downstreamManagement. Nonsteadystartuprecords retained(including~16.1sinitialANPRframe), notfoldedintosteadyp95 orhidden. Existingtestbound4sunchanged; actualvaluesreported, notimplicit2scontractqualification.
+
+NowonlypredeclaredS12×10borderlinerepeat: originalFAILminmean9.513415FPS/worstwindow.897259 qualifiedmean>=95%and88–90%window. OriginalFAIL/frontierpreservedregardlessrepeatoutcome. NoothervalidPASSrepeated/noimagechange/newtest.
+
+Evidence-accessmaintenanceonly: completedGILguard7fileshadbeenlosslesslyarchivedwithrootmode0700, blockingadminrsync. Originalreadonlyarchiveunchanged. RootverifiedEVERYfileSHAinadmin-ownedcopyandretargetedcanonicalguardsymlink; proofartifacts/closed-gil-guard-access-preservation.json recordsoldlink/originalmetadata/filehashes. No testrepetition/resultchange. Otherpostnativecasesuseexistingbridgeownership; thiswasnewGILphaseartifactpermissionoversight, notCVruntimefailure.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T19:33:42.092669+00:00
+
+{"utc": "2026-11-12T19:33:31.644953+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-motion-quiet-people-quiet-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T19:40:07.192186+00:00
+
+{"utc": "2026-11-12T19:39:57.899515+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-http-S-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T19:40:38.459335+00:00 — MotionPASS; frozen count narrowed; second local preservation completed
+
+Postmotion300squiet→people→quietPASS; HTTPphaseactive. BorderlineS12×10repeatalsoFAIL; originalFAIL/frontierretained. Noextrarepeat. At19:35UTC remainingforecast23–31workload/suiteexecutions includedmotion: onlyoneofpossible6borderlinecasesqualified; range nowonlyidentityrolebudget6–14runs. Same02:15–03:15ISTETA; allcasesstillfrozenC18.
+
+Localmirrorcorrectlypausedbelow2GiB (1.986GiB) while remoteauthoritativeraw/nativejobscontinued. Supportingofflinepreservationpass2 usedEXISTINGremoteSquashFSarchives, eacharchivehash andeveryoldlocalfile verifiedbeforecopyreplacement. 9additionalclosedcases; archivebytes139714560; free2132242432→2434097152. ProofL18/local-remote-archive-preservation-r2.json retainsperfilemetadata/SHA/remountcommands. Boundedofflinearchivecopyrequiresarchivebytes+1GiBlocalheadroom solelytorepairpausedmirror; noCVworkloadexecutedlocally, nativeREMOTE6GiBguardandLOCALmirror2GiBpausefloorunchanged. Existingrawlocalcasesremaineduntilpersistentarchive/fullverificationcompleted. MirrorresumedPID1794768,excludesunionofread-onlyclosedcaseproofs. No testsrepeated/newimage/newmodel/codegatechanges.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T19:43:09.742451+00:00
+
+{"utc": "2026-11-12T19:42:56.480488+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-https-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T19:46:12.055303+00:00
+
+{"utc": "2026-11-12T19:46:11.724142+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-plain-rtsp-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T19:49:34.683604+00:00
+
+{"utc": "2026-11-12T19:49:24.540227+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-frozen-six-SA-6x5", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T19:53:58.172561+00:00
+
+{"utc": "2026-11-12T19:53:56.125582+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-shared-tcp-S-5x5", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T19:57:00.650753+00:00
+
+{"utc": "2026-11-12T19:57:00.069404+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-native-stage-timing-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T19:59:22.521757+00:00
+
+{"utc": "2026-11-12T19:59:22.188220+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "identity-role-budget-5fps", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T19:59:42.783634+00:00
+
+{"utc": "2026-11-12T19:59:22.901204+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-role-budget-eight-4identity-5fps", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:02:45.224653+00:00
+
+{"utc": "2026-11-12T20:02:41.005409+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-role-budget-eight-8identity-5fps", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:06:07.994956+00:00
+
+{"utc": "2026-11-12T20:06:00.754769+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-role-budget-eight-6identity-5fps", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:09:30.759183+00:00
+
+{"utc": "2026-11-12T20:09:18.720798+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-role-budget-eight-5identity-5fps", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T20:10:29.384389+00:00 — Frozen transports/timing complete, identity-role budgets ongoing
+
+HTTP/HTTPS(explicittrustedfixture)/plainRTSPPASS. FiveconsumerssameTCPURLPASS inclatleast5connectionswithbytes. NativeGsttimingdiagnosticPASS; tracedtimingsarenotuninstrumentedcapacity. Fixedsixdiverse6×5workloadFAIL: decodedthroughputPASS, scene/evidencecoveragePASS, sourceUTCsanityPASS/no fatalnative, butcompletedworkpercam4.716/3.264/3.667/4.423/1.439/3.128FPS; cannotclaim6×5capacityPASSfromorchestrationphasePASS. No rebuild: retainedexecutionlimit, notconfirmedblockingfunctiondefect.
+
+Eighttotalcameras,sceneeverycam,5FPS:4identityPASS,8identityFAIL,6identityFAIL;predeclaredrefinement5identityrunning. Allface/body/gaitpositiveoutputrequirementsretained. Future8/10FPSrolebudget,mixed2/8,live6+fleet,K3sstillpending. C18unchanged,nomodel/gate/contract/devicechanges.
+
+Localclosedpreservationpass3 10cases,archivebytes90157056, free2147274752→2280312832. FullfileSHA/originalmetadata/remountprooflocal-remote-archive-preservation-r3.json. Started2026-11-12T20:09:12.619055+00:00 done2026-11-12T20:09:15.974118+00:00; supportingoffhostarchivefetchonly(notCVbenchmark), exacttimestampsretained forresourcecontext. Sourceoriginals/remoteauthoritativelogspreserved; no test repeated. Mirrorresumed1918801. Allguardthresholdsunchanged.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:12:53.468374+00:00
+
+{"utc": "2026-11-12T20:12:48.879192+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-role-budget-eight-2identity-8fps", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:16:16.080699+00:00
+
+{"utc": "2026-11-12T20:16:03.804718+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-role-budget-eight-1identity-8fps", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:19:18.477749+00:00
+
+{"utc": "2026-11-12T20:19:18.409593+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-role-budget-eight-2identity-10fps", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:22:41.138823+00:00
+
+{"utc": "2026-11-12T20:22:31.134723+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-role-budget-eight-1identity-10fps", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:29:06.357230+00:00
+
+{"utc": "2026-11-12T20:28:52.155154+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-mixed-people1080-vehicle720-2x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:35:31.338027+00:00
+
+{"utc": "2026-11-12T20:35:26.172008+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-mixed-people1080-vehicle720-8x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T20:38:10.911620+00:00 — Controlled source failure isolated; frozen C18 restored, exactly2 invalid retries queued
+
+Rolebudgetscompletedvalid:8totalcameras/sceneeverycam at5FPS4identityPASS,5/6/8identityFAIL; at8FPS1identityPASS/2FAIL. Allvalidfailures decodedthroughput/outputcoverage/sourceUTCpassed/no fatalnative; completedFPSmisses only. At10FPS2identity validFAIL. Thefollowing1identity10started20:22:31UTC withALL8sourceports19101–08unavailable (containerlogs20:28:45ConnectionRefusedError111; decoded0), so itisSOURCE_INVALID, notphysicalcapacity/imageFAIL. Parentcontinuedmixed2beforeoperatorpausedit; people sourceunavailabletherealso. Controller3838809SIGSTOPONLY(no native/driver SIGSTOP), existinginvalidmixed2guardterminatedSIGTERMwithsourcejustification; terminalCANCELLED143/child-15/cleanuptrue. GenericguardreasonEXCLUDED_RESOURCE_ABORTdoesnotdescribeactualsourcecause; adjudicationfile will preserveactualsourceunavailability. NoownedCVcontainerleftbeforecontinuation.
+
+Old50sourceparent1278408alive43threads, first8listenersmissing; lastresult/sourcefilesemptyat20:20duringlocaldiskpressure. ExactworkerexitcauseUNCONFIRMED; doNOTassertCVmodelstallorprovenENOSPCcausality. Freshcontrolled8sourcePID2021595 restoredSAMEfixtureandfirst8SAMEURLs; SOURCE_FIXTURE_RECOVERY_CHECK.json savesmanifestequality/socketinventory. Parentresumed20:35:26UTC, mixed8current; noimage/device/gate/schema changes. Onlysource-invalid1identity10andmixed2willrepeatoncefreshsuffix-source-r2afterexistingpostchecksdone. RootqueuedtailPID3999219, finish_source_retries_c18.py andSOURCE_RETRY_PLAN.json. Mustfinishthosetwocasesbeforefinalcomplete; oldrawstatus/commands/FAILsneverrewritten.
+
+Localmirrorpausedproperlybelow2GiB; currentC18treewas~694MiBwhileoutsidegrowthreducedfilesystemfree2GiB→~408MiB. Exactoutsidewriterunconfirmed; unrelatedprogramsnotkilled. Losslessclosedoldlocal/tmpmaintenance(beforeNov12,noliveopenFDs) restored 424525824→3136561152bytes free:13completedarchivedsets, per-fileSHA/fulloldmetadata/remountcommandsindex/home/admin1/Documents/sentry_cv/optimization_evidence/closed-local-temp-20261113-r2/index.json. Originalpathsnowreadonlymountlinks; validandfailedresultsallpreserved. RAMstagingusedonlyuntilpersistentarchivecopySHAverifiedbeforeanyoriginalreplacement. InitialpreflightrefusedunrelatedFUSElsofwarningsbeforemutation; r2suppressesONLYwarningswhilecheckingtarget, proofretained. Root-ownedoldclinterceptsubdirneededprivilegedduplicatecleanupafterfullarchiveverification; originalbefore-resumeindexandremaining-filehashchecksretained. No test/source/runtimechangedbycompaction. Localarchivepass4copyrefusedbelowits1GiBcopyreserve BEFOREreplacinganyfile; emptyfailureproofretained. Remote6GiB/CVguardsandlocalmirror2GiBpausefloorUNCHANGED.
+
+At20:38UTC estimate11remainingworkloads(currentmixed8+live6+fleet+K3s+2justifiedsource-invalidretries),thenfinalreport/restore;~50–65min,03:00–03:15ISTconditionalonlivesourceavailability. Earliercount/ETAsretained. FullC18hour3600.387sPASSunchanged,norerunrequired. Sourcefaultdoesnotjustifyrebuild. No publication.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:38:54.034375+00:00
+
+{"utc": "2026-11-12T20:38:48.411239+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-live-rtsps-1-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:42:16.702185+00:00
+
+{"utc": "2026-11-12T20:42:02.650115+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-live-rtsps-2-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:45:19.100851+00:00
+
+{"utc": "2026-11-12T20:45:14.668415+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "live-rtsps-source-3", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:45:39.386091+00:00
+
+{"utc": "2026-11-12T20:45:20.856499+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-live-rtsps-3-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:48:41.744245+00:00
+
+{"utc": "2026-11-12T20:48:39.595813+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-live-rtsps-4-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:52:04.372731+00:00
+
+{"utc": "2026-11-12T20:51:55.638280+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-live-rtsps-5-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:55:27.081128+00:00
+
+{"utc": "2026-11-12T20:55:13.150039+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-live-rtsps-6-SA-1x8", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:58:29.423581+00:00
+
+{"utc": "2026-11-12T20:58:25.161909+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "live-rtsps-mixed-fleet", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T20:58:49.692701+00:00
+
+{"utc": "2026-11-12T20:58:31.211853+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "post-live-rtsps-mixed-SA-6x5", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T21:01:52.043038+00:00
+
+{"utc": "2026-11-12T21:01:45.491280+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "kubernetes-projected-config-and-replacement", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T21:02:12.277735+00:00
+
+{"utc": "2026-11-12T21:01:56.470180+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "RUNNING", "completed": 29, "note": "This batch is not all282 scenarios. Labelled accuracy, independent latency and omitted cases remain explicit ledger work.", "pid": 3838809, "case": "kubernetes-current", "stage": "postchecks"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T21:08:37.277823+00:00
+
+{"utc": "2026-11-12T21:08:34.758933+00:00", "controller_pid": 3838809, "power_scope": "CPU turbo disabled", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "status": "POSTCHECKS_FINISHED_REQUIRES_REVIEW", "completed": 29, "note": "Not all282 cases; all failed phases retained, no blanket production qualification or publication", "pid": 3838809, "case": "kubernetes-current", "stage": "postchecks", "independent_phases": [{"phase": "bad-first-source-existing-C18-proof", "status": "PASS"}, {"phase": "native-gil-blocking-parent-recovery", "status": "PASS"}, {"phase": "tls-regressions", "status": "PASS"}, {"phase": "agent-api-existing-C18-proof", "status": "PASS"}, {"phase": "pixel-parity", "status": "PASS"}, {"phase": "independent-marked-latency", "status": "PASS"}, {"phase": "independent-marked-people-fleet-latency", "status": "PASS"}, {"phase": "borderline-short-frontier-repeats", "status": "PASS"}, {"phase": "native-motion-quiet-wake-quiet", "status": "PASS"}, {"phase": "http-input", "status": "PASS"}, {"phase": "https-input-explicit-trusted-fixture", "status": "PASS"}, {"phase": "plain-rtsp-input", "status": "PASS"}, {"phase": "frozen-six-diverse-inputs", "status": "PASS"}, {"phase": "shared-tcp-consumers", "status": "PASS"}, {"phase": "native-stage-timing", "status": "PASS"}, {"phase": "identity-role-budget-5fps", "status": "PASS"}, {"phase": "identity-role-budget-8fps", "status": "PASS"}, {"phase": "identity-role-budget-10fps", "status": "FAIL", "reason": "AssertionError: Native error is not an ordinary capacity boundary: post-role-budget-eight-1identity-10fps"}, {"phase": "mixed-roles-2x8", "status": "FAIL", "reason": "AssertionError: Guard excluded or incomplete"}, {"phase": "mixed-roles-8x8", "status": "PASS"}, {"phase": "live-rtsps-source-1", "status": "PASS"}, {"phase": "live-rtsps-source-2", "status": "PASS"}, {"phase": "live-rtsps-source-3", "status": "PASS"}, {"phase": "live-rtsps-source-4", "status": "PASS"}, {"phase": "live-rtsps-source-5", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-5-SA-1x8"}, {"phase": "live-rtsps-source-6", "status": "PASS"}, {"phase": "live-rtsps-mixed-fleet", "status": "FAIL", "reason": "AssertionError: Native probe failed: post-live-rtsps-mixed-SA-6x5"}, {"phase": "kubernetes-projected-config-and-replacement", "status": "PASS"}]}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T21:08:57.533118+00:00
+
+{"utc": "2026-11-12T21:08:38.045881+00:00", "controller_pid": 4016605, "stage": "source-invalid-retries", "status": "RUNNING", "case": "post-role-budget-eight-1identity-10fps-source-r2", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "remaining_source_retries": 2}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T21:11:59.927562+00:00
+
+{"utc": "2026-11-12T21:11:53.744743+00:00", "controller_pid": 4016605, "stage": "source-invalid-retries", "status": "RUNNING", "case": "post-mixed-people1080-vehicle720-2x8-source-r2", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "remaining_source_retries": 1}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T21:13:59.951723+00:00 — K3sPASS; only final justified source retry active
+
+Livecamera01/ch9/ch10/ch16/traffic2individual8FPSall-appsPASS. Traffic1individualFAILcompleted6.0FPSwithselected7.999FPS; scene/outputcoveragePASS/sourceUTCsanityPASS/healthy/no fatalnative. Live6×5fleetFAILacceptance, rawdetailsretained, noautomaticimagechange. K3sexactC18manifest→configchainverified537352…→a6474…, podstartuprev1/projectedrev2(samesession)/replacementrev2(newsession)PASS; privilegedhostNetworkfixtureonly, notproductiondevice-pluginorremoteManagementqualification.
+
+Queuedsource-retryparsercorrectedBEFOREanyretryexecuted: existingharnessprintsartifact_directoryatstartupANDfinaljson, soidenticalpathsnowdedupedbeforeassertsinglefinalreport. Oldwaitingtail3999219stoppedwithoutnativework; before-parser-code/planbackupsretained; newtail4016605. C18unchanged. Firstfreshsource-r2role1identity10(validhealthy/sourceUTC/nofatal)completedwithFAILacceptance; nofurtherrepeat. Onlymixed2source-r2currentlyactive. No oldinvalidoutcomeoverwritten.
+
+
+### Automatic native campaign checkpoint — 2026-11-12T21:15:22.595842+00:00
+
+{"utc": "2026-11-12T21:15:03.853842+00:00", "controller_pid": 4016605, "stage": "frozen-final-review", "status": "FROZEN_CHECKLIST_EXECUTED_REQUIRES_REVIEW", "image": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d", "capacity_qualified": false, "source_invalid_retries_complete": 2, "note": "Alloutcomesretained; finalreport/exclusions/resourceanalysis/restorestillrequired"}
+
+This is controller state, not an automatic test/capacity qualification. Raw per-case reports and the continuation ledger are authoritative.
+
+
+### 2026-11-12T21:43:14.870466+00:00 — FINAL REVIEW CORRECTION: third earlier case also SOURCE_INVALID, exactlyoneadditionalexistingrepeat
+
+Finalfullper-casecoverage/timelinereviewfoundpost-role-budget-eight-2identity-10fps wasALSOaffectedbythesamefixtureoutage: originalcontainerlog744sourceclosed/refusedrecordsstarting20:20:50.344Z WITHINsteady; all8recentframeslost20:21:23Z. Originalsceneonly13–14samplesversus55minimum, hencecoveragefalse. PreviousprovisionalclassificationasvalidcapacityFAILwaswrong; doNOTuseitforcapacity. Correctedreviewseparatefromimmutableoriginalguard/report. Thisisnotthealreadyretested1identity10case, whosevalidrepeatFAILremainsvalidandisNOTrepeated. Othercoveragefailuremixed8has0sourceerrors/all8freshthroughout; cam5scene53vs54minimumsooverload/cadencemissretained,notfixtureinvalid.
+
+Preliminaryreport/COMPLETION/indexbackupsbefore-source-timeline-reviewretained; completionreopenedremaining1. Userinformedexplicitreason/8–10minestimate. Onlynewcasepost-role-budget-eight-2identity-10fps-source-r2, exactexistingcommandexceptcaseID/samefootageURLs/image/gates/acceptance. SOURCE_RETRY3_*fileskeepthisseparatefromprior2source-retrystableproofs. Fresh8sourcePID2312955; samefixture/listeningportsinventoryFINAL_REVIEW_SOURCE_RECOVERY_CHECK.json. Noimagebuild/policy/schema/modeldevicechange.
+
+Becauseoriginalsettingshadalreadybeenrestored, deliberatelyre-appliedEXACTturbo-offandoriginalserviceisolationforfairrequiredrepeat: ownR12marker/dropinsbackedup/reinstalled; k3s/controlstoppedandk3skillall, UI/indexerstopped; turbo1only/RAPLunchanged. OriginalRESTORATION_RESULT.before-final-source-review.jsonretained; MUSTrestoreagainafterthissinglecase. Newhardwareobserversegmentobservations-final-source-review avoidsclosedlogoverwrite. RequiredfullhourC18PASSunchanged/norerun. Originalsource-invalidrecordretained; noothernewscenarioorvalidPASSrerun.
+
+
+### 2026-11-12T21:53:54.237890+00:00 — Frozen C18 checklist COMPLETE; zero workload tests remaining
+
+C18 remained `localhost/sentinel-cv:v8-c18-plate-admission`, manifest `5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d`, OCI config `a6474e223e33be398c85e36bbec2c4ade3eca8f93e8bbedafa3037068d2c435a`. No rebuild, CV runtime/model/gate/schema/device change or publication after freeze. All prescribed workloads, final offline audits, checksum copy and restoration readback completed. No test-owned workloads remain.
+
+64 native case IDs retained: raw guards 43 PASS / 19 FAIL / 1 CANCELLED / 1 BLOCKED_RESOURCE_PRESSURE. Three original source-invalid cases and one resource-invalid attempt are separately excluded; originals unchanged. All three same-case source-restored repeats completed: one-identity10 FAIL, two-identity10 FAIL, mixed people/vehicle2×8 PASS. Repeated only confirmed invalid fixtures and the one predeclared borderline scene12×10 point (failed again). No valid PASS was unnecessarily repeated. Earlier wrong provisional two-identity10 classification corrected with source-timeline evidence and before-review backups.
+
+Required continuous hour PASS: 3600.387 s, 3×8 FPS/all eleven apps, completed 7.936/7.925/7.927 FPS; peak sampled CV RAM 3152.79 MiB, CPU-sensor maximum 88°C. Memory slope +1.518 MiB/min whole run, +1.150 tail; no flat/leak-free claim. Conditional short frontiers, scene enabled everywhere: scene-only18/14/11 cams at5/8/10 FPS; all-app5/3/2. These are measured turbo-off/content-specific results, not hardware maxima. Diverse/live load rejects retained.
+
+Baked366 unit PASS / 22 subtests / 30 policy scenarios; one inactive-feature deselection; embedded/host validators PASS; existing12 agent API scenarios reused. Separate15-case TLS suite and K3s projection/replacement suite PASS. Package audit57 folders:162651 packages /7508 saved JPEGs independently decoded /0 errors. No claim of recognition accuracy or downstream agent fsync/Management delivery. Wider282 catalog was not marked passed.
+
+Test observers/replays/controllers stopped. Original turbo0/RAPL unchanged/system and user services restored, verified at21:50:26 UTC. Public live-camera services not stopped. Root services may now run original workloads; host need not be idle. Final report: `optimization_evidence/2026-11-12-remote64-c18/C18_FROZEN_VALIDATION_REPORT.md`; completion, raw results, stage/hardware analyses, source exclusions/repeat reasons, restoration and SHA index alongside it. Lossless archive/remount/file-SHA proofs retained; final remote checksum copy exit0.
+
+
+### 2026-11-13T04:18:43.710958+00:00 — User-requested local archive mount cleanup
+
+Removed all 67 local test archive mounts and empty mount directories. 65 normal unmounts; two read-only C15 mounts were held by Nautilus and lazily detached without killing the file manager. Kernel releases those backing loops after the last reference closes. Compressed archive files retained, because .64 SSH currently returns No route to host and 13 older archives originated from local-only /tmp tests; no unsupported claim that every archive exists remotely. Reports, source, image, model and handoff untouched. Recorded plan/result: C18 LOCAL_ARCHIVE_REMOVAL_PLAN.json / LOCAL_ARCHIVE_UNMOUNT_RESULT.json. Prior archive remount paths now intentionally inactive. No new workload test or rebuild.
+
+
+### 2026-11-13T04:25:41.065169+00:00 — User-requested archive copies removed after live .64 verification
+
+.64 reachable again. SHA-256 verified 52 existing remote archives. Preserved the other 15 archives (older local-only tests / local consolidated snapshots) under `/srv/sentry-validation-archive-backup-20261113/` on .64; all 67 remote hashes and sizes verified before any local unlink. Remote /home nearly full, so those backups use the separate root partition instead. Deleted exactly 67 recorded local .squashfs copies totaling 3,623,464,960 bytes; no report, source, image, model, original remote evidence or unrelated filesystem contents deleted. All 67 mount entries were already detached. Earlier statements about locally readable archive paths are superseded by this explicitly requested cleanup. Local report/handoff preserved; old raw-path links intentionally no longer resolve locally. Current locations/hashes in C18 RAW_ARCHIVE_LOCATIONS.md / LOCAL_ARCHIVE_DELETION_RESULT.json; machine-readable proof also copied to .64 backup directory. No tests or image rebuild.

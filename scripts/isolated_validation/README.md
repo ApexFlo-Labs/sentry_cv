@@ -1,3 +1,36 @@
+# Current campaign and reusable tools
+
+The user resumed `.64` testing/optimization on 2026-11-10. Read the current
+[runbook](../../REMOTE64_OPTIMIZATION_CAMPAIGN.md) and chronological handoff.
+The current C15 campaign is reachable. Corrected outage measurement,
+controlled reconnect, native-hang recovery and missing-PTS regressions passed;
+5/8/10FPS searches and remaining postchecks continue. Thermal guards cool/retry.
+Read ACTIVE_CAMPAIGN.json and the timestamped handoff for actual progress.
+An individual nonfatal test assertion remains FAIL while independent checks
+continue. Do not restart historical campaign controllers.
+
+Reusable tracked tooling for the new campaign:
+
+- `run_guarded_case.py`: sensor/pressure checks, owned run/case-label cleanup,
+  cooling dwell and thermal-attempt exclusion/retry. Evidence directories must
+  be new. Missing sensors or cleanup failures block load.
+- `../v8_capacity_probe.py`: exact inspected image config, explicit engine,
+  run/case labels, tracked capture API, validated uniform/per-camera workload
+  descriptors/rates/recordings, per-camera steady throughput and scene outputs.
+  `passed` means bounded throughput/output smoke only; `capacity_qualified`
+  remains false until separate freshness/resource/workload/stability evidence
+  is joined. Never count a generic harness PASS as full qualification.
+- `v8_capture_agent.py`: schema/hash/association validation, steady acceptance
+  clocks and per-camera output counters; optional bounded gallery. ACK durability
+  is simulated. `--gallery-dir`/`--gallery-limit` are fixture-only controls.
+- `check_regression_gate.py`: same-image evidence audit, not a test executor.
+
+The 105 passing offline tool tests on Nov10 validate these measurement/control
+fixtures and preserve earlier ledger data. They are not105 pipeline scenarios
+executed on `.64`. Canonical V8 contract validation also passed.
+
+## Historical tools below — preserve their frozen results
+
 # Isolated Opt79 validation tools
 
 Campaign completed 2026-11-05. Read ../../ISOLATED_VALIDATION_REPORT.md and the final handoff checkpoint. Controllers are one-time campaign tools, not currently running services; do not restart them against the completed ledger. Reproduce selected cases using the recorded commands and frozen conditions.

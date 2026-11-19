@@ -392,8 +392,8 @@ class V8HandoffScheduler:
     def _evict_replaceable(self) -> bool:
         candidates = [
             item[3] for item in self.heap
-            if item[3].request["replaceable"] and not item[3].submitted
-            and not item[3].cancelled
+            if not item[3].cancelled and not item[3].submitted
+            and item[3].request["replaceable"]
         ]
         if not candidates:
             return False
@@ -520,6 +520,19 @@ class V8HandoffScheduler:
             self.replaceable_bytes = max(
                 0, self.replaceable_bytes - int(request["size_bytes"])
             )
+        key = request.get("semantic_key")
+        if key is not None and self.pending_by_key.get(tuple(key)) is retained:
+            self.pending_by_key.pop(tuple(key), None)
+        if retained.cancelled:
+            # Delivery may be blocked while the same scene/count is replaced
+            # repeatedly. Lazy heap deletion retained every old JPEG/vector
+            # despite decrementing the admission counters. Remove cancelled
+            # entries now; the remaining priority tuples are unchanged.
+            self.heap[:] = [item for item in self.heap if not item[3].cancelled]
+            heapq.heapify(self.heap)
+        # Detach our reference without mutating the caller's request/bytes.
+        # A submitted request reaches here only after _deliver has finished.
+        retained.request = {}
 
     def _snapshot(self) -> None:
         with self.condition:

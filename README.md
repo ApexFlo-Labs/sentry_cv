@@ -23,7 +23,11 @@ validation archives. The V8 desired-state/local agent contract uses its
 documented V7 remote wire format. The V6 image and delivery descriptions below
 are historical single-box documentation, not this branch's current image.
 
+Current `.64` testing/optimization campaign: [runbook and current access blocker](REMOTE64_OPTIMIZATION_CAMPAIGN.md). Historical results remain separate from new candidate measurements.
+
 Forward regression and edge-case coverage: [test plan and 282-case catalog](PIPELINE_TEST_PLAN.md), [machine-readable matrix](PIPELINE_TEST_MATRIX.json), and [execution ledger](PIPELINE_TEST_LEDGER.csv). The catalog is not a claim that every case passed. Executed coverage and incomplete/failed cases are recorded in [the execution coverage](REMOTE64_TEST_COVERAGE.md) and [the provisional isolated-host report](REMOTE64_TLSFIX2_VALIDATION_REPORT.md); that campaign remains deferred after the host freeze. Dedicated [5/8/10 FPS capacity and use-case protocol](CAPACITY_TEST_PROTOCOL.md), [profile matrix](CAPACITY_TEST_MATRIX.json) and [empty result table](CAPACITY_RESULTS_TEMPLATE.csv) keep scene enabled on every camera.
+
+Every candidate must rerun the [cumulative incident regressions](PIPELINE_TEST_PLAN.md#permanent-incident-regressions-required-for-each-candidate) on its frozen image. The [evidence audit](scripts/isolated_validation/check_regression_gate.py) rejects missing or stale-image records; it does not execute tests. Existing open cases remain explicit blockers to full qualification.
 
 ## Historical V6 snapshot
 

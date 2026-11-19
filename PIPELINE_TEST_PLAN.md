@@ -1,14 +1,145 @@
 # Sentry V8 forward test plan and edge-case matrix
 
-Prepared 2026-11-05. This is the forward test catalog after the RTSPS regression discussion. It adds explicit expected and forbidden behavior to the earlier broad [isolated plan](ISOLATED_VALIDATION_PLAN.md); it does not rewrite that historical campaign or claim new test results.
+Prepared 2026-11-05; updated 2026-11-06 after the TLS and queue/reconnect incidents. This is the cumulative regression catalog. It includes historical partial execution and explicit missing coverage. It adds explicit expected and forbidden behavior to the earlier broad [isolated plan](ISOLATED_VALIDATION_PLAN.md); it does not rewrite that historical campaign or claim new test results.
 
 **282 named cases in 28 areas. No tests are executed by creating this plan.** The cases are scenarios, not 282 separate long-running jobs: one well-instrumented fixture can cover several IDs. Results must identify the exact assertions it covered. No finite list certifies every possible camera or environment.
 
-Frozen current reference: `ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.11.05-v8-qaft-int8-tlsfix2`, registry digest `sha256:b5a5dc68db4cba9e2b18ec28c61175686189161b25f605b298c1241dbc4957fc`, config ID `dbaeacc92973fc5d1e41521e3200cd64151aaa53a472404a79f87833bade3ef5`. Desired state remains V8/8.0, remote wire 7.0, local agent 1.0. The user's default TLS choice is **legacy-compatible**: encryption without certificate verification; strict mode is optional. Historical policy filenames/profile names containing V6/V18.1 do not select an old wire contract.
+Historical isolated-campaign reference: `ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.11.05-v8-qaft-int8-tlsfix2`, registry digest `sha256:b5a5dc68db4cba9e2b18ec28c61175686189161b25f605b298c1241dbc4957fc`, config ID `dbaeacc92973fc5d1e41521e3200cd64151aaa53a472404a79f87833bade3ef5`. Desired state remains V8/8.0, remote wire 7.0, local agent 1.0. The user's default TLS choice is **legacy-compatible**: encryption without certificate verification; strict mode is optional. Historical policy filenames/profile names containing V6/V18.1 do not select an old wire contract.
 
-Machine-readable case definitions: [PIPELINE_TEST_MATRIX.json](PIPELINE_TEST_MATRIX.json). Editable execution seed: [PIPELINE_TEST_LEDGER.csv](PIPELINE_TEST_LEDGER.csv). Every execution status begins `NOT_RUN`; separate prior-coverage fields explain which limited existing evidence may be reused after review. No row is automatically marked PASS because96 tests or an earlier hour passed.
+Machine-readable case definitions: [PIPELINE_TEST_MATRIX.json](PIPELINE_TEST_MATRIX.json). Historical execution ledger: [PIPELINE_TEST_LEDGER.csv](PIPELINE_TEST_LEDGER.csv). The ledger preserves the earlier campaign’s actual verdicts and partial coverage. Every NEW candidate’s incident results begin `NOT_RUN`; historical evidence remains reference material, not a fresh pass. No row is automatically marked PASS because96 tests or an earlier hour passed.
 
 Capacity is explicitly tested at **5, 8 and 10 FPS per camera**, with scene search on every camera and named uniform/mixed use-case bundles. See [capacity protocol](CAPACITY_TEST_PROTOCOL.md), [profile definitions](CAPACITY_TEST_MATRIX.json) and [empty capacity results table](CAPACITY_RESULTS_TEMPLATE.csv). No camera limit or use-case budget is prefilled.
+
+## Required pipeline test suites — complete index
+
+This is the concrete required scope for the current Sentry V8 image: shared DL Streamer execution, VA decode, built-in motion, native GVA tracking, camera-local policy and complete packages to the delivery-agent API. The 28 suites below map to all 282 defined cases in section 6. This review expands existing cases for subject-crop semantic vectors, binding ownership changes and scene-trigger filtering; it does not invent additional event types. Current normative definitions are in this plan/JSON; original historical CSV fields remain an execution snapshot. Neither a listed suite nor an enabled app means that test has passed. Missing fixtures and open defects remain in the incident index and historical coverage.
+
+| Suite / exact case range | Tests required |
+|---|---|
+| **Image and release** — `REL-01`…`REL-08` (8) | Exact digest pulled; baked imports; effective environment; embedded/canonical schemas; model/proc/plugin/policy hashes; clean build/pull; immutable tags; harness failures cannot count as image passes. |
+| **Kubernetes and startup** — `DEP-01`…`DEP-10` (10) | Actual non-root Pod/mount/UID/device layout; absent/denied GPU or NPU; HTTP alive with failed worker; bad first source; all sources unavailable; read-only root; cgroup limits; cold/warm starts; graceful stop; two deployments on one box. |
+| **Streams and VA decode** — `NET-01`…`NET-09` (9) | RTSP/RTSPS H264 and HEVC; TCP MPEG-TS H264; unsupported TCP codec; five consumers of one URL; bad DNS/port/path; 401 authentication; HTTP capability mismatch; network gaps, malformed media, resolution changes; encoded credentials/IPv6; actual VA path without CPU fallback. |
+| **TLS modes and certificates** — `TLS-01`…`TLS-12` (12) | Legacy default without CA; self-signed, expired and hostname-mismatched certificates; strict valid/untrusted/mounted-CA cases; invalid mode/CA; projected CA rotation; TLS versions/SNI; failed shared leader; FFmpeg versus GStreamer; real native video, not just a successful TLS handshake. |
+| **Desired state and live reconfiguration** — `CFG-01`…`CFG-12` (12) | 1/8/16/50 cameras and over-limit rejection; default/explicit/mixed/fractional FPS; malformed config; missing/unreadable URL Secrets; actual URL switch after revision; projected mount rotation; stale/duplicate/rapid revisions; add/remove cameras; reused/multiple/no zones; enable/disable app; geometry change while occupied. |
+| **Every model and device** — `MODEL-01`…`MODEL-10` (10) | QAFT preprocessing/class order/source boxes; declared export parity; real GPU/NPU placement; corrupt/missing files/plugins; batch1 versus request concurrency; inactive batching explicitly unqualified; empty/NaN/wrong-shaped results; exact embedding profiles/dimensions/normalization; versions and precision claims. |
+| **Shared inference, queues and retained surfaces** — `FLOW-01`…`FLOW-10` (10) | Late/out-of-order returns; old session/generation; same numeric track IDs across cameras; source surface lifetime; copied/native preprocessing parity; every secondary timeout/cancellation; noisy-neighbor fairness; full admission queues; safe source/group reset; batching/CPU-overlap association and order. |
+| **Built-in motion** — `MOT-01`…`MOT-10` (10) | Quiet startup; short motion/wake delay; active-to-quiet release; stationary visible subjects; weak hazard candidates; camera shake/light/rain/shadow/cuts; intentional quiet versus broken inference; active2s/quiet~5s scene behavior; outage/recovery; variable FPS and missing observations. |
+| **Native tracking and local recovery** — `TRACK-01`…`TRACK-12` (12) | Real-hit confirmation; short occlusion; below/at/above recovery timeout; ambiguous matches; crossing/overlap/merged detections; reused track IDs; class/confidence jitter; resolution/FPS changes; effective adaptive-to-GVA mapping; camera restart; fixed-detection comparisons; retired association state. |
+| **Person and vehicle presence** — `PRES-01`…`PRES-09` (9) | First confirmed event and optional subject-crop SigLIP vector (also without scene_search); binding ownership priority/stability/reselection; unchanged long stay and refresh; lost is not departed; qualified recovery; count-only/identity-only/ANPR-only ownership; no-zone and zone scopes; overlapping bindings; exit/revisit; evidence selection; embedding computation must not manufacture presence events. |
+| **Zone membership and transitions** — `ZONE-01`…`ZONE-09` (9) | First appearance already inside; positive entry/exit; boundary/deadband jitter; overlapping polygons and bindings; concave/clipped/invalid geometry; geometry revision while occupied; repeat visits with distinct episodes. |
+| **Person and vehicle visible-now counts** — `COUNT-01`…`COUNT-09` (9) | Healthy empty zero; stable increments/decrements; unchanged heartbeat; full frame without zones; separate classes; stale predictions/occlusion/outage; merged/split subjects; overlapping scopes; count-only bindings and revision changes; no cumulative-arrival interpretation. |
+| **Presence episodes and dwell facts** — `DWELL-01`…`DWELL-08` (8) | Start from first positive inside observation; observed-inside refresh; milestone evidence only if an exact V8 representation/configuration exists, otherwise that subcase is inapplicable; unknown entry time; brief gap/recovery; long/ambiguous loss; positive exit completion; repeated/simultaneous zone episodes; restart/clock/config changes. Do not invent an independent dwell event absent from V8. |
+| **Directional entry/exit crossing** — `LINE-01`…`LINE-08` (8) | Both directions; finite segment versus extension/endpoints; deadband and movement; already on far side; real return after cooldown; gaps/predictions; multiple lines; exact crossing source time/frame/geometry. |
+| **Face cascade, pose and AdaFace** — `FACE-01`…`FACE-12` (12) | Visible versus absent face; source-pixel size/confidence/sharpness/exposure boundaries; yaw/pitch/roll and invalid SixDRepNet outputs; original expanded contextual crop; aligned chip provenance; overlapping faces/persons; best-window and improvements; hour-long stay; late result; rejected handoff; view adaptation. |
+| **Body ReID** — `BODY-01`…`BODY-08` (8) | Face absent but body usable; original person crop/clipping; quality/size gate boundaries; first and improved samples; similar/overlapping people; out-of-order prefetch; invalid vector; refused/retried delivery; unchanged long stay versus changed appearance. |
+| **Gait preparation and embedding** — `GAIT-01`…`GAIT-10` (10) | Stationary/too-short sequence; qualified moving silhouettes; one frame-background update shared across people; every-third-eligible-frame sampling at different FPS; occlusion/mixed masks; loss/recovery; montage equivalence; expired buffers; reconnect/resolution/background reset; improved sequences and pressure. |
+| **Vehicle, plate and OCR** — `ANPR-01`…`ANPR-12` (12) | Vehicle and plate crops from the original frame; partial entry; absent/unreadable/low-confidence plate; collection versus emission thresholds; best-window and distinct supporting reads; conflicting text; same-text improvement and correction cooldown; non-Indian text; close vehicles/multiple plates; revisit; late OCR; source-frame/plate-bbox evidence; camera quality differences. |
+| **Scene search on every camera** — `SCENE-01`…`SCENE-10` (10) | No detections/tracks; active2s cadence; quiet~5s safety sweeps; full frame/rectangular zone bounds; configured versus unconfigured event triggers, source-event links, scope and cooldown boundaries; duplicate periodic/trigger frame; slow model/pressure; reconnect/PTS reset; matching image/vector; semantic embedding-space compatibility; scene-only versus other bindings. |
+| **Fire/smoke temporal branch** — `FIRE-01`…`FIRE-09` (9) | Repeated positives; isolated/weak positives; spatially unrelated candidates; evaluated-negative clear; outage/dropped/unevaluated frames are not negatives; long evaluation gap; reappearance during clear; several regions/restart; independent progress during primary quiet/load. |
+| **Evidence and embedding integrity** — `ART-01`…`ART-10` (10) | Complete multipart package; camera/session/frame association; all crop borders/aspect ratios; aligned chip versus UI crop; face/body/gait links; retained best-candidate frame; identical retry bytes; JPEG/model failures; normalized overlays/plate/line geometry; package sizes and simultaneous subjects. |
+| **CV-to-agent API boundary** — `AGENT-01`…`AGENT-12` (12) | 201 durable/200 duplicate; lost ACK; 429/503/timeout/slow receiver; terminal errors/malformed ACK; admission refusal without poisoning sent state; priority/coalescing; crash before/after ACK; absent/denied/replaced socket; cutoff accounting; accepted package completeness/size; exactly one delivery owner. No Management storage qualification implied. |
+| **Source time and freshness** — `TIME-01`…`TIME-09` (9) | Independent source UTC marker; processing/upload delay; backward/reset/looped PTS; wall-clock change/skew; same-frame model completions; requested/selected FPS; stale backlog despite good FPS; confirmation-window delay; source scene interval versus arrival interval. |
+| **Health, metrics and useful logs** — `OBS-01`…`OBS-10` (10) | /healthz,/readyz,/metrics and absent /healthy; worker/scheduler versus per-camera readiness; source outage/stale counters; unwritable/full metrics storage; Kubernetes CPU/RAM scope; actual versus unavailable GPU/NPU metrics; queue/model/stage timings; credential-safe context; summary parity; CV handoff versus agent outbox ownership. |
+| **Failure isolation and resource lifetime** — `RES-01`…`RES-10` (10) | Finite queues/surfaces; subject churn; dense scenes; slow/stuck secondary; camera/group/container death; shutdown during decode/inference/JPEG/handoff; CPU/RAM/disk/PID pressure; temperature/power;10min busy pre-soak; staged60min selected-workload stress. |
+| **Capacity and use-case budgets** — `PERF-01`…`PERF-16` (16) | Equivalent old/new frames and workload; historical quiet and busy cases separated;5/8/10FPS frontiers; scene on every camera; resolutions/densities/mixed roles; overload and recovery; fairness; repeated boundary/headroom; fixed-count additional-app budget; actual positive work; full latency/resource series; demand=sum(camera FPS). |
+| **Deployment-like final validation** — `SITE-01`…`SITE-06` (6) | Independent representative source servers; real config changes reflected in output; semantic positive/negative sign-off; release compatibility/limitations/rollback; smoke through agreed agent API; explicit missing/blocked coverage. |
+| **Adaptive gates actually applied** — `ADAPT-01`…`ADAPT-12` (12) | Cold-start default; different views/cameras; independent per-use-case modes; lower/upper bounds; sample minimum/hysteresis/hold; image quality versus queue pressure; resolution/FPS/time normalization; missing/stale/NaN metrics; actual native consumer; absent modalities; pressure/recovery; fixed versus adaptive replay comparison. |
+
+For every confidence, pixel size, blur/exposure, angle, overlap, motion vote, stable-hit, recovery, debounce, candidate-window, consensus, improvement, cooldown, heartbeat, sequence-length, queue-size, timeout and retention gate: use the independently frozen approved effective value and test below/at/above it. Exercise both required and forbidden outputs. Repeat supported adaptive extrema and transitions; never relax gates to improve a benchmark.
+
+Every use-case fixture must cover first qualification, absent/poor input, unchanged long stay, meaningful improvement/change, temporary loss, ambiguous recovery, confirmed exit where applicable, accepted/refused handoff and cleanup. Every resulting image/vector must have the right camera, session, presence/episode, frame/time, geometry and profile. Person/vehicle inputs must be tested separately where thresholds/classes differ. Face/body/gait are independent samples associated locally; cross-camera named identity remains Management work.
+
+Review explicit contract oracles before crediting existing tests. In particular, V8 `runtimeEndpoints.readiness`/`runtimeAvailability` define operational readiness independently of every camera being available. The r2 health tests include a fresh-camera prerequisite. `DEP-06`/`OBS-01` therefore require an explicit contract comparison for the all-sources-unavailable case; the current test expectation alone is not a normative oracle or proof of V8 conformance. No contract/runtime change is made by recording this discrepancy.
+
+Execution is layered: pure deterministic boundary/semantic cases; the same behavior through baked native image and representative sources; deployment-like mounts/devices/permissions; combined failures/load; then capacity frontier and the selected stress point. Fixed incident regressions run together on each frozen candidate. Capacity is reported per FPS/profile/resolution/activity, with scene JPEG+vector on every camera. The search starts at1 and increases through useful counts to the first failure, then refines; config acceptance for50 cameras is not a performance promise.
+
+## Permanent incident regressions: required for each candidate
+
+Current published repair reference: `ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:v8-r2`, registry digest `sha256:e8baec1ad054312f0081deb4bf6d34c7c8cc3bfb38516a3582d3d2fed32b4629`, config ID `e5ce6194581be39b0732ec4b8a486cfbea22bb32e76b82338bc1df92bc473bf7`. Its [scoped repair evidence](releases/v8-r2/REPAIR_RESULTS.json) does not qualify every scenario below. The user’s queue reference means the earlier repaired incident, not a newly reported v8-r2 failure.
+
+**Fixing the latest reported issue is insufficient. Every new image must rerun the accumulated regressions on that same frozen image.** A build must exist before its baked code can be tested; building a candidate is separate from qualifying it. No runtime, model, production gate or contract is changed by this checklist.
+
+For each incident, retain the original sanitized error, exact deployed image identity, failed/invalid attempts, minimal reproducer, independently specified required/forbidden behavior, ownership/fault boundary, and evidence needed to prove recovery. Link actual tests and missing fixtures in `incident_regressions` in the JSON matrix. These 28 overlapping incident families organize the existing 282 scenarios; they are not 28 additional executed tests.
+
+1. Freeze the candidate config digest, model/schema/policy hashes, fixture versions and commands. Execute baked runtime code, without mounting replacement implementation code or silently changing dependencies.
+2. Rerun the fixed regression set together: TLS/default/strict/auth behavior, repeated source reconnect, full admission queues, native/GIL hang escalation, readiness/freshness, diagnostics and complete event/evidence/vector handoff. A TLS-only pass cannot qualify a reconnect repair, and a queue-only pass cannot establish TLS compatibility.
+3. Combine TLS video, two separate interruptions, healthy-peer checks and API artifact checks in the same run. Exercise blocked native inference separately from ordinary camera loss and delivery refusal: these are different queues and fault domains. Add a loaded slow/blocked-secondary fixture; the current primary-callback hang test does not substitute for it.
+4. Verify new-epoch frames and complete output after EACH recovery. State-transition acceptance, process existence, historical counters, a telemetry heartbeat or an empty delivery queue is insufficient. Check source timestamps, camera/session/frame associations, evidence bytes and agent acknowledgements.
+5. Preserve explicit `FAIL`, `BLOCKED`, `NOT_RUN` and invalid-setup outcomes. Missing tests, unexercised positive paths, stale-image results and known unfixed defects cannot become a production-qualified pass. A scoped debug/candidate report must list what was actually checked and remaining gaps.
+6. Run a bounded load smoke on every candidate. For changes to scheduling, models, motion, conversion or recovery, repeat the relevant 5/8/10-FPS frontier and stability measurements. Capacity claims require their actual tested camera/use-case bundle, scene search on every camera, per-camera latency/freshness and resource evidence. A short smoke is not a maximum-capacity or sustained-operation claim.
+7. Save results, logs/hashes, exclusions, failed attempts and remaining work in the chronological handoff and candidate evidence directory. Carry incident definitions forward, not previous PASS verdicts. Preserve the historical CSV values when editing or regenerating the catalog; the old ignored `.publish` generator is not the current source of truth.
+
+`IMPLEMENTED_SCOPED` below means saved fixtures/evidence cover a limited repaired scope. It does not mean every listed assertion or deployment variant is covered. `PARTIAL` and `OPEN_TEST_GAP` explicitly require further fixtures or fixes. Full qualification remains blocked while required cases lack passing evidence.
+
+| ID | Reported failure family | Saved coverage status | Remaining scope |
+|---|---|---|---|
+| INC-001 | HTTP server alive but worker/config/cameras never start | PARTIAL | Actual Kubernetes mount/device/startup parity remains required; schema validation alone is insufficient. |
+| INC-002 | RTSPS trust regression and TLS/authentication misclassification | IMPLEMENTED_SCOPED | Connection-only TLS fixtures must be combined with real native video; all transport/certificate variants are not implied by one successful endpoint. |
+| INC-003 | Accepted input scheme fails or silently uses another decoder path | PARTIAL | HTTP/HTTPS validator/native-path mismatch is still open; codec/resolution claims need their own fixtures. |
+| INC-004 | Reconnect returns success with disconnected RTP pad or broken VA renegotiation | IMPLEMENTED_SCOPED | Live v8-r2 H264 RTSPS scope is saved; repeat codec/input variants claimed by the next candidate. |
+| INC-005 | Full native admission queue deadlocks teardown or mixes old work | IMPLEMENTED_SCOPED | Rerun saved fixtures on the new candidate; preserve the documented fault scope. |
+| INC-006 | OCR/shared secondary queue saturation starves cameras or never times out | PARTIAL | Saved unit coverage is not a loaded native OCR/secondary fairness test. A deterministic slow/blocked secondary fixture is still required. |
+| INC-007 | Native/model/GIL stall survives because the worker process is alive | IMPLEMENTED_SCOPED | Rerun saved fixtures on the new candidate; preserve the documented fault scope. |
+| INC-008 | Delivery handoff backlog/rejection/retry hides missing output | PARTIAL | Native admission, OCR queues and delivery queues are separate. Real-agent disk durability/Management remain outside the requested API boundary. |
+| INC-009 | Events and vectors arrive without their promised snapshots | IMPLEMENTED_SCOPED | API capture is not a downstream Management image-retrieval test. Subject-crop SigLIP on presence without scene_search is explicitly required by PRES-08 and needs its own saved semantic/native fixtures. |
+| INC-010 | Refused face/body/plate admission incorrectly advances sent-quality/dedup state | OPEN_TEST_GAP | Known isolated-campaign failure is not repaired by TLS/reconnect changes. Save a direct refusal-then-accept executable reproducer before closure. |
+| INC-011 | Camera/session/presence/frame association breaks across recovery or late completion | PARTIAL | Current recovery/session evidence does not prove all identity-switch/ambiguity cases. |
+| INC-012 | Crops use resized/wrong frame, wrong scaling, or confuse face evidence and model chip | PARTIAL | Native source-marker and pixel checks at every claimed input geometry still required. |
+| INC-013 | Retired subject/gait/surface state accumulates or survives beyond ownership | PARTIAL | Known historical retention/memory findings remain open; short sparse-video smoke does not establish a leak fix. |
+| INC-014 | Count/presence/zone/dwell/crossing semantics change or emit false transitions | PARTIAL | Use deterministic positive/negative/milestone timelines, not just event totals. |
+| INC-015 | ANPR emits premature/conflicting plate reads or omits unreadable outcomes | PARTIAL | Calibrated text accuracy is separate; emission timing/outcomes still need labelled semantic fixtures. |
+| INC-016 | Scene evidence/embeddings disappear or sampling changes after motion gating | PARTIAL | A quiet five-second safety sweep is not unconditional two-second sampling or busy-camera capacity. |
+| INC-017 | Ready/healthy/FPS remain positive while processing is stale or failed | IMPLEMENTED_SCOPED | Telemetry refresh alone is never evidence of source/model progress; unsupported utilization must stay unavailable rather than fabricated. |
+| INC-018 | Observation time is future UTC or processing/upload time replaces source time | OPEN_TEST_GAP | Known native 7.5–11-second future timestamp finding is not closed by source-clock unit tests. Preserve independent marked-source reproducer. |
+| INC-019 | Accepted revision/Secret change does not switch actual camera input | OPEN_TEST_GAP | Known isolated-campaign Secret/revision failure remains open; API revision alone cannot close it. |
+| INC-020 | Telemetry write failure crashes analytics or blocks healthy peers | OPEN_TEST_GAP | Reporting-liveness unit test is not the read-only/full-storage reproducer; prior camera-thread PermissionError failures remain open. |
+| INC-021 | Nested diagnostics leak credentials or benign HTTP disconnect looks like CV failure | IMPLEMENTED_SCOPED | Cover native error paths as well as formatter tests; never enable unredacted broad GST_DEBUG on credentialed sources. |
+| INC-022 | Model export/classes/dimensions/backend precision differ from the declared profile | PARTIAL | Known QAFT/export and inactive dynamic-route findings remain visible. Common checkpoint/name is not sufficient proof of equivalent outputs. |
+| INC-023 | Native startup/membership/shutdown crashes masquerade as source/capacity limits | PARTIAL | Controlled blocked-callback recovery does not reproduce every native initialization or driver crash. |
+| INC-024 | Camera-count/FPS/capacity or useful latency claim hides missed scenes and growing backlog | PARTIAL | Run bounded per-image load smoke; full frontier/soak required for capacity/sustained claims or scheduling/optimization changes. Old16/20 quiet-camera results are not busy8/10FPS qualification. |
+
+The JSON index includes exact case IDs, saved test paths, required assertions and evidence levels. A linked test is a starting point, not proof that every assertion has been executed. Known timestamp, Secret/revision, rejected-sample state, telemetry storage and HTTP-native findings remain open; this update does not repair them.
+
+### Evidence audit and runnable fixtures
+
+The [evidence checker](scripts/isolated_validation/check_regression_gate.py) creates a new checklist with all incident results `NOT_RUN`. Its audit rejects missing/failed results, mismatched image config IDs, missing behavioral assertions, missing native/deployment/load evidence and changed evidence hashes. It returns exit code 2 unless every required incident has complete passing records. This is an evidence-completeness check, not an automatic test executor, a guarantee that reports are truthful, or a CI/registry push restriction.
+
+Use a local immutable config ID or published registry digest for the candidate. Choose a NEW output directory per run; do not overwrite old evidence. Example initialization/audit:
+
+```bash
+python3 scripts/isolated_validation/check_regression_gate.py \
+  --image sha256:e5ce6194581be39b0732ec4b8a486cfbea22bb32e76b82338bc1df92bc473bf7 \
+  --init optimization_evidence/CANDIDATE-RUN/incident-results.json
+
+# After executing fixtures and recording their actual assertions/evidence:
+python3 scripts/isolated_validation/check_regression_gate.py \
+  --image sha256:e5ce6194581be39b0732ec4b8a486cfbea22bb32e76b82338bc1df92bc473bf7 \
+  --check optimization_evidence/CANDIDATE-RUN/incident-results.json \
+  --summary optimization_evidence/CANDIDATE-RUN/gate-summary.json
+```
+
+Each result requires `id`, `image_config_id`, `status`, `run_id`, timezone-aware `executed_at`, exact executed `command`, `assertions_passed`, and `evidence` entries containing `path`, SHA-256 and `level` (`unit`, `native`, `deployment` or `load`). Paths may be relative to the results file. Retain assertion-level output from trusted fixtures; never fill the assertion list simply because a generic harness returned PASS. The checker itself has [offline tests](scripts/isolated_validation/test_regression_gate.py).
+
+Existing bounded actual-image fixtures, to run during candidate validation (not launched by editing this document):
+
+```bash
+# TLS negotiation/trust/auth fixtures; does not establish video decoding by itself.
+python3 scripts/isolated_validation/camera_tls_qualification.py \
+  --image sha256:e5ce6194581be39b0732ec4b8a486cfbea22bb32e76b82338bc1df92bc473bf7 \
+  --output optimization_evidence/CANDIDATE-RUN/tls
+
+# Actual live-video recovery, two consumers, repeated TLS interruption and peer checks.
+python3 scripts/isolated_validation/v8_recovery_image_validation.py \
+  --image sha256:e5ce6194581be39b0732ec4b8a486cfbea22bb32e76b82338bc1df92bc473bf7 \
+  --mode reconnect --port 18080 --output optimization_evidence/CANDIDATE-RUN/reconnect
+
+# Separate injected native callback hang and parent/group replacement check.
+python3 scripts/isolated_validation/v8_recovery_image_validation.py \
+  --image sha256:e5ce6194581be39b0732ec4b8a486cfbea22bb32e76b82338bc1df92bc473bf7 \
+  --mode native-hang --port 18080 --output optimization_evidence/CANDIDATE-RUN/native-hang
+```
+
+These native fixtures require Intel devices, available test streams and free fixture ports. Execute sequentially and record contention/prerequisites; unavailable sources mean BLOCKED, not image success/failure. Their capture API verifies package schemas, hashes and associations; it does not establish real-agent disk durability or Management storage. It is the user-requested delivery boundary. Unit, policy, deployment and load evidence must be recorded separately; these commands are not the entire 282-case suite. The existing isolated-host campaign and its remote host remain deferred.
 
 ## 1. What must change in our testing
 
@@ -32,7 +163,7 @@ Execution order:
 4. Compare old/new paths on identical bytes, configuration, initial adaptive state and load. List approved intentional differences. UUID values may differ; canonicalize identities without discarding source times, counts, links or state transitions.
 5. Test faults and race boundaries. A deliberately failed source/model must have the expected negative outcome; do not let a generic capacity flag override the scenario-specific oracle.
 6. Search the 5/8/10 FPS capacity boundary with scene on every camera. Use short2–3minute steady holds after measured warmup, refine neighboring counts, and repeat informative passing points. Stop escalating a branch once it fails; do not repeat an unchanged failure without a new hypothesis or repair.
-7. At the selected useful operating point, run a10minute pre-soak. Run one genuine60minute steady stress qualification only after the cheaper gates pass and when sustained qualification is the task. Small fixes need affected regression closure; they do not require rerunning every hour at every camera count.
+7. At the selected useful operating point, run a10minute pre-soak. Run one genuine60minute steady stress qualification only after the cheaper gates pass and when sustained qualification is the task. Every candidate needs the cumulative incident regressions and bounded load smoke; small fixes do not require rerunning an hour at every camera count. Full sustained claims require their own sustained evidence.
 8. Verify the deployed new digest and actual package bytes in the production-like pod. Under the user's current scope the test boundary ends at the delivery-agent API. Do not request Management credentials or claim its storage/search/identity workflows were tested.
 
 Faults/stress are confined to owned test containers, volumes and processes. Record host contention and actual power/cgroup settings; remote192.168.1.64 is not to be used again until the user explicitly authorizes it. No current tests are launched by this plan.
@@ -275,8 +406,8 @@ The final column describes prior evidence only. `Current scoped` is not a fresh 
 | PRES-04 | P0 | Recovery after lost state | Reconnect and emit recovery only when criteria pass; duplicate suppression follows the same continuing presence. | No re-created first presence or duplicate best sample without its approved reason. | Loss/recovery trace and candidate-state comparison. | Historical/partial; review |
 | PRES-05 | P0 | Counting-only, ANPR-only or identity-only binding | Keep needed local association while emitting only the lifecycle traffic owned by enabled presence use cases. | No track_lost/recovered/unknown noise from a binding that does not own presence outputs. | Binding-specific exact event set. | Historical/partial; review |
 | PRES-06 | P0 | Full-frame versus zone-scoped presence | Use configured scope, source bbox and episode association; absence of a zone is supported where specified. | No unconditional zone requirement or false in-zone status from frame visibility alone. | Binding/scope and source geometry checks. | Historical/partial; review |
-| PRES-07 | P0 | Exit, re-entry and overlapping presence bindings | Preserve or renew presence/episode identifiers according to the declared lifecycle and each use_case_id. | No reuse of an ended episode or wrong-binding event attribution. | Repeated visit timeline and association keys. | Historical/partial; review |
-| PRES-08 | P0 | Presence update evidence selection | First/updated evidence follows the actual declared policy; promised artifact IDs match the chosen source frame. | No assuming every heartbeat promises a new image or accepting a missing promised crop. | Manifest expectations, selected frame and JPEG bytes. | Historical/partial; review |
+| PRES-07 | P0 | Exit, re-entry and overlapping presence bindings | Preserve or renew presence/episode identifiers according to the declared lifecycle and each use_case_id. For competing eligible bindings, select the presence app before identity/ANPR, then lexical use_case_id at first confirmation; keep that owner while enabled even if a higher-priority binding is later added. Disable the owner and reselect without another first_seen. | No reuse of an ended episode or wrong-binding event attribution. | Repeated visit timeline and association keys. Owner timeline across added, disabled and re-enabled bindings and exact event reasons. | Historical/partial; review |
+| PRES-08 | P0 | Presence evidence and optional subject-crop semantic embedding | First/updated evidence follows the declared policy. With siglip2-base-v1 enabled on the owning person/vehicle presence binding, the selected subject crop and matching 768D vector share source provenance and subject presence_id; exercise this without scene_search. With the profile disabled no semantic vector is promised. Heartbeats do not automatically require new evidence or embedding. | No full-scene vector substituted for the subject crop, null/wrong presence association, dependency on a scene_search binding, or missing promised artifact; no forced new crop/vector on every refresh. | Enabled/disabled profile and no-scene-binding fixtures for person and vehicle; model input crop hash, JPEG source bounds, observation/evidence/embedding IDs and subject presence_id. | Historical/partial; review |
 | PRES-09 | P0 | Embedding computation versus presence emission | A new face/body/gait vector does not independently create another object_present unless an approved presence fact/update is due. | No model computation or vector availability used as a duplicate presence trigger. | Separate model-call, feature-event and presence-event timelines. | Historical/partial; review |
 
 ### ZONE. Geometry and zone transitions
@@ -313,7 +444,7 @@ The final column describes prior evidence only. `Current scoped` is not a fresh 
 |---|---|---|---|---|---|---|
 | DWELL-01 | P0 | Confirmed inside observation starts dwell episode | Use source observation time and the correct presence/zone/episode; preserve unknown physical entry where applicable. | No processing/send time used as entry or elapsed dwell invented before first observation. | Controlled UTC/PTS and episode facts. | Historical/partial; review |
 | DWELL-02 | P0 | Subject remains and refreshes | Update last_confirmed_inside and the approved sparse presence/episode facts so elapsed/observed dwell can be derived. | No claim of dwell support from a start timestamp that never receives required observation updates. | Start, refresh and inside-confirmation timeline. | Historical/partial; review |
-| DWELL-03 | P0 | Configured milestone evidence or status | Where supported/enabled, emit the approved milestone representation exactly once with selected evidence. | Do not invent a new dwell event type or require an unsupported milestone message. | Frozen contract-supported expected payload/timing. | Historical/partial; review |
+| DWELL-03 | P0 | Configured milestone evidence or status | Identify the exact supported V8 representation and configuration before expecting milestone evidence; if absent mark the milestone-specific subcase inapplicable, not a pass or required new event. Continue testing presence zone-episode start/last-positive/gap/exit facts under the other DWELL cases; Management derives dwell thresholds. | Do not invent a new dwell event type or require an unsupported milestone message. | Frozen contract-supported expected payload/timing. | Historical/partial; review |
 | DWELL-04 | P0 | Brief loss followed by confident recovery | Preserve episode continuity only under approved recovery and expose the observation gap. | No gap silently counted as positively observed occupancy or automatic timer reset. | Gap interval, reassociation and episode ID. | Historical/partial; review |
 | DWELL-05 | P0 | Long loss or recovery ambiguity | End as unknown or retain uncertainty according to policy; do not claim a confirmed departure. | No timeout-completed dwell or merge with another subject's stay. | Unknown ending and forbidden exit/completion assertions. | Historical/partial; review |
 | DWELL-06 | P0 | Positive exit completes a stay | Complete the correct episode at the positive source observation time and stop its active updates. | No completion at upload time or later heartbeat. | Exit frame, episode times and final status. | Historical/partial; review |
@@ -403,7 +534,7 @@ The final column describes prior evidence only. `Current scoped` is not a fresh 
 | SCENE-02 | P0 | Active two-second sampling on every camera | Measure each enabled camera's source sample intervals, compute jobs, JPEGs, vectors and admission/ack outcomes. | No aggregate scene total hiding a camera with no samples. | Per-camera cadence and complete package accounting. | Historical/partial; review |
 | SCENE-03 | P0 | Quiet safety sweep | Verify the approved roughly-five-second quiet sampling behavior separately from active cadence. | No claim of unconditional two-second images while quiet inference is gated. | Motion mode plus source/API interval distributions. | Historical/partial; review |
 | SCENE-04 | P0 | Full frame versus configured geometry | Use the specified source region; current polygon scene behavior is an axis-aligned bounds crop unless explicitly changed. | No asserting polygon masking when outside-polygon pixels in the bounding rectangle remain. | Source geometry, crop coordinates and image pixels. | Historical/partial; review |
-| SCENE-05 | P0 | Periodic and event trigger select the same frame | Apply approved cooldown/coalescing without duplicate expensive jobs or wrong parent association. | No duplicate samples only because two triggers fired together. | Frame IDs, trigger reasons and model-call count. | Historical/partial; review |
+| SCENE-05 | P0 | Periodic and event trigger select the same frame | Apply approved cooldown/coalescing without duplicate expensive jobs or wrong parent association. Test configured versus unconfigured trigger bindings for entry/exit/line crossing, all configured scene scopes and triggering_observation_id. Exercise below/at/above the approved trigger cooldown (currently1s) as well as periodic/trigger collision. | No duplicate samples only because two triggers fired together. No sample from an unconfigured trigger, wrong parent event or wrong scene scope. | Frame IDs, trigger reasons and model-call count. | Historical/partial; review |
 | SCENE-06 | P0 | Slow scene model or delivery pressure | Bound waiting/retention; account for skipped/coalesced optional samples and preserve already-promised artifacts. | No stale backlog labelled current or silently missing promised JPEG/vector. | Queue age, source age, skip reasons and ACK state. | Historical/partial; review |
 | SCENE-07 | P0 | Camera restart or source PTS reset | Use the correct new session/frame reference and avoid mixing old queued vectors with new images. | No previous-stream scene returned under a new camera epoch. | Delayed jobs and independent frame markers. | Historical/partial; review |
 | SCENE-08 | P0 | Scene JPEG and embedding consistency | Both refer to the intended same source observation/region and correct768D profile. | No vector from one frame and JPEG from the next, even if both are valid individually. | Marker/region linkage and manifest/vector hashes. | Historical/partial; review |
@@ -567,3 +698,121 @@ Resolve ambiguity before running an oracle: count visibility/freshness semantics
 Outside current CV qualification: Management global/cross-camera identity matching, UI categorization of business versus lifecycle/measurement events, database durability/search/snapshot retrieval beyond the agent API, and deferred action-context/video-clip/recheck features. They can have a separate owner/test plan, but are not silently added to this contract or marked passed by our local receiver.
 
 Historical references: [Opt79 isolated report](ISOLATED_VALIDATION_REPORT.md), [capacity clarification](CAPACITY_RESULT.md), [Opt80 comparison](OPT80_LOCAL_COMPARISON.md), [QAFT validation](model_updates/2026-11-05-qaft-int8/VALIDATION_REPORT.md), [RTSPS repair](model_updates/2026-11-05-rtsps-compatibility-fix/REPAIR_REPORT.md), and [chronological handoff](OPTIMIZATION_HANDOFF.md). None substitutes for an exact case-level expected/forbidden assertion on the new candidate.
+
+
+### Local campaign regressions added on 2026-11-11
+
+- OBS-07 / PERF-08 / INC-024: measure stage-progress tracing overhead on identical native workloads. Every required stage counter, PTS, age and camera/session association must remain available. A run with callbacks disabled is diagnostic evidence only. Native observer replacements require count/PTS parity, peer isolation, close/removal and repeated lifetime checks (`native_progress_parity.py`), followed by unchanged-policy load and independent freshness tests.
+- DEP/RES / INC-007 / INC-023: source fixtures must survive CV worker replacement. A single-listen FFmpeg exiting on disconnect must not masquerade as failed decoder recovery. `test_reconnecting_replay.py` proves two consumer epochs and child cleanup; native runtime recovery still requires separate execution.
+- OBS / INC-021: thermal-abort collectors preserve BOTH stdout and stderr after stopping only the owned load. Structured runtime logs are commonly stderr. Regression: `test_stopped_log_capture_keeps_stderr_without_corrupting_inspect_json`. Historical incomplete abort logs remain incomplete; do not reconstruct missing evidence or mark them passed.
+
+These extend assertions in existing cases; they do not reset the 282-row historical ledger or assert completion of the release matrix.
+
+
+- INC-024 / PERF: replay FPS must remain source-paced after SIGSTOP/cooling/socket backpressure. Save every video PES PTS/DTS and actual TCP submission times; audit before a capacity claim. Use `test_mpegts_pacing.py`, realtime suspension regression in `test_reconnecting_replay.py`, and `analyze_source_pacing.py`. Legacy `ffmpeg -re` startup-paused captures may burst and cannot establish an upper capacity boundary without independent freshness. Do not disguise a source pacing defect as a runtime FPS change.
+
+- INC-023 / native admission: reproduce full pending-admission stall with paced sources. A streaming pad must return without waiting; reject only before admission, retain all admitted records/outputs, and report rejections as unevaluated. Verify pending-output expiry while decode continues, FIFO/frozen timestamps, session fencing, quiet safety sweeps, source recovery and scene coverage. Native-only controls cannot qualify V8 capacity. C8 unit/control evidence is scoped; full runtime/fault/soak gates remain.
+- Long-lived identity state: turn over thousands of retired presences and verify gait sequence/cache/track-center state is released only after existing retirement, session replacement or disabling gait. Preserve temporary-loss/reassociation/geometry-revision history, and finish any owned pending gait job before retirement. No background/mask/model or quality threshold change is permitted in this cleanup.
+
+- INC-023 / SDK synchronization: when a shared native graph stalls in VA preprocessing, capture full native/Python stacks plus the exact SDK version/binary hash. Check whether AcquireBuffer is asleep with completed buffers available. A controlled SDK-method pre-wait barrier regression must distinguish the original unsynchronized ReleaseBuffer from a mutex-synchronized release. A source-code race or successful short control alone does not prove the deployment root cause; no undocumented binary patch or arbitrary SDK upgrade qualifies as a repair.
+
+- Agent API fault regression: run `v8_agent_api_fault_probe.py` against exact baked candidate. Verify transient429/503, disconnect before/after fixture storage, stable retry IDs/bytes, duplicate ACK, permanent400, malformed/missing-object ACK and bounded6-attempt exhaustion. This is a real Unix HTTP client test with synthetic vector/fixture ACK; never mark actual agent storage or Management durability PASS from it.
+
+
+### Graphics dependency changes: mandatory comparison gate (2026-11-11)
+
+Applies to REL-05, REL-07, MODEL-01…MODEL-10 and FLOW-01…FLOW-10. This adds concrete execution requirements to those cases; it does not mark them passed or increase the catalog count.
+
+1. Freeze the parent image configuration ID, exact SDK/OpenVINO/GStreamer versions, model/proc/embedding profile hashes, policy/schema hashes and all effective environment variables. Preserve the original image for rollback.
+2. Save signed repository provenance, snapshot date, verified key fingerprint, explicit dependency pins, package transaction and normalized before/after package inventories. Test container userspace separately from host/kernel changes. A source reference is not proof that a stack fixes a failure.
+3. Check that protected runtime/model/contract artifacts are unchanged. Compare identical recorded pixels through the baked primary detector and actual scene executor, retaining every detection and vector, input hashes, maximum confidence/coordinate differences and per-sample embedding cosine/L2 differences. Use the real current QAFT model path, not the older detector probe default. Direct tensor parity does not establish VA preprocessing, tracking or complete event parity.
+4. Preflight the test runner under its actual UID, empty writable scratch directory and the image's full SDK Python/library paths. Do not overwrite PYTHONPATH and hide gstgva. Distinguish fixture setup errors from runtime/model failures; retain both failed setup logs and corrected executions.
+5. Run the native VA decode + surface-sharing graph, source-coordinate evidence and all declared GPU/NPU models. Explicitly check current device placement after loader updates. Then repeat the workload that reproduced the original stall, first without instrumentation, and compare queue ages, per-camera completed FPS, source/evidence freshness, native generations/restarts and complete agent acknowledgements. A waiter stack alone is not an ultimate root cause.
+6. Keep the existing 90 C sustained/critical-minus-2 thermal guard. Thermally stopped attempts are excluded, never reclassified as a throughput pass or image failure. Archive all raw temperatures, throttling, CPU, cgroup RAM, scoped GPU/NPU counters, stage/model/queue timings and package/ACK counters with monotonic/UTC timestamps.
+7. Only after numerical, device, original failure and bounded-load checks pass, continue 5/8/10-FPS profile frontiers and the selected one-hour steady stress test. A three-minute pass cannot close intermittent failure or long-duration stability.
+
+Executable comparison: `scripts/isolated_validation/gpu_stack_compare.py`. Current diagnostic artifacts: `optimization_evidence/2026-11-10-local-v8-r2/driver-stack-control/`. This test's local capture boundary does not establish Management durability, remote snapshot retrieval or recognition accuracy.
+
+### Mandatory regressions found during November 11 qualification
+
+These overlap the existing 282 scenarios; there are now 28 permanent incident
+regressions. Source/unit fixes are not fresh native release qualification.
+
+| Incident | Reproduction and required check | Saved test/evidence | Current scope |
+|---|---|---|---|
+| INC-025 | Run the **baked** gait-enabled extractor's teardown during camera recovery. Release its foreground/background references and engine owner; preserve peer state; engine release must still occur if background cleanup raises. Then exercise native gait-enabled source/worker recovery without `AttributeError`. | `tests/test_gait_close.py` under runtime_v8; C11 complete runtime log and C12 baked checks under the local campaign evidence. | C12 baked unit pass; native recovery pending. |
+| INC-026 | Force a producer reservation between the earlier zero-pending diagnostic read and the recovery fence. Decide rebuild from the count returned **atomically by the fence**; retain old accepted records/timestamps, reject new producers, and never resume an old epoch over unfinished work. Empty fences retain camera-local recovery. | `tests/test_native_admission.py`; C12 baked checks. | Concurrency/component pass; native recovery pending. |
+| INC-027 | A native graph's socket/decoder/model deadlines continue during `SIGSTOP`. Do not freeze it for startup/warmup cooling and call the resulting timeout spontaneous. A phase with `native_clock_deadlines_active=true` must cause thermal **stop/exclusion**, even if pause cooling was requested. Record any startup CPU quota/period, verify actual cgroups, restore the full declared budget before warmup, and retain all failed attempts. | `scripts/isolated_validation/test_guarded_case.py`, `test_capacity_harness.py`; C11 guard pause21.066s versus native progress age21.085s; actual quota component. | Guard regression pass; unpaused native retest pending. |
+
+The C11 profiling case is diagnostic, not capacity evidence: external perf
+sampling plus cooling pauses occurred. Its 358 CPU samples reported zero lost
+samples; approximately 48% of sampled user CPU was in libc copy code called
+from the Intel media driver. This is not 48% of wall time, proof of a bottleneck,
+or proof that copying caused heat. Preserve the raw profile and mappings before
+proposing conversion or driver changes. The original C9 VA-acquire stall remains
+a separate finding; these newer fixes do not establish its ultimate cause.
+
+
+## Host reachability loss during all-app initialization — INC-028
+
+On2026-11-11, `.64` became unreachable during C12 all-app startup after the
+parser/decoder-input stages progressed but decoder output remained zero. The
+image cause, host freeze, power loss and network loss are not distinguished yet.
+This is an open incident, not proof of a kernel or image defect. Before another
+heavy test after recovery, retain previous-boot kernel/pstore logs, Docker state,
+actual startup CPU limits, model/stage progress, temperature history and boot ID.
+Recheck competing auto-started CV services and GPU/NPU devices after any reboot.
+Track host reachability independently of `/healthz`; a remote guard cannot stop
+a kernel that no longer responds. Preserve partial results and report missing
+intervals. No partial/offline/thermally interrupted attempt qualifies capacity.
+The case count remains282; INC-028 overlapsRES-08/FLOW-09/PERF-04.
+
+
+### Permanent prefetch-boundary regression (INC-029, 2026-11-11)
+
+A C13 source review found that consuming an already-prefetched VA sample skipped the normal missing-PTS validation and `camera.consumed`/processing trace. No real-camera missing-PTS failure was observed. The C14 correction shares consumption validation between both paths, before admission/time handling, while leaving model inputs, policy, thresholds and V8 output unchanged. Release checks must include `test_surface_consumption.py`, actual prefetch pixel/PTS parity and native tracing/recovery. Holding a future sample must not report it consumed; invalid PTS must never produce an invented observation timestamp. Seven new focused cases pass (130 with existing timestamp/admission/recovery cases); native C14 validation is pending. C13 results are not relabelled as C14 passes.
+
+
+### Counter-clock isolation regression (INC-030, 2026-11-12)
+
+Per-camera counters and their reporter uptime must be read from the same fresh telemetry snapshot. An HTTP poll interval may differ from the interval covered by cached counters. The C15 original outage check divided 41 completed frames by 10.0065 poll seconds; the actual counter interval was 8.164 seconds, giving 5.022 completed FPS. Preserve that original FAIL and the independent reanalysis. A fresh corrected outage test passed.
+
+The permanent harness regression reproduces those exact numbers and rejects missing, stale, frozen, reversed, nonfinite or boolean counter clocks and genuine slow progress. Both selected and completed rates must still meet the original 90% peer threshold; peer health, freshness, PID and errors remain checked. This changes only test measurement, with no model/image, production gate or contract change. INC-030 overlaps OBS-02, OBS-03 and PERF-07; total scenarios remain282. New-candidate qualification templates always start NOT_RUN; historical scoped evidence belongs in separate fields.
+
+
+INC-030 extension (2026-11-12): isolation compares lifetime decoder-error/reconnect counters against a healthy baseline; earlier startup history remains reported, but only a new increment/reset during the isolation window fails that criterion. Invalid/missing/noninteger/negative/bool counters fail. Retain the original bad-first FAIL, derived corrected-counter reanalysis and separately named native rerun. Ordinary bad-first isolation must use baked startup deadline, not the shortened fault-injection deadline.
+
+### Native motion negative-control requirement (2026-11-12)
+
+For MOTION/SCENE and INC-016/INC-022, a quiet fixture must be independently verified negative for the actual baked primary and fire models, with their real native preprocessing/postprocessing. Static or black pixels alone do not establish a negative model result. Preserve decoded source evidence, native class/confidence and model/model-proc hashes. If inference stays active while a model reports positives, diagnose model/input/conversion behavior before changing the six-negative release rule. An unavailable or skipped hazard evaluation remains unevaluated, never a manufactured negative. Record quiet-to-active-to-quiet over a complete observed cycle; cold startup/warmup can consume the fixture's initial quiet section. Compare raw direct and native inference on identical pixels when results disagree, with CPU reference explicitly distinguished from production execution. No gate loosening to pass a motion benchmark.
+
+C15 observation: the black/people/black run sustained target FPS, but all observed windows stayed active and quiet scene cadence failed; two smoke-suspected outputs had all-zero320x320 evidence. Cause remains unconfirmed. Separate runtime throughput PASS from motion-functional FAIL. `scripts/isolated_validation/fire_blank_parity_probe.py` is prepared for an exclusive same-image diagnostic, not yet executed. Preserve original reports before rerunning.
+
+Harness regression: pixel parity must accept the archived `{command:[...]}` record as well as legacy argv, reject malformed/incomplete records before native launch, and compare only the same frozen candidate/source pixels. A runner exception before launch is not a model/runtime comparison result; a fresh native run remains required after repairing the runner.
+
+
+### Integrated fire numerical regression (INC-031, 2026-11-12)
+
+This is execution consistency, not a request to relax model accuracy or policy gates. On byte-verified all-zero320x320 BGR input the integrated C15 fire model returned raw smoke .79296875, while direct GPU FP32 returned .04375478997826576. The integrated raw-output probe with fire-only `INFERENCE_PRECISION_HINT=f32` returned exactly .04375478997826576. An explicit fire batch-one control still produced .79296875; standalone GVA controls were negative. The exact internal compiler/kernel cause remains unconfirmed. Preserve inputs, raw tensors, model/proc hashes, effective element properties and both original failures and repair experiments.
+
+A new image must run the real integrated hazard branch, not merely a standalone fire micrograph. Require no false hazard from verified negative frames, full quiet→active→quiet counters and scene cadence, positive suspected/clear transitions, and fresh performance/stress measurements. The candidate changes only fire GPU floating-computation precision; model weights, target device, thresholds, temporal gates and primary precision remain unchanged. Diagnostic raw-data hooks intentionally disable ROI conversion and cannot qualify hazard outputs. Twenty-two focused configuration tests pass; baked-image/full-cycle/positive regressions remain pending at this checkpoint.
+
+
+INC-031 later full-cycle result: FP32-only did NOT repair the real integrated detector. Same black bytes still yielded smoke .57942956686 and motion remained active. The isolated/raw-output negative result cannot substitute for the required real-detector native regression. Candidate C16 has not been built; proposed precision change remains experimental.
+
+
+### Runtime image identity regression (INC-032, 2026-11-12)
+
+The exact C15 Docker engine reports44051227... as an OCI manifest descriptor, while private CRI reports its configuration9e1b44.... Do not call every engine `.Id` a config hash or reject the same image solely because these identifier types differ. Resolve the frozen descriptor through SHA-verified manifest/index/config bytes, require linux/amd64 and reject any outside-chain/corrupt/substituted identity. Preserve the historical captured `image_config_id` field value but document its actual descriptor kind; never rewrite old measurements. New10-case pure descriptor/redaction tests pass; actual pod/config/replacement test is still required. The JSON sanitizer must operate on parsed values to retain valid quoting in serialized build history. These are validation-harness corrections, not a new CV image or a relaxed runtime check.
+
+
+### INC-033: cancelled delivery payload retention
+
+For every new image, block delivery workers and repeatedly replace one scene scope, then evict many distinct optional scopes. Assert real payload references, heap entries and semantic indexes remain bounded; removing counters alone is insufficient. Preserve in-flight requests, caller bytes, priority order, stable retry IDs and final acknowledgements. Run `tests/test_v8_handoff_retention.py` against the baked module and repeat with the compatible agent API. Exact C16-source failure evidence is in `optimization_evidence/2026-11-12-remote64-c16/handoff-retention-review/`. New-image native validation remains pending; do not infer this was the cause of live RAM growth.
+
+
+### Explicit worker-GIL stall regression (INC-007)
+
+The recovery harness now supports `--mode native-hang --native-hang-gil`. This is an explicit test-only injection: `ctypes.PyDLL(None).sleep(600)` holds the native worker's Python GIL after normal stream startup. It changes no model/decoder/production gate and does not simulate a whole-host kernel hang. Run under the same thermal/storage/ownership guard and global lease as the other native regressions. A PASS requires the actual injection log, a different fleet-parent PID replacing that exact child, its recorded SIGKILL exit (`-9`), a fresh worker and two-camera frame/package recovery. A Python callback sleeping with the GIL released is a separate regression and cannot be copied as this result.
+
+Saved harness and oracle controls: `scripts/isolated_validation/v8_recovery_image_validation.py` and `test_native_gil_fault.py`. The fresh C18 command is queued in `optimization_evidence/2026-11-12-remote64-c18/finish_campaign_c18.py`; it is **NOT_RUN** until its own raw report completes. Models/image/contract are unchanged by this test addition.

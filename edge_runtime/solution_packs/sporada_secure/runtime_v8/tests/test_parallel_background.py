@@ -130,6 +130,8 @@ def test_cpu_limit_respects_affinity_and_container_quota(monkeypatch, tmp_path):
 
 def test_gait_sequences_and_model_inputs_are_unchanged(monkeypatch):
     import pipeline.person_reid as module
+    if not hasattr(module, 'create_gait_background'):
+        pytest.skip('Opt80 parallel-background integration is unpromoted; accepted runtime uses whole-frame MOG2')
     class Model:
         def __init__(self):
             self.inputs = []

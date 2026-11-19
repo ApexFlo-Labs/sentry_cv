@@ -145,6 +145,10 @@ class FakePad:
 
     def add_probe(self, probe_type, callback):
         self.callbacks.append(callback)
+        return callback
+
+    def remove_probe(self, probe_id):
+        self.callbacks.remove(probe_id)
 
     def emit(self, pts=None):
         buffer = SimpleNamespace(pts=pts) if pts is not None else None
@@ -182,6 +186,14 @@ GST = SimpleNamespace(PadProbeType=SimpleNamespace(BUFFER=1),
 
 
 class NativeProgressTests(unittest.TestCase):
+    def test_close_removes_probes_and_repeated_trace_does_not_accumulate_callbacks(self):
+        element=FakeElement();pipeline=FakePipeline({'decoder':element})
+        for _ in range(5):
+            trace=Trace('cam','session');trace.attach(pipeline,GST)
+            self.assertTrue(all(len(p.callbacks)==1 for p in element.pads.values()))
+            trace.close();trace.close()
+            self.assertTrue(all(not p.callbacks for p in element.pads.values()))
+
     def test_in_memory_snapshots_counts_ages_pts_and_phases(self):
         now = [100.0]
         with patch.object(native.time, "monotonic", side_effect=lambda: now[0]):

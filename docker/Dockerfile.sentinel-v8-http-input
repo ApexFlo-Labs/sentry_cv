@@ -1,0 +1,10 @@
+# Local unqualified compatibility fix. C10's exact GPU stack, models,
+# gates, tracker, V8 schemas and all non-HTTP input paths are inherited.
+FROM 04f2ff9d13d300249828b20fa2e8312b6d33635673e6dca6d7ba462eb80eef1f
+USER 0:0
+# Use a frozen minimal context containing this recipe and the reviewed source.
+COPY --chown=10001:10001 surface_stream.py /opt/traffic-pilot/services/worker/pipeline/surface_stream.py
+RUN python3 -m py_compile /opt/traffic-pilot/services/worker/pipeline/surface_stream.py
+LABEL org.opencontainers.image.version="v8-c11-input-compat" \
+      io.apexfabric.candidate.scope="unqualified-http-input-to-existing-va-decoder"
+USER 10001:10001

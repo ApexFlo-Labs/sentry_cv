@@ -1,0 +1,21 @@
+{
+  "parent_config": "sha256:fbe30368c90710ee857b49a7a05238c94ec7424d0c9adc6c94d2674ba5beefe6",
+  "snapshot": "20260624T030400Z",
+  "packages": {
+    "intel-opencl-icd": "26.18.38308.4-1~24.04~ppa1",
+    "intel-ocloc": "26.18.38308.4-1~24.04~ppa1",
+    "libze-intel-gpu1": "26.18.38308.4-1~24.04~ppa1",
+    "libze1": "1.28.2-1~24.04~ppa1",
+    "libigc2": "2.34.4-1260~24.04",
+    "libigdfcl2": "2.34.4-1260~24.04",
+    "libigdgmm12": "22.10.0-1~24.04~ppa1",
+    "intel-media-va-driver-non-free": "26.2.2-1~24.04~ppa1",
+    "libva2": "2.23.0-1~24.04~ppa5",
+    "libva-drm2": "2.23.0-1~24.04~ppa5",
+    "libva-x11-2": "2.23.0-1~24.04~ppa5",
+    "libva-wayland2": "2.23.0-1~24.04~ppa5"
+  },
+  "scope": "Container-only diagnostic; official SDK Ubuntu24 GPU userspace dependency comparison; not promoted",
+  "official_source_commit": "ad3f68259b650f1c1aaec694d80cdfcd1055045a",
+  "utc": "2026-11-11T02:01:13.461628+00:00"
+}

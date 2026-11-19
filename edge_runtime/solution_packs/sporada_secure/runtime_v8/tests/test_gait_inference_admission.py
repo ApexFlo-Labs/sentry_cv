@@ -70,7 +70,8 @@ def test_identity_event_reason_survives_early_gate_refactor():
     pipeline.telemetry = None
     pipeline._body_quality = lambda crop: .8
     packages = []
-    pipeline._persist = lambda event,evidence,embeddings: packages.append((event,evidence,embeddings))
+    # This fixture simulates successful admission, including its bool contract.
+    pipeline._persist = lambda event,evidence,embeddings: packages.append((event,evidence,embeddings)) or True
     frame = np.ones((100,100,3),np.uint8)
     packet = SimpleNamespace(frame=frame,index=1)
     person = SimpleNamespace(bbox=[10,10,90,90])

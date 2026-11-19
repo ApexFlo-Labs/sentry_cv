@@ -1,0 +1,9 @@
+# Diagnostic only: compare pinned GPU userspace with official SDK Ubuntu24 dependencies.
+# No host/kernel, SDK, runtime Python, model, tracker or production-policy changes.
+FROM fbe30368c90710ee857b49a7a05238c94ec7424d0c9adc6c94d2674ba5beefe6
+USER 0:0
+COPY kobuk.asc install.sh pins.json /control/
+RUN /bin/bash /control/install.sh && cp /control/pins.json /opt/sentry-driver-control/pins.json
+LABEL org.opencontainers.image.version="v8-c10-driver-control" io.apexfabric.candidate.scope="unqualified-pinned-gpu-userspace-comparison"
+USER 10001:10001
+# Build context is the frozen driver-stack-control directory, not repository root.

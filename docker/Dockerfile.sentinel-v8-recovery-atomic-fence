@@ -1,0 +1,10 @@
+# Local qualification candidate. Exact C11 SDK/graphics/models/V8 policy.
+# Only gait teardown and atomic recovery fencing are changed.
+FROM dc372f8db7ee59b7443de5f705c8960000d77784889b3a2b4b138f8110fbc492
+USER 0:0
+# Build from a frozen minimal context with these three reviewed files.
+COPY --chown=10001:10001 person_reid.py dlstreamer_bridge.py surface_stream.py /opt/traffic-pilot/services/worker/pipeline/
+RUN python3 -m py_compile /opt/traffic-pilot/services/worker/pipeline/person_reid.py /opt/traffic-pilot/services/worker/pipeline/dlstreamer_bridge.py /opt/traffic-pilot/services/worker/pipeline/surface_stream.py
+LABEL org.opencontainers.image.version="v8-c12-recovery-fence" \
+      io.apexfabric.candidate.scope="unqualified-gait-teardown-and-atomic-admission-recovery"
+USER 10001:10001

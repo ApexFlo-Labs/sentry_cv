@@ -1,0 +1,4 @@
+# Local build tools only; never used as the production runtime.
+FROM 6a35d007fc3cb9ecda5a01403b1b4452c59b5a9339472d8391ecca91bd8a68b1
+USER 0:0
+RUN apt-get update && apt-get install -y --no-install-recommends build-essential cmake ninja-build pkg-config libglib2.0-dev libva-dev libdrm-dev ocl-icd-opencl-dev libjson-glib-dev libcurl4-openssl-dev uuid-dev libgirepository1.0-dev python3-dev python-gi-dev git ca-certificates && rm -rf /var/lib/apt/lists/*

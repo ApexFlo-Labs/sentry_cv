@@ -1,0 +1,32 @@
+--- a/src/monolithic/inference_backend/image_inference/async_with_va_api/va_api_wrapper/vaapi_images.cpp
++++ b/src/monolithic/inference_backend/image_inference/async_with_va_api/va_api_wrapper/vaapi_images.cpp
+@@ -149,14 +149,26 @@
+     if (!image)
+         throw std::runtime_error("Received VA-API image is null");
+ 
+-    image->completed = true;
++    {
++        // The predicate and wait must use the same mutex. Otherwise a release
++        // can notify between the availability scan and the atomic wait.
++        std::lock_guard<std::mutex> lock(_free_images_mutex);
++        image->completed = true;
++    }
+     _free_image_condition_variable.notify_one();
+ }
+ 
+ void VaApiImagePool::Flush() {
+-    std::unique_lock<std::mutex> lock(_free_images_mutex);
+     for (auto &image : _images) {
+-        if (!image->completed)
++        bool completed;
++        {
++            std::lock_guard<std::mutex> lock(_free_images_mutex);
++            completed = image->completed;
++        }
++        // A pending worker/callback can return this image while finishing. Do
++        // not hold the release mutex across a future wait. Submissions are
++        // already fenced by the owning inference Flush boundary.
++        if (!completed)
+             image->sync.wait();
+     }
+ }

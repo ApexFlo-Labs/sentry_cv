@@ -1,0 +1,10 @@
+# Frame-time repair plus admission bookkeeping; model/schema/gates unchanged.
+ARG SENTINEL_CANDIDATE_BASE=ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime@sha256:e8baec1ad054312f0081deb4bf6d34c7c8cc3bfb38516a3582d3d2fed32b4629
+FROM ${SENTINEL_CANDIDATE_BASE}
+USER 0:0
+COPY --chown=10001:10001 edge_runtime/solution_packs/sporada_secure/runtime_v8/services/worker/pipeline/frame_time.py edge_runtime/solution_packs/sporada_secure/runtime_v8/services/worker/pipeline/surface_stream.py edge_runtime/solution_packs/sporada_secure/runtime_v8/services/worker/pipeline/dlstreamer_bridge.py edge_runtime/solution_packs/sporada_secure/runtime_v8/services/worker/pipeline/v8_events.py edge_runtime/solution_packs/sporada_secure/runtime_v8/services/worker/pipeline/dls_secondary.py /opt/traffic-pilot/services/worker/pipeline/
+RUN python3 -m py_compile /opt/traffic-pilot/services/worker/pipeline/frame_time.py /opt/traffic-pilot/services/worker/pipeline/surface_stream.py /opt/traffic-pilot/services/worker/pipeline/dlstreamer_bridge.py /opt/traffic-pilot/services/worker/pipeline/v8_events.py /opt/traffic-pilot/services/worker/pipeline/dls_secondary.py
+LABEL org.opencontainers.image.version="v8-c4" \
+      io.apexfabric.candidate.base-config="e5ce6194581be39b0732ec4b8a486cfbea22bb32e76b82338bc1df92bc473bf7" \
+      io.apexfabric.candidate.scope="decoded-UTC-and-feature-admission-bookkeeping"
+USER 10001:10001

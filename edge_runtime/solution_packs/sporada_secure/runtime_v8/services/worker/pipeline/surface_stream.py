@@ -140,13 +140,29 @@ def paired_pts(va_sample, bgr_sample) -> int:
     return a
 
 
+def _record_consumed_surface(sample, native_trace=None):
+    """Validate at consumption, including samples retained by BGR prefetch.
+
+    Speculative conversion must not move this trace or timestamp validation
+    ahead of the camera's ordered consumer.
+    """
+    if sample is None:
+        return
+    pts = int(sample.get_buffer().pts)
+    if pts == (1 << 64) - 1:
+        raise RuntimeError('surface timestamp missing')
+    if native_trace is not None:
+        native_trace.mark("camera.consumed", pts)
+        native_trace.phase("frame_processing")
+
+
 def _probe_source(uri, *, require_fixed_surface: bool = True):
     import json
     import subprocess
     from decode import _network_input_options
-    if '://' in uri and not uri.startswith(('rtsp://', 'rtsps://', 'tcp://')):
+    if '://' in uri and not uri.startswith(('rtsp://', 'rtsps://', 'tcp://', 'http://', 'https://')):
         raise UnsupportedSurfaceSource(
-            'surface path supports RTSP, MPEG-TS over TCP, and local H.264/H.265 files'
+            'surface path supports RTSP, HTTP(S), MPEG-TS over TCP, and local H.264/H.265 files'
         )
     # The V8 TCP input contract is MPEG-TS carrying H.264. Do not consume a
     # separate connection with ffprobe: several production TCP publishers hand
@@ -175,6 +191,38 @@ def _probe_source(uri, *, require_fixed_surface: bool = True):
     if codec not in ('h264', 'hevc'):
         raise UnsupportedSurfaceSource('surface path requires H.264 or H.265 video')
     return 'h264' if codec == 'h264' else 'h265'
+
+
+def _http_surface_source(uri: str, codec: str, decoder: str) -> str:
+    """Demux/parse HTTP media, then require the existing hardware decoder.
+
+    urisourcebin parse-streams outputs elementary streams, not decoded pixels:
+    https://gstreamer.freedesktop.org/documentation/playback/urisourcebin.html
+    The explicit encoded-video caps/decoder prevent software decode selection.
+    Certificate/authentication handling retains the URI source's defaults.
+    """
+    from urllib.parse import urlsplit
+    address = urlsplit(uri)
+    if address.scheme not in ('http', 'https') or not address.hostname:
+        raise UnsupportedSurfaceSource('HTTP source requires an HTTP(S) URL with a host')
+    if codec not in ('h264', 'h265') or decoder not in (f'va{codec}dec', f'vaapi{codec}dec'):
+        raise UnsupportedSurfaceSource('HTTP source requires the H.264/H.265 VA decoder')
+    return (
+        f'urisourcebin name=camerasource uri={json.dumps(uri)} '
+        'parse-streams=true use-buffering=false ! '
+        f'video/x-{codec} ! {codec}parse name=videoparser ! {decoder} name=decoder'
+    )
+
+
+def _fence_native_recovery(gate, coordinator, camera_id, progress) -> int:
+    """Fence producers before deciding whether in-place recovery is safe."""
+    pending = gate.suspend()
+    if pending and coordinator is not None:
+        coordinator.request_rebuild(
+            camera_id, 'stalled_native_admissions',
+            pending_admissions=pending, native_progress=progress,
+        )
+    return pending
 
 
 
@@ -717,6 +765,10 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 confidence=float(os.getenv("PLATE_CONF", str(plate_config.get("confidence", 0.35)))),
                 max_detections=1, performance_hint="LATENCY")
     dls_fire_enabled = bool(dls_authoritative and enable_smoke_fire and enable_v8)
+    dls_fire_device = None
+    if dls_fire_enabled:
+        from pipeline.gva_inference_options import native_fire_device
+        dls_fire_device = native_fire_device()
     smoke_fire = None
     if enable_smoke_fire and not dls_fire_enabled:
         smoke_config = ((worker_config.get("models") or {}).get("smoke_fire") or {})
@@ -828,7 +880,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
     if zero_copy_wake_guard:
         telemetry_devices["vehicle_person_wake_guard"] = sf.VEHICLE_DEVICE
     if dls_fire_enabled:
-        telemetry_devices["fire_smoke_detection"] = "GPU/DLStreamer-OpenCV-BGR"
+        telemetry_devices["fire_smoke_detection"] = f"{dls_fire_device}/DLStreamer-OpenCV-BGR"
     elif smoke_fire is not None:
         telemetry_devices["fire_smoke_detection"] = smoke_fire.exec_devices
     if face_pipeline is not None:
@@ -949,7 +1001,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 ("GPU/DLStreamer-VA" if dls_authoritative else
                  "GPU/VA-RemoteTensor" if zero_copy_vehicle else veh.exec_devices),
                 "gvatrack" if dls_authoritative else "sentinel-centroid",
-                ("GPU/DLStreamer-OpenCV-BGR" if dls_fire_enabled else
+                (f"{dls_fire_device}/DLStreamer-OpenCV-BGR" if dls_fire_enabled else
                  smoke_fire.exec_devices if smoke_fire is not None else "disabled"),
                 plate.exec_devices if plate is not None else "disabled",
                 async_ocr.actual_device if async_ocr is not None else "disabled",
@@ -967,6 +1019,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
     )
     is_rtsp = uri.startswith(('rtsp://', 'rtsps://'))
     is_tcp = uri.startswith('tcp://')
+    is_http = uri.startswith(('http://', 'https://'))
     from pipeline.source_tls import CameraSourceTls
     source_tls = CameraSourceTls(name, str(stream_session_id or "unknown"))
     stats = Counter()
@@ -1005,7 +1058,6 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
     if dls_authoritative and enable_face:
         from pipeline.dlstreamer_bridge import DlsFaceMetadataBridge
         dls_face_metadata = DlsFaceMetadataBridge(dls_face_interval)
-    dls_fire_clock = SourcePtsClock()
     dls_fire_state = {
         "index": 0,
         "last_evaluated_monotonic": 0.0,
@@ -1051,6 +1103,9 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
             decoder = f'va{codec}dec' if dls_authoritative else f'vaapi{codec}dec'
             src = (f'rtspsrc name=camerasource location={location} protocols=tcp latency=100 ! '
                    f'rtp{codec}depay name=videodepay ! {codec}parse name=videoparser ! {decoder} name=decoder')
+        elif is_http:
+            decoder = f'va{codec}dec' if dls_authoritative else f'vaapi{codec}dec'
+            src = _http_surface_source(uri, codec, decoder)
         elif Path(uri).suffix.lower() in ('.mp4', '.mov', '.m4v'):
             decoder = f'va{codec}dec' if dls_authoritative else f'vaapi{codec}dec'
             src = f'filesrc location={location} ! qtdemux ! {codec}parse ! {decoder} name=decoder'
@@ -1080,6 +1135,8 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
             # Four requests causes the fifth shared GVA branch to fail its
             # PLAYING transition on the deployed Intel stack.
             nireq = min(8, max(1, int(os.getenv('SENTINEL_GVA_NIREQ', '8'))))
+            from pipeline.gva_inference_options import gpu_compilation_ie_config
+            gpu_compile_options = gpu_compilation_ie_config('GPU')
             face_chain = ""
             if dls_face_metadata is not None:
                 face_detector_model = os.path.join(
@@ -1098,6 +1155,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 face_chain = (
                     f'gvadetect name=facedet model={json.dumps(face_detector_model)} '
                     f'model-proc={json.dumps(face_detector_proc)} device=GPU '
+                    + gpu_compile_options +
                     'pre-process-backend=va-surface-sharing '
                     'inference-region=roi-list object-class=person '
                     f'inference-interval={dls_face_interval} threshold=0.55 '
@@ -1143,7 +1201,8 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                     'video/x-raw,format=BGRx,width=320,height=320 ! '
                     'videoconvert ! video/x-raw,format=BGR ! '
                     f'gvadetect name=firedet model={json.dumps(fire_model)} '
-                    f'model-proc={json.dumps(fire_model_proc)} device=GPU '
+                    f'model-proc={json.dumps(fire_model_proc)} device={dls_fire_device} '
+                    + gpu_compilation_ie_config(dls_fire_device) +
                     'pre-process-backend=opencv threshold=0.35 '
                     f'nireq={fire_nireq} '
                     f'model-instance-id={json.dumps(dlstreamer_model_instance_id("fire", name))} ! '
@@ -1170,6 +1229,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 'queue max-size-buffers=2 max-size-bytes=0 max-size-time=0 ! '
                 f'gvadetect name=primarydet model={json.dumps(vehicle_model_path)} '
                 f'model-proc={json.dumps(vehicle_model_proc)} device=GPU '
+                + gpu_compile_options +
                 'pre-process-backend=va-surface-sharing '
                 f'threshold={vehicle_confidence} nireq={nireq} '
                 'batch-size=1 '
@@ -1211,6 +1271,24 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 if gst_coordinator is not None:
                     gst_coordinator.attach_trace(name, native_trace)
             if dls_authoritative:
+                def stamp_decoded(_pad, info):
+                    buffer = info.get_buffer()
+                    if buffer is None:
+                        return Gst.PadProbeReturn.OK
+                    pts = int(buffer.pts)
+                    if pts == (1 << 64) - 1:
+                        telemetry.count('decoded_timestamp_missing')
+                        return Gst.PadProbeReturn.DROP
+                    clock = source_clock
+                    generation, stamp = clock.record_with_generation(pts, time.time())
+                    if dls_fire_enabled:
+                        fire_frame_times.record(pts, clock, generation, stamp)
+                    return Gst.PadProbeReturn.OK
+                # Stamp once before primary/fire queues and inference. Media
+                # PTS is a frame key/cadence clock, not an absolute UTC source.
+                branch.get_by_name('decoder').get_static_pad('src').add_probe(
+                    Gst.PadProbeType.BUFFER, stamp_decoded
+                )
                 fps_gate_pad = branch.get_by_name('fpsgate').get_static_pad('sink')
                 fps_gate_pad.add_probe(Gst.PadProbeType.BUFFER, dls_fps_gate.probe)
                 gate_pad = branch.get_by_name('policygate').get_static_pad('sink')
@@ -1265,12 +1343,18 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
             if pts == (1 << 64) - 1:
                 continue
             from pipeline.dlstreamer_bridge import hazards_from_sample
-            observed_at = dls_fire_clock.observe(
-                pts, received_at, clock_hz=float(Gst.SECOND)
-            )
+            try:
+                observed_at = fire_frame_times.consume(
+                    pts, source_clock, source_clock.generation
+                )
+            except LookupError:
+                # An evicted/old/ambiguous frame is unevaluated, never evidence
+                # that a previously suspected hazard has cleared.
+                telemetry.count('fire_timestamp_unavailable_frames')
+                continue
             with telemetry.measure(
                 "fire_smoke.detection.metadata_bridge",
-                device="GPU/DLStreamer",
+                device="CPU/GVA-metadata",
             ):
                 detections = hazards_from_sample(sample)
             telemetry.count("fire_model_system_memory_frames")
@@ -1300,8 +1384,9 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 name=name,
                 frame=frame,
                 frame_observed_at=observed_at,
-                frame_received_at=received_at,
+                frame_received_at=observed_at,
             )
+            packet.analytics_state['timestamp_source'] = 'edge_received_at'
             packet.detections = detections
             packet.analytics_state["fire_smoke_evaluated"] = True
             with telemetry.measure("fire_smoke.policy"):
@@ -1328,8 +1413,9 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 # A quiet DL Streamer camera intentionally drops buffers before
                 # gvadetect, so the inference appsink may be silent while the
                 # decoder remains healthy. Wake periodically to advance quiet
-                # lifecycle/health state and time out only when decode progress
-                # itself stops.
+                # lifecycle/health state. Decode progress and pending native
+                # output have independent deadlines: ongoing pre-admission
+                # rejections must not conceal a stuck inference stage.
                 last_progress = time.monotonic()
                 decoded = dls_gate.decoded_frames
                 while True:
@@ -1340,6 +1426,9 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                     _consume_dls_quiet()
                     if sample is not None:
                         return sample
+                    if dls_gate.oldest_pending_age_seconds >= float(timeout_seconds):
+                        raise RuntimeError(source_tls.describe(
+                            'surface native output timeout with pending admissions'))
                     current = dls_gate.decoded_frames
                     if current != decoded:
                         decoded = current
@@ -1364,14 +1453,10 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
         if native_trace is not None:
             native_trace.phase("await_primary_output")
         va = pull(pipeline.get_by_name('vasink'))
-        if native_trace is not None and va is not None:
-            native_trace.mark("camera.consumed", int(va.get_buffer().pts))
-            native_trace.phase("frame_processing")
+        _record_consumed_surface(va, native_trace)
         drain_dls_fire(pipeline)
         if measured_started is not None and va is not None:
             stats['surface_pull_seconds'] += time.perf_counter() - started_pull
-        if va is not None and int(va.get_buffer().pts) == (1 << 64) - 1:
-            raise RuntimeError('surface timestamp missing')
         return va
 
     pts_sampler = None if (benchmark or dls_authoritative) else SourcePtsSampler(
@@ -1398,7 +1483,12 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
 
     pipeline = bridge = gate = motion = converter = sv = sb = None
     surface_vehicle_detector = shadow_comparator = None
-    source_clock = SourcePtsClock()
+    from pipeline.frame_time import DecodedFrameClock, FrameOutputTimes
+    source_clock = DecodedFrameClock() if dls_authoritative else SourcePtsClock()
+    # Fire result ownership survives a source reset: duplicate PTS from another
+    # epoch must be rejected rather than relabeled as a new frame. Bounded
+    # recent history is metadata only, with no retained pixels/VA surfaces.
+    fire_frame_times = FrameOutputTimes(max_entries=128)
     if dls_authoritative:
         from pipeline.dlstreamer_bridge import DlsMotionPolicyGate, DlsPtsRateGate
         dls_fps_gate = DlsPtsRateGate(fps, int(Gst.SECOND))
@@ -1620,6 +1710,11 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 else:
                     if next_surface is not None:
                         sv, next_surface = next_surface, None
+                        _record_consumed_surface(sv, native_trace)
+                        if dls_authoritative:
+                            # Match the normal pull's independent hazard drain;
+                            # policy still consumes primary frames in order.
+                            drain_dls_fire(pipeline)
                     else:
                         sv = pull_selected_surface(pipeline, timeout_seconds=next_pull_timeout)
                 if sv is None:
@@ -1741,17 +1836,15 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                     and pipeline is not None
                 )
                 if dls_authoritative and dls_gate is not None:
-                    dls_gate.suspend()
-                    if pending and gst_coordinator is not None:
+                    pending_after_fence = _fence_native_recovery(
+                        dls_gate, gst_coordinator, name, progress
+                    )
+                    if pending_after_fence and gst_coordinator is not None:
                         # A reservation has failed to produce a consumable
                         # output for the entire native timeout. Reopening the
                         # gate would mix epochs, and stopping VA/model elements
                         # here may deadlock. Let the separate parent replace
                         # this process while durable delivery stays outside it.
-                        gst_coordinator.request_rebuild(
-                            name, "stalled_native_admissions", pending_admissions=pending,
-                            native_progress=progress,
-                        )
                         while True:
                             time.sleep(1)
                 keep_native_resources = permanent_tcp_branch or warm_rtsp_branch
@@ -1794,8 +1887,7 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                         and not permanent_tcp_branch):
                     pipeline.set_state(Gst.State.NULL)
                     pipeline = None
-                source_clock = SourcePtsClock()
-                dls_fire_clock = SourcePtsClock()
+                source_clock = DecodedFrameClock() if dls_authoritative else SourcePtsClock()
                 dls_fire_state.update(
                     index=0, last_evaluated_monotonic=0.0, last_hit=False
                 )
@@ -1887,14 +1979,47 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                             "frame_conversion.primary_selective_bgr",
                             device="GPU/VAAPI",
                         ):
-                            sb = converter.convert(sv)
+                            if next_bgr_pending:
+                                sb = converter.take(sv)
+                                next_bgr_pending = False
+                                telemetry.count("primary_bgr_prefetched_frames")
+                            else:
+                                sb = converter.convert(sv)
                             frame = _map_bgr_any(sb)
                         stats['bgr_for_inference'] += 1
                         telemetry.count("primary_bgr_materialized_frames")
                     else:
+                        if next_bgr_pending:
+                            # A previously busy subject can disappear. Drain
+                            # its speculative conversion without exposing any
+                            # pixels or changing the current policy decision.
+                            converter.take(sv)
+                            next_bgr_pending = False
+                            telemetry.count("primary_bgr_prefetch_unused_frames")
                         frame = _geometry_only_frame(sv)
                         stats['bgr_metadata_only_frames'] += 1
                         telemetry.count("primary_bgr_avoided_frames")
+                    if (pixels_required and raw_vdets
+                            and os.getenv("SENTINEL_DLS_BGR_PREFETCH", "1") == "1"
+                            and (frame_limit is None or fidx + 1 < frame_limit)
+                            and (not enable_v8 or any(
+                                b.get('app') not in {'scene_search', 'fire_smoke'}
+                                for b in v8_pipeline.bindings))):
+                        # Only use an already-produced next native output;
+                        # never wait for a future frame or evaluate its policy
+                        # early. Keep its admission record until the next
+                        # iteration consumes that exact PTS/session normally.
+                        next_surface = pipeline.get_by_name('vasink').emit(
+                            'try-pull-sample', 0
+                        )
+                        if next_surface is not None:
+                            info = next_surface.get_caps().get_structure(0)
+                            if (converter.width == int(info.get_value('width'))
+                                    and converter.height == int(info.get_value('height'))
+                                    and int(next_surface.get_buffer().pts) != (1 << 64) - 1):
+                                converter.submit(next_surface)
+                                next_bgr_pending = True
+                                telemetry.count("primary_bgr_prefetch_submissions")
                 elif zero_copy_vehicle:
                     frame = _map_bgr(sb)
                     stats['bgr_for_inference'] += 1
@@ -2032,6 +2157,9 @@ def run_surface_camera(cam: dict, camera_config: dict, redis_host: str,
                 packet = _FramePacket(index=fidx, name=name, frame=frame,
                                       frame_observed_at=frame_observed_at,
                                       frame_received_at=frame_received_at)
+                packet.analytics_state['timestamp_source'] = (
+                    'edge_received_at' if dls_authoritative else 'source_pts'
+                )
                 packet.analytics_state["motion_gate"] = gate_state
                 packet.analytics_state['fire_smoke_evaluated'] = smoke_evaluated
                 packet.detections = dets

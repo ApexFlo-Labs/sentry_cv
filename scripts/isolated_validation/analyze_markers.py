@@ -2,6 +2,16 @@
 import json,cv2,sys,numpy as np,gzip,datetime
 from pathlib import Path
 
+def read_marker(image, source_width=1280, marker_y=706):
+ scale=image.shape[1]/source_width;y=round(marker_y*scale)
+ if not 0<=y<image.shape[0]:return None
+ xs=[round((14+12*i)*scale)for i in range(56)]
+ if min(xs)<0 or max(xs)>=image.shape[1]:return None
+ bits=''.join('1'if image[y,x].mean()>127 else'0'for x in xs)
+ if int(bits[:16],2)!=0xA55A:return None
+ candidate=int(bits[16:48],2);crc=int(bits[48:],2)
+ return candidate if sum(candidate.to_bytes(4,'big'))&255==crc else None
+
 def align(items,pes,parameters):
  records=[];counts={'ambiguous_repeat':0,'missing_sender_packet':0,'ordered_loop_unwrap':0};previous={}
  for item in sorted(items,key=lambda x:(x['camera_id'],x['stream_session_id'],x['frame_ordinal'])):
@@ -28,17 +38,28 @@ def align(items,pes,parameters):
 
 def analyze(root,epochs):
  case=root.parent;api={}
- with gzip.open(case/'packages.jsonl.gz','rt')as f:
+ package_path=case/'packages.jsonl.gz'
+ if package_path.exists(): reader=gzip.open(package_path,'rt')
+ else: reader=(case/'packages.jsonl').open()
+ with reader as f:
   for line in f:
    r=json.loads(line);api[r['package_id']]=r
  report=json.loads((case/'report.json').read_text());samples=[s for s in report['samples']if s.get('sample_phase')=='steady'];start=samples[0]['sample_monotonic_seconds'];end=samples[-1]['sample_monotonic_seconds']
- pes={};parameters={}
+ pes={};parameters={};marker_geometry={}
  for p in epochs.glob('*-pes.jsonl'):
   port=int(p.name.split('-')[0]);camera=f'capacity-{port-19000:02d}';pes[camera]={r['source_index']:r for r in map(json.loads,p.read_text().splitlines())}
   epoch=json.loads((epochs/(str(port)+'.json')).read_text());parameters[camera]=(epoch.get('source_fps',10),epoch.get('source_frames',1200))
+  sidecar=Path(epoch.get('fixture','/nonexistent')).with_suffix('.json')
+  if sidecar.is_file():
+   descriptor=json.loads(sidecar.read_text())
+   marker_geometry[camera]=(descriptor.get('width',1280),descriptor.get('marker_y',706))
  items=[];others=[];counts={'marker_decoded':0,'no_marker':0};other_counts={'eligible':0,'marker_decoded':0,'no_marker':0,'unsupported_frame_id':0}
- for p in root.glob('*/manifest.json'):
-  m=json.loads(p.read_text());o=m['observation']
+ for p in list(root.glob('*/manifest.json'))+list(root.glob('*/metadata.json')):
+  m=json.loads(p.read_text())
+  if p.name=='metadata.json':
+   m={'package_id':m['package_id'],'observation':m,
+      'evidence':[{'metadata':e,'part_name':e['part_name']}for e in m.get('evidence_metadata',[])]}
+  o=m['observation']
   scene=o.get('event_type')=='scene_sample'
   if not scene and o.get('event_type')not in {'plate_read','plate_outcome','line_cross','zone_entry','zone_exit'}:continue
   try:ordinal=int(o['source_frame_id'].rsplit(':',1)[1])
@@ -53,13 +74,8 @@ def analyze(root,epochs):
    if not scene and evidence['metadata'].get('source_bbox_normalized')is not None:continue
    im=cv2.imread(str(p.parent/(evidence['part_name']+'.jpg')))
    if im is None:continue
-   scale=im.shape[1]/1280.;y=int(706*scale)
-   if y>=im.shape[0]:continue
-   bits=''.join('1'if im[y,int((8+12*i+6)*scale)].mean()>127 else'0'for i in range(56))
-   if int(bits[:16],2)!=0xA55A:continue
-   candidate=int(bits[16:48],2);crc=int(bits[48:],2)
-   if sum(candidate.to_bytes(4,'big'))&255!=crc:continue
-   n=candidate;break
+   n=read_marker(im,*marker_geometry.get(o['camera_id'],(1280,706)))
+   if n is not None:break
   target=counts if scene else other_counts
   if n is None:target['no_marker']+=1;continue
   target['marker_decoded']+=1;ack=api[m['package_id']]

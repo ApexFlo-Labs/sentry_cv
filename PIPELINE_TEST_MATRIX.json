@@ -2,7 +2,7 @@
   "metadata": {
     "title": "Sentry V8 forward regression and edge-case test matrix",
     "date": "2026-11-05",
-    "status": "PLAN_ONLY_NO_TESTS_RUN_BY_THIS_TASK",
+    "status": "CATALOG_WITH_PARTIAL_EXECUTION_AND_PERMANENT_INCIDENT_REGRESSIONS",
     "baseline_image": "ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.11.05-v8-qaft-int8-tlsfix2",
     "baseline_registry_digest": "sha256:b5a5dc68db4cba9e2b18ec28c61175686189161b25f605b298c1241dbc4957fc",
     "baseline_config_id": "dbaeacc92973fc5d1e41521e3200cd64151aaa53a472404a79f87833bade3ef5",
@@ -21,9 +21,11 @@
     },
     "notes": [
       "This is a catalog, not282 executable tests or completed runs. One controlled scenario can cover several case IDs.",
-      "All execution statuses start NOT_RUN; prior evidence is separately scoped and is not a fresh passing verdict.",
+      "New-candidate execution statuses start NOT_RUN; historical ledger verdicts are preserved and are not fresh passing evidence.",
       "Known failures stay open and unsupported/inactive capabilities do not become supported because a negative test passed.",
-      "The approved policy/contract and independently prepared expected timeline are the oracle; do not derive expected results by reusing the production implementation."
+      "The approved policy/contract and independently prepared expected timeline are the oracle; do not derive expected results by reusing the production implementation.",
+      "Permanent incident regressions overlap the282 scenarios; their count is not additional executed tests. Every new image starts NOT_RUN; scoped v8-r2 evidence cannot be copied as a fresh full qualification.",
+      "The 2026-11-06 concrete-suite review expands PRES-07/PRES-08/SCENE-05 and clarifies DWELL-03. The historical CSV fields remain an execution snapshot; current normative case definitions are in this JSON/plan. No new behavioral PASS is credited."
     ],
     "capacity_protocol": {
       "fps_per_camera": [
@@ -37,6 +39,14 @@
       "protocol": "CAPACITY_TEST_PROTOCOL.md",
       "profiles": "CAPACITY_TEST_MATRIX.json",
       "results_template": "CAPACITY_RESULTS_TEMPLATE.csv"
+    },
+    "last_updated": "2026-11-12",
+    "incident_regression_count": 33,
+    "regression_gate": "scripts/isolated_validation/check_regression_gate.py",
+    "current_published_reference": {
+      "image": "ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:v8-r2",
+      "registry_digest": "sha256:e8baec1ad054312f0081deb4bf6d34c7c8cc3bfb38516a3582d3d2fed32b4629",
+      "config_id": "e5ce6194581be39b0732ec4b8a486cfbea22bb32e76b82338bc1df92bc473bf7"
     }
   },
   "cases": [
@@ -59,7 +69,10 @@
       "prior_scope_note": "Published digest/config identity, baked hashes/defaults and selected actual execution are recorded. Clean-runtime pull, all loaded devices and every documentation/runtime path still need their own evidence.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-032"
+      ]
     },
     {
       "id": "REL-02",
@@ -76,7 +89,11 @@
       "prior_scope_note": "No case-level passing claim is made by this planning document.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-001",
+        "INC-032"
+      ]
     },
     {
       "id": "REL-03",
@@ -97,7 +114,8 @@
       "prior_scope_note": "Published digest/config identity, baked hashes/defaults and selected actual execution are recorded. Clean-runtime pull, all loaded devices and every documentation/runtime path still need their own evidence.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "REL-04",
@@ -118,7 +136,10 @@
       "prior_scope_note": "Published digest/config identity, baked hashes/defaults and selected actual execution are recorded. Clean-runtime pull, all loaded devices and every documentation/runtime path still need their own evidence.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-032"
+      ]
     },
     {
       "id": "REL-05",
@@ -139,7 +160,11 @@
       "prior_scope_note": "Published digest/config identity, baked hashes/defaults and selected actual execution are recorded. Clean-runtime pull, all loaded devices and every documentation/runtime path still need their own evidence.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-022",
+        "INC-023"
+      ]
     },
     {
       "id": "REL-06",
@@ -160,7 +185,8 @@
       "prior_scope_note": "Published digest/config identity, baked hashes/defaults and selected actual execution are recorded. Clean-runtime pull, all loaded devices and every documentation/runtime path still need their own evidence.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "REL-07",
@@ -177,7 +203,8 @@
       "prior_scope_note": "No case-level passing claim is made by this planning document.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "REL-08",
@@ -194,7 +221,8 @@
       "prior_scope_note": "No case-level passing claim is made by this planning document.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "DEP-01",
@@ -214,7 +242,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-001"
+      ]
     },
     {
       "id": "DEP-02",
@@ -234,7 +265,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "DEP-03",
@@ -254,7 +286,11 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-001",
+        "INC-020"
+      ]
     },
     {
       "id": "DEP-04",
@@ -274,7 +310,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "DEP-05",
@@ -294,7 +331,11 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-001",
+        "INC-023"
+      ]
     },
     {
       "id": "DEP-06",
@@ -314,7 +355,11 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-001",
+        "INC-017"
+      ]
     },
     {
       "id": "DEP-07",
@@ -334,7 +379,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "DEP-08",
@@ -354,7 +400,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "DEP-09",
@@ -374,7 +421,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "DEP-10",
@@ -394,7 +442,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "NET-01",
@@ -414,7 +463,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-003"
+      ]
     },
     {
       "id": "NET-02",
@@ -434,7 +486,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-003"
+      ]
     },
     {
       "id": "NET-03",
@@ -454,7 +509,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-003"
+      ]
     },
     {
       "id": "NET-04",
@@ -474,7 +532,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "NET-05",
@@ -494,7 +553,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-002"
+      ]
     },
     {
       "id": "NET-06",
@@ -514,7 +576,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "NET-07",
@@ -535,7 +598,10 @@
       "prior_scope_note": "HTTP/HTTPS validation versus mandatory native-path support mismatch. The TLS overlay did not fix this area; qualification remains open until a scoped repair and retest.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-003"
+      ]
     },
     {
       "id": "NET-08",
@@ -555,7 +621,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-004"
+      ]
     },
     {
       "id": "NET-09",
@@ -575,7 +644,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TLS-01",
@@ -595,7 +665,10 @@
       "prior_scope_note": "tlsfix2 has relevant native connection/strict/legacy/shared-bin evidence. Synthetic404 cases prove TLS/RTSP progression only; the single-camera live relay separately proves native video/package execution. This is not a new run or proof of all production cameras.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-002"
+      ]
     },
     {
       "id": "TLS-02",
@@ -615,7 +688,10 @@
       "prior_scope_note": "tlsfix2 has relevant native connection/strict/legacy/shared-bin evidence. Synthetic404 cases prove TLS/RTSP progression only; the single-camera live relay separately proves native video/package execution. This is not a new run or proof of all production cameras.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-002"
+      ]
     },
     {
       "id": "TLS-03",
@@ -635,7 +711,10 @@
       "prior_scope_note": "Public-with-extra-CA, hostname/expiry, and CA-file/Secret-symlink logic have evidence. Do not mark unmounted strict public reception, not-yet-active certificates, or actual projected CA rotation fully qualified from that subset.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-002"
+      ]
     },
     {
       "id": "TLS-04",
@@ -655,7 +734,10 @@
       "prior_scope_note": "tlsfix2 has relevant native connection/strict/legacy/shared-bin evidence. Synthetic404 cases prove TLS/RTSP progression only; the single-camera live relay separately proves native video/package execution. This is not a new run or proof of all production cameras.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-002"
+      ]
     },
     {
       "id": "TLS-05",
@@ -675,7 +757,10 @@
       "prior_scope_note": "tlsfix2 has relevant native connection/strict/legacy/shared-bin evidence. Synthetic404 cases prove TLS/RTSP progression only; the single-camera live relay separately proves native video/package execution. This is not a new run or proof of all production cameras.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-002"
+      ]
     },
     {
       "id": "TLS-06",
@@ -695,7 +780,10 @@
       "prior_scope_note": "Public-with-extra-CA, hostname/expiry, and CA-file/Secret-symlink logic have evidence. Do not mark unmounted strict public reception, not-yet-active certificates, or actual projected CA rotation fully qualified from that subset.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-002"
+      ]
     },
     {
       "id": "TLS-07",
@@ -715,7 +803,10 @@
       "prior_scope_note": "tlsfix2 has relevant native connection/strict/legacy/shared-bin evidence. Synthetic404 cases prove TLS/RTSP progression only; the single-camera live relay separately proves native video/package execution. This is not a new run or proof of all production cameras.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-002"
+      ]
     },
     {
       "id": "TLS-08",
@@ -735,7 +826,8 @@
       "prior_scope_note": "tlsfix2 has relevant native connection/strict/legacy/shared-bin evidence. Synthetic404 cases prove TLS/RTSP progression only; the single-camera live relay separately proves native video/package execution. This is not a new run or proof of all production cameras.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TLS-09",
@@ -755,7 +847,8 @@
       "prior_scope_note": "Public-with-extra-CA, hostname/expiry, and CA-file/Secret-symlink logic have evidence. Do not mark unmounted strict public reception, not-yet-active certificates, or actual projected CA rotation fully qualified from that subset.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TLS-10",
@@ -772,7 +865,8 @@
       "prior_scope_note": "No case-level passing claim is made by this planning document.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TLS-11",
@@ -791,7 +885,11 @@
       "prior_scope_note": "Actual dev3/QAFT comparison and a controlled untrusted certificate reproduced the client difference. Old office deployment environment overrides were not inspected.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-002",
+        "INC-021"
+      ]
     },
     {
       "id": "TLS-12",
@@ -811,7 +909,10 @@
       "prior_scope_note": "tlsfix2 has relevant native connection/strict/legacy/shared-bin evidence. Synthetic404 cases prove TLS/RTSP progression only; the single-camera live relay separately proves native video/package execution. This is not a new run or proof of all production cameras.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-002"
+      ]
     },
     {
       "id": "CFG-01",
@@ -831,7 +932,11 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-001",
+        "INC-032"
+      ]
     },
     {
       "id": "CFG-02",
@@ -852,7 +957,8 @@
       "prior_scope_note": "Fractional accepted FPS versus rounded/applied behavior needs an explicit supported rule. The TLS overlay did not fix this area; qualification remains open until a scoped repair and retest.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "CFG-03",
@@ -872,7 +978,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "CFG-04",
@@ -892,7 +999,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "CFG-05",
@@ -913,7 +1021,10 @@
       "prior_scope_note": "Secret replacement claimed new revision while actual emitted data remained on the old source/revision. The TLS overlay did not fix this area; qualification remains open until a scoped repair and retest.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-019"
+      ]
     },
     {
       "id": "CFG-06",
@@ -933,7 +1044,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-019"
+      ]
     },
     {
       "id": "CFG-07",
@@ -953,7 +1067,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-019"
+      ]
     },
     {
       "id": "CFG-08",
@@ -974,7 +1091,11 @@
       "prior_scope_note": "Native longjmp messages occurred during camera membership replacement. The TLS overlay did not fix this area; qualification remains open until a scoped repair and retest.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-019",
+        "INC-023"
+      ]
     },
     {
       "id": "CFG-09",
@@ -994,7 +1115,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "CFG-10",
@@ -1014,7 +1136,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "CFG-11",
@@ -1034,7 +1157,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "CFG-12",
@@ -1054,7 +1178,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "MODEL-01",
@@ -1074,7 +1199,11 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-022",
+        "INC-031"
+      ]
     },
     {
       "id": "MODEL-02",
@@ -1094,7 +1223,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-022"
+      ]
     },
     {
       "id": "MODEL-03",
@@ -1115,7 +1247,11 @@
       "prior_scope_note": "QAFT fixed-GPU/export-reference confidence and detection fidelity failed frozen comparisons. The TLS overlay did not fix this area; qualification remains open until a scoped repair and retest.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-022",
+        "INC-031"
+      ]
     },
     {
       "id": "MODEL-04",
@@ -1135,7 +1271,11 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-003",
+        "INC-022"
+      ]
     },
     {
       "id": "MODEL-05",
@@ -1155,7 +1295,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-022"
+      ]
     },
     {
       "id": "MODEL-06",
@@ -1176,7 +1319,10 @@
       "prior_scope_note": "Fully dynamic GPU route produced no accepted detections on positive frames; active graph remains fixed batch1. The TLS overlay did not fix this area; qualification remains open until a scoped repair and retest.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-022"
+      ]
     },
     {
       "id": "MODEL-07",
@@ -1196,7 +1342,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "MODEL-08",
@@ -1216,7 +1363,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "MODEL-09",
@@ -1236,7 +1384,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "MODEL-10",
@@ -1256,7 +1405,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FLOW-01",
@@ -1276,7 +1426,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-011"
+      ]
     },
     {
       "id": "FLOW-02",
@@ -1296,7 +1449,11 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-005",
+        "INC-011"
+      ]
     },
     {
       "id": "FLOW-03",
@@ -1316,7 +1473,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-011"
+      ]
     },
     {
       "id": "FLOW-04",
@@ -1336,7 +1496,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FLOW-05",
@@ -1356,7 +1517,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FLOW-06",
@@ -1376,7 +1538,11 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-006",
+        "INC-007"
+      ]
     },
     {
       "id": "FLOW-07",
@@ -1396,7 +1562,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-006"
+      ]
     },
     {
       "id": "FLOW-08",
@@ -1416,7 +1585,11 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-005",
+        "INC-026"
+      ]
     },
     {
       "id": "FLOW-09",
@@ -1436,7 +1609,15 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-004",
+        "INC-005",
+        "INC-025",
+        "INC-026",
+        "INC-027",
+        "INC-028"
+      ]
     },
     {
       "id": "FLOW-10",
@@ -1456,7 +1637,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-029"
+      ]
     },
     {
       "id": "MOT-01",
@@ -1476,7 +1660,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-016"
+      ]
     },
     {
       "id": "MOT-02",
@@ -1496,7 +1683,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-016"
+      ]
     },
     {
       "id": "MOT-03",
@@ -1516,7 +1706,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-016"
+      ]
     },
     {
       "id": "MOT-04",
@@ -1536,7 +1729,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-016"
+      ]
     },
     {
       "id": "MOT-05",
@@ -1556,7 +1752,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-014"
+      ]
     },
     {
       "id": "MOT-06",
@@ -1576,7 +1775,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "MOT-07",
@@ -1596,7 +1796,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "MOT-08",
@@ -1616,7 +1817,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "MOT-09",
@@ -1636,7 +1838,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "MOT-10",
@@ -1656,7 +1859,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TRACK-01",
@@ -1676,7 +1880,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TRACK-02",
@@ -1696,7 +1901,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TRACK-03",
@@ -1716,7 +1922,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TRACK-04",
@@ -1736,7 +1943,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TRACK-05",
@@ -1756,7 +1964,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TRACK-06",
@@ -1776,7 +1985,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TRACK-07",
@@ -1796,7 +2006,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TRACK-08",
@@ -1816,7 +2027,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TRACK-09",
@@ -1837,7 +2049,8 @@
       "prior_scope_note": "Legacy adaptive tracker distance/retention values were not consumed by native gvatrack. The TLS overlay did not fix this area; qualification remains open until a scoped repair and retest.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TRACK-10",
@@ -1857,7 +2070,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-026"
+      ]
     },
     {
       "id": "TRACK-11",
@@ -1877,7 +2093,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TRACK-12",
@@ -1897,7 +2114,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "PRES-01",
@@ -1917,7 +2135,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "PRES-02",
@@ -1937,7 +2156,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "PRES-03",
@@ -1957,7 +2177,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-014"
+      ]
     },
     {
       "id": "PRES-04",
@@ -1977,7 +2200,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-011"
+      ]
     },
     {
       "id": "PRES-05",
@@ -1997,7 +2223,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "PRES-06",
@@ -2017,7 +2244,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "PRES-07",
@@ -2025,9 +2253,9 @@
       "area_name": "Person/vehicle presence and lifecycle",
       "priority": "P0",
       "scenario": "Exit, re-entry and overlapping presence bindings",
-      "expected_behavior": "Preserve or renew presence/episode identifiers according to the declared lifecycle and each use_case_id.",
+      "expected_behavior": "Preserve or renew presence/episode identifiers according to the declared lifecycle and each use_case_id. For competing eligible bindings, select the presence app before identity/ANPR, then lexical use_case_id at first confirmation; keep that owner while enabled even if a higher-priority binding is later added. Disable the owner and reselect without another first_seen.",
       "forbidden_behavior": "No reuse of an ended episode or wrong-binding event attribution.",
-      "required_evidence": "Repeated visit timeline and association keys.",
+      "required_evidence": "Repeated visit timeline and association keys. Owner timeline across added, disabled and re-enabled bindings and exact event reasons.",
       "execution_status": "NOT_RUN",
       "prior_coverage_status": "HISTORICAL_OR_PARTIAL_REVIEW_REQUIRED",
       "prior_evidence": [
@@ -2037,17 +2265,18 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "PRES-08",
       "area": "PRES",
       "area_name": "Person/vehicle presence and lifecycle",
       "priority": "P0",
-      "scenario": "Presence update evidence selection",
-      "expected_behavior": "First/updated evidence follows the actual declared policy; promised artifact IDs match the chosen source frame.",
-      "forbidden_behavior": "No assuming every heartbeat promises a new image or accepting a missing promised crop.",
-      "required_evidence": "Manifest expectations, selected frame and JPEG bytes.",
+      "scenario": "Presence evidence and optional subject-crop semantic embedding",
+      "expected_behavior": "First/updated evidence follows the declared policy. With siglip2-base-v1 enabled on the owning person/vehicle presence binding, the selected subject crop and matching 768D vector share source provenance and subject presence_id; exercise this without scene_search. With the profile disabled no semantic vector is promised. Heartbeats do not automatically require new evidence or embedding.",
+      "forbidden_behavior": "No full-scene vector substituted for the subject crop, null/wrong presence association, dependency on a scene_search binding, or missing promised artifact; no forced new crop/vector on every refresh.",
+      "required_evidence": "Enabled/disabled profile and no-scene-binding fixtures for person and vehicle; model input crop hash, JPEG source bounds, observation/evidence/embedding IDs and subject presence_id.",
       "execution_status": "NOT_RUN",
       "prior_coverage_status": "HISTORICAL_OR_PARTIAL_REVIEW_REQUIRED",
       "prior_evidence": [
@@ -2057,7 +2286,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "PRES-09",
@@ -2077,7 +2307,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ZONE-01",
@@ -2097,7 +2328,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ZONE-02",
@@ -2117,7 +2349,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ZONE-03",
@@ -2137,7 +2370,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-014"
+      ]
     },
     {
       "id": "ZONE-04",
@@ -2157,7 +2393,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ZONE-05",
@@ -2177,7 +2414,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ZONE-06",
@@ -2197,7 +2435,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ZONE-07",
@@ -2217,7 +2456,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ZONE-08",
@@ -2237,7 +2477,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ZONE-09",
@@ -2257,7 +2498,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "COUNT-01",
@@ -2277,7 +2519,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-014"
+      ]
     },
     {
       "id": "COUNT-02",
@@ -2297,7 +2542,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "COUNT-03",
@@ -2317,7 +2563,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "COUNT-04",
@@ -2337,7 +2584,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-014"
+      ]
     },
     {
       "id": "COUNT-05",
@@ -2357,7 +2607,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "COUNT-06",
@@ -2377,7 +2628,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "COUNT-07",
@@ -2397,7 +2649,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-014"
+      ]
     },
     {
       "id": "COUNT-08",
@@ -2417,7 +2672,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "COUNT-09",
@@ -2437,7 +2693,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "DWELL-01",
@@ -2457,7 +2714,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "DWELL-02",
@@ -2477,7 +2735,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "DWELL-03",
@@ -2485,7 +2744,7 @@
       "area_name": "Episode timing and observation gaps",
       "priority": "P0",
       "scenario": "Configured milestone evidence or status",
-      "expected_behavior": "Where supported/enabled, emit the approved milestone representation exactly once with selected evidence.",
+      "expected_behavior": "Identify the exact supported V8 representation and configuration before expecting milestone evidence; if absent mark the milestone-specific subcase inapplicable, not a pass or required new event. Continue testing presence zone-episode start/last-positive/gap/exit facts under the other DWELL cases; Management derives dwell thresholds.",
       "forbidden_behavior": "Do not invent a new dwell event type or require an unsupported milestone message.",
       "required_evidence": "Frozen contract-supported expected payload/timing.",
       "execution_status": "NOT_RUN",
@@ -2497,7 +2756,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-014"
+      ]
     },
     {
       "id": "DWELL-04",
@@ -2517,7 +2779,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "DWELL-05",
@@ -2537,7 +2800,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "DWELL-06",
@@ -2557,7 +2821,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "DWELL-07",
@@ -2577,7 +2842,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "DWELL-08",
@@ -2597,7 +2863,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "LINE-01",
@@ -2617,7 +2884,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "LINE-02",
@@ -2637,7 +2905,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "LINE-03",
@@ -2657,7 +2926,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-014"
+      ]
     },
     {
       "id": "LINE-04",
@@ -2677,7 +2949,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "LINE-05",
@@ -2697,7 +2970,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "LINE-06",
@@ -2717,7 +2991,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "LINE-07",
@@ -2737,7 +3012,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "LINE-08",
@@ -2757,7 +3033,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FACE-01",
@@ -2777,7 +3054,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FACE-02",
@@ -2797,7 +3075,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FACE-03",
@@ -2817,7 +3096,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FACE-04",
@@ -2837,7 +3117,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FACE-05",
@@ -2857,7 +3138,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-012"
+      ]
     },
     {
       "id": "FACE-06",
@@ -2877,7 +3161,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-012"
+      ]
     },
     {
       "id": "FACE-07",
@@ -2897,7 +3184,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FACE-08",
@@ -2917,7 +3205,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FACE-09",
@@ -2937,7 +3226,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FACE-10",
@@ -2957,7 +3247,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FACE-11",
@@ -2978,7 +3269,10 @@
       "prior_scope_note": "Rejected feature admission can contaminate sent-quality/dedup state before delivery. The TLS overlay did not fix this area; qualification remains open until a scoped repair and retest.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-010"
+      ]
     },
     {
       "id": "FACE-12",
@@ -2998,7 +3292,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "BODY-01",
@@ -3018,7 +3313,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "BODY-02",
@@ -3038,7 +3334,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "BODY-03",
@@ -3058,7 +3355,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-012"
+      ]
     },
     {
       "id": "BODY-04",
@@ -3078,7 +3378,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "BODY-05",
@@ -3098,7 +3399,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "BODY-06",
@@ -3118,7 +3420,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "BODY-07",
@@ -3139,7 +3442,10 @@
       "prior_scope_note": "Rejected feature admission can suppress later valid delivery. The TLS overlay did not fix this area; qualification remains open until a scoped repair and retest.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-010"
+      ]
     },
     {
       "id": "BODY-08",
@@ -3159,7 +3465,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "GAIT-01",
@@ -3179,7 +3486,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "GAIT-02",
@@ -3199,7 +3507,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "GAIT-03",
@@ -3219,7 +3528,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "GAIT-04",
@@ -3239,7 +3549,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "GAIT-05",
@@ -3259,7 +3570,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "GAIT-06",
@@ -3279,7 +3591,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "GAIT-07",
@@ -3299,7 +3612,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "GAIT-08",
@@ -3320,7 +3634,10 @@
       "prior_scope_note": "Retired gait state/history survived beyond useful ownership; memory growth was observed. The TLS overlay did not fix this area; qualification remains open until a scoped repair and retest.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-013"
+      ]
     },
     {
       "id": "GAIT-09",
@@ -3340,7 +3657,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-025"
+      ]
     },
     {
       "id": "GAIT-10",
@@ -3360,7 +3680,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ANPR-01",
@@ -3380,7 +3701,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-015"
+      ]
     },
     {
       "id": "ANPR-02",
@@ -3400,7 +3724,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-015"
+      ]
     },
     {
       "id": "ANPR-03",
@@ -3420,7 +3747,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-012"
+      ]
     },
     {
       "id": "ANPR-04",
@@ -3440,7 +3770,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-015"
+      ]
     },
     {
       "id": "ANPR-05",
@@ -3460,7 +3793,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ANPR-06",
@@ -3480,7 +3814,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-015"
+      ]
     },
     {
       "id": "ANPR-07",
@@ -3500,7 +3837,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-015"
+      ]
     },
     {
       "id": "ANPR-08",
@@ -3520,7 +3860,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-015"
+      ]
     },
     {
       "id": "ANPR-09",
@@ -3540,7 +3883,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ANPR-10",
@@ -3560,7 +3904,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-010"
+      ]
     },
     {
       "id": "ANPR-11",
@@ -3580,7 +3927,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ANPR-12",
@@ -3600,7 +3948,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "SCENE-01",
@@ -3620,7 +3969,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-016"
+      ]
     },
     {
       "id": "SCENE-02",
@@ -3640,7 +3992,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-016"
+      ]
     },
     {
       "id": "SCENE-03",
@@ -3660,7 +4015,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "SCENE-04",
@@ -3680,7 +4036,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-016"
+      ]
     },
     {
       "id": "SCENE-05",
@@ -3688,8 +4047,8 @@
       "area_name": "Scene sampling, scope and evidence",
       "priority": "P0",
       "scenario": "Periodic and event trigger select the same frame",
-      "expected_behavior": "Apply approved cooldown/coalescing without duplicate expensive jobs or wrong parent association.",
-      "forbidden_behavior": "No duplicate samples only because two triggers fired together.",
+      "expected_behavior": "Apply approved cooldown/coalescing without duplicate expensive jobs or wrong parent association. Test configured versus unconfigured trigger bindings for entry/exit/line crossing, all configured scene scopes and triggering_observation_id. Exercise below/at/above the approved trigger cooldown (currently1s) as well as periodic/trigger collision.",
+      "forbidden_behavior": "No duplicate samples only because two triggers fired together. No sample from an unconfigured trigger, wrong parent event or wrong scene scope.",
       "required_evidence": "Frame IDs, trigger reasons and model-call count.",
       "execution_status": "NOT_RUN",
       "prior_coverage_status": "HISTORICAL_OR_PARTIAL_REVIEW_REQUIRED",
@@ -3700,7 +4059,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-031"
+      ]
     },
     {
       "id": "SCENE-06",
@@ -3720,7 +4082,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "SCENE-07",
@@ -3740,7 +4103,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "SCENE-08",
@@ -3760,7 +4124,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "SCENE-09",
@@ -3780,7 +4145,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "SCENE-10",
@@ -3800,7 +4166,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FIRE-01",
@@ -3820,7 +4187,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FIRE-02",
@@ -3840,7 +4208,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FIRE-03",
@@ -3860,7 +4229,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FIRE-04",
@@ -3880,7 +4250,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FIRE-05",
@@ -3900,7 +4271,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FIRE-06",
@@ -3920,7 +4292,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FIRE-07",
@@ -3940,7 +4313,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FIRE-08",
@@ -3960,7 +4334,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "FIRE-09",
@@ -3980,7 +4355,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ART-01",
@@ -4001,7 +4377,10 @@
       "prior_scope_note": "681 packages accepted by a compatible reference agent API; subset52 packages/42JPEGs/35vectors audited. Not production-agent database durability, downstream retrieval, every crash boundary or physical identity correctness.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-009"
+      ]
     },
     {
       "id": "ART-02",
@@ -4021,7 +4400,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-009"
+      ]
     },
     {
       "id": "ART-03",
@@ -4041,7 +4423,11 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-009",
+        "INC-012"
+      ]
     },
     {
       "id": "ART-04",
@@ -4061,7 +4447,11 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-009",
+        "INC-012"
+      ]
     },
     {
       "id": "ART-05",
@@ -4081,7 +4471,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-011"
+      ]
     },
     {
       "id": "ART-06",
@@ -4101,7 +4494,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ART-07",
@@ -4122,7 +4516,8 @@
       "prior_scope_note": "681 packages accepted by a compatible reference agent API; subset52 packages/42JPEGs/35vectors audited. Not production-agent database durability, downstream retrieval, every crash boundary or physical identity correctness.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ART-08",
@@ -4142,7 +4537,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ART-09",
@@ -4162,7 +4558,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ART-10",
@@ -4182,7 +4579,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "AGENT-01",
@@ -4203,7 +4601,11 @@
       "prior_scope_note": "681 packages accepted by a compatible reference agent API; subset52 packages/42JPEGs/35vectors audited. Not production-agent database durability, downstream retrieval, every crash boundary or physical identity correctness.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-008",
+        "INC-033"
+      ]
     },
     {
       "id": "AGENT-02",
@@ -4223,7 +4625,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-008"
+      ]
     },
     {
       "id": "AGENT-03",
@@ -4243,7 +4648,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-008"
+      ]
     },
     {
       "id": "AGENT-04",
@@ -4263,7 +4671,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-008"
+      ]
     },
     {
       "id": "AGENT-05",
@@ -4284,7 +4695,10 @@
       "prior_scope_note": "Producer feature state advanced before refused admission, losing later sendability. The TLS overlay did not fix this area; qualification remains open until a scoped repair and retest.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-010"
+      ]
     },
     {
       "id": "AGENT-06",
@@ -4304,7 +4718,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-008"
+      ]
     },
     {
       "id": "AGENT-07",
@@ -4324,7 +4741,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-008"
+      ]
     },
     {
       "id": "AGENT-08",
@@ -4344,7 +4764,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-008"
+      ]
     },
     {
       "id": "AGENT-09",
@@ -4364,7 +4787,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-008"
+      ]
     },
     {
       "id": "AGENT-10",
@@ -4385,7 +4811,10 @@
       "prior_scope_note": "681 packages accepted by a compatible reference agent API; subset52 packages/42JPEGs/35vectors audited. Not production-agent database durability, downstream retrieval, every crash boundary or physical identity correctness.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-009"
+      ]
     },
     {
       "id": "AGENT-11",
@@ -4405,7 +4834,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "AGENT-12",
@@ -4425,7 +4855,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TIME-01",
@@ -4446,7 +4877,11 @@
       "prior_scope_note": "Observed UTC was ahead of agent receipt even when independently marked images were fresh. The TLS overlay did not fix this area; qualification remains open until a scoped repair and retest.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-018",
+        "INC-029"
+      ]
     },
     {
       "id": "TIME-02",
@@ -4466,7 +4901,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-018"
+      ]
     },
     {
       "id": "TIME-03",
@@ -4486,7 +4924,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-018"
+      ]
     },
     {
       "id": "TIME-04",
@@ -4506,7 +4947,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-018"
+      ]
     },
     {
       "id": "TIME-05",
@@ -4526,7 +4970,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-018"
+      ]
     },
     {
       "id": "TIME-06",
@@ -4547,7 +4994,8 @@
       "prior_scope_note": "Some live selection windows exceeded configured FPS; catch-up/PTS effects remain unresolved. The TLS overlay did not fix this area; qualification remains open until a scoped repair and retest.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TIME-07",
@@ -4567,7 +5015,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-018"
+      ]
     },
     {
       "id": "TIME-08",
@@ -4587,7 +5038,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "TIME-09",
@@ -4607,7 +5059,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-016"
+      ]
     },
     {
       "id": "OBS-01",
@@ -4627,7 +5082,11 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-017",
+        "INC-021"
+      ]
     },
     {
       "id": "OBS-02",
@@ -4647,7 +5106,11 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-017",
+        "INC-030"
+      ]
     },
     {
       "id": "OBS-03",
@@ -4667,7 +5130,12 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-004",
+        "INC-017",
+        "INC-030"
+      ]
     },
     {
       "id": "OBS-04",
@@ -4688,7 +5156,10 @@
       "prior_scope_note": "Read-only metrics storage caused camera-thread exceptions in the isolated campaign. The TLS overlay did not fix this area; qualification remains open until a scoped repair and retest.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-020"
+      ]
     },
     {
       "id": "OBS-05",
@@ -4708,7 +5179,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-017"
+      ]
     },
     {
       "id": "OBS-06",
@@ -4728,7 +5202,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-017"
+      ]
     },
     {
       "id": "OBS-07",
@@ -4748,7 +5225,12 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-017",
+        "INC-029",
+        "INC-033"
+      ]
     },
     {
       "id": "OBS-08",
@@ -4769,7 +5251,11 @@
       "prior_scope_note": "Nested worker extra/log fields exposed synthetic credential markers in the formatter audit. The TLS overlay did not fix this area; qualification remains open until a scoped repair and retest.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-021",
+        "INC-029"
+      ]
     },
     {
       "id": "OBS-09",
@@ -4789,7 +5275,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-017"
+      ]
     },
     {
       "id": "OBS-10",
@@ -4809,7 +5298,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-008"
+      ]
     },
     {
       "id": "RES-01",
@@ -4829,7 +5321,12 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-005",
+        "INC-013",
+        "INC-033"
+      ]
     },
     {
       "id": "RES-02",
@@ -4850,7 +5347,10 @@
       "prior_scope_note": "Historical track state retained image/history arrays and late memory growth. The TLS overlay did not fix this area; qualification remains open until a scoped repair and retest.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-013"
+      ]
     },
     {
       "id": "RES-03",
@@ -4870,7 +5370,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-006"
+      ]
     },
     {
       "id": "RES-04",
@@ -4890,7 +5393,11 @@
       "prior_scope_note": "Manual process pause/kill and controlled errors do not establish recovery from a natural native-model/driver hang.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-006",
+        "INC-007"
+      ]
     },
     {
       "id": "RES-05",
@@ -4910,7 +5417,13 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-004",
+        "INC-007",
+        "INC-023",
+        "INC-025"
+      ]
     },
     {
       "id": "RES-06",
@@ -4930,7 +5443,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-023"
+      ]
     },
     {
       "id": "RES-07",
@@ -4950,7 +5466,11 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-020",
+        "INC-033"
+      ]
     },
     {
       "id": "RES-08",
@@ -4970,7 +5490,12 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-024",
+        "INC-027",
+        "INC-028"
+      ]
     },
     {
       "id": "RES-09",
@@ -4990,7 +5515,11 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-013",
+        "INC-024"
+      ]
     },
     {
       "id": "RES-10",
@@ -5010,7 +5539,11 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-013",
+        "INC-024"
+      ]
     },
     {
       "id": "PERF-01",
@@ -5030,7 +5563,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-024"
+      ]
     },
     {
       "id": "PERF-02",
@@ -5050,7 +5586,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-024"
+      ]
     },
     {
       "id": "PERF-03",
@@ -5070,7 +5609,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-024"
+      ]
     },
     {
       "id": "PERF-04",
@@ -5090,7 +5632,12 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-024",
+        "INC-027",
+        "INC-028"
+      ]
     },
     {
       "id": "PERF-05",
@@ -5110,7 +5657,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-024"
+      ]
     },
     {
       "id": "PERF-06",
@@ -5130,7 +5680,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-024"
+      ]
     },
     {
       "id": "PERF-07",
@@ -5150,7 +5703,11 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-024",
+        "INC-030"
+      ]
     },
     {
       "id": "PERF-08",
@@ -5170,7 +5727,10 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-024"
+      ]
     },
     {
       "id": "PERF-09",
@@ -5190,7 +5750,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "PERF-10",
@@ -5210,7 +5771,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "PERF-11",
@@ -5230,7 +5792,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "PERF-12",
@@ -5250,7 +5813,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "PERF-13",
@@ -5270,7 +5834,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "PERF-14",
@@ -5290,7 +5855,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "PERF-15",
@@ -5310,7 +5876,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "PERF-16",
@@ -5330,7 +5897,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "SITE-01",
@@ -5347,7 +5915,8 @@
       "prior_scope_note": "No case-level passing claim is made by this planning document.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "SITE-02",
@@ -5364,7 +5933,10 @@
       "prior_scope_note": "No case-level passing claim is made by this planning document.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": [
+        "INC-019"
+      ]
     },
     {
       "id": "SITE-03",
@@ -5381,7 +5953,8 @@
       "prior_scope_note": "No case-level passing claim is made by this planning document.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "SITE-04",
@@ -5398,7 +5971,8 @@
       "prior_scope_note": "No case-level passing claim is made by this planning document.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "SITE-05",
@@ -5415,7 +5989,8 @@
       "prior_scope_note": "No case-level passing claim is made by this planning document.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "SITE-06",
@@ -5432,7 +6007,8 @@
       "prior_scope_note": "No case-level passing claim is made by this planning document.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ADAPT-01",
@@ -5452,7 +6028,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ADAPT-02",
@@ -5472,7 +6049,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ADAPT-03",
@@ -5492,7 +6070,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ADAPT-04",
@@ -5512,7 +6091,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ADAPT-05",
@@ -5532,7 +6112,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ADAPT-06",
@@ -5552,7 +6133,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ADAPT-07",
@@ -5572,7 +6154,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ADAPT-08",
@@ -5592,7 +6175,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ADAPT-09",
@@ -5613,7 +6197,8 @@
       "prior_scope_note": "Resolved adaptive values must be traced into native GVA; legacy settings currently do not control native association. The TLS overlay did not fix this area; qualification remains open until a scoped repair and retest.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ADAPT-10",
@@ -5633,7 +6218,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ADAPT-11",
@@ -5653,7 +6239,8 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
     },
     {
       "id": "ADAPT-12",
@@ -5673,7 +6260,1177 @@
       "prior_scope_note": "Related cases exist in earlier campaigns or unit/policy tests. Map the exact fixture, expected/forbidden assertions, image and result before crediting this case; enabled bindings or some output are insufficient.",
       "run_id": "",
       "verdict": "",
-      "failure_or_block_reason": ""
+      "failure_or_block_reason": "",
+      "incident_regression_ids": []
+    }
+  ],
+  "incident_regressions": [
+    {
+      "id": "INC-001",
+      "title": "HTTP server alive but worker/config/cameras never start",
+      "case_ids": [
+        "DEP-01",
+        "DEP-03",
+        "DEP-05",
+        "DEP-06",
+        "CFG-01",
+        "REL-02"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "PARTIAL",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_v8_runtime.py",
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_v8_health_recovery.py"
+      ],
+      "required_assertions": [
+        "correct_mounted_inputs",
+        "worker_loads_revision",
+        "healthy_peer_starts",
+        "missing_inputs_fail_visibly"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "deployment"
+      ],
+      "remaining_gap": "Actual Kubernetes mount/device/startup parity remains required; schema validation alone is insufficient.",
+      "last_scoped_evidence": [],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-002",
+      "title": "RTSPS trust regression and TLS/authentication misclassification",
+      "case_ids": [
+        "TLS-01",
+        "TLS-02",
+        "TLS-03",
+        "TLS-04",
+        "TLS-05",
+        "TLS-06",
+        "TLS-07",
+        "TLS-11",
+        "TLS-12",
+        "NET-05"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "IMPLEMENTED_SCOPED",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_source_tls.py",
+        "scripts/isolated_validation/camera_tls_qualification.py",
+        "scripts/isolated_validation/v8_recovery_image_validation.py"
+      ],
+      "required_assertions": [
+        "legacy_untrusted_video_received",
+        "strict_bad_certificate_rejected",
+        "strict_valid_certificate_accepted",
+        "auth401_separate",
+        "tls_passes_after_queue_tests"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Connection-only TLS fixtures must be combined with real native video; all transport/certificate variants are not implied by one successful endpoint.",
+      "last_scoped_evidence": [],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-003",
+      "title": "Accepted input scheme fails or silently uses another decoder path",
+      "case_ids": [
+        "NET-01",
+        "NET-02",
+        "NET-03",
+        "NET-07",
+        "MODEL-04"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "PARTIAL",
+      "saved_tests": [
+        "scripts/v8_capacity_probe.py",
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_v8_runtime.py"
+      ],
+      "required_assertions": [
+        "rtsp_native_video",
+        "rtsps_native_video",
+        "tcp_mpegts_native_video",
+        "claimed_protocols_match_support",
+        "hardware_decode_without_cpu_fallback"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "HTTP/HTTPS validator/native-path mismatch is still open; codec/resolution claims need their own fixtures.",
+      "last_scoped_evidence": [],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-004",
+      "title": "Reconnect returns success with disconnected RTP pad or broken VA renegotiation",
+      "case_ids": [
+        "FLOW-09",
+        "NET-08",
+        "OBS-03",
+        "RES-05"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "IMPLEMENTED_SCOPED",
+      "saved_tests": [
+        "scripts/isolated_validation/v8_recovery_image_validation.py",
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_native_recovery.py"
+      ],
+      "required_assertions": [
+        "two_distinct_interruptions",
+        "new_video_pad_linked",
+        "fresh_epoch_output_each_time",
+        "healthy_peer_keeps_progress",
+        "converter_pixels_and_pts_match"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Live v8-r2 H264 RTSPS scope is saved; repeat codec/input variants claimed by the next candidate.",
+      "last_scoped_evidence": [
+        "releases/v8-r2/REPAIR_RESULTS.json",
+        "MANAGEMENT_BLR_DECODER_STALL.md"
+      ],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-005",
+      "title": "Full native admission queue deadlocks teardown or mixes old work",
+      "case_ids": [
+        "FLOW-02",
+        "FLOW-08",
+        "FLOW-09",
+        "RES-01"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "IMPLEMENTED_SCOPED",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_native_admission.py",
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_native_recovery.py",
+        "scripts/isolated_validation/v8_recovery_image_validation.py"
+      ],
+      "required_assertions": [
+        "blocked_producer_released",
+        "unfinished_admissions_not_silently_cleared",
+        "old_epoch_rejected",
+        "fresh_admission_after_recovery",
+        "native_stall_replaced"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "",
+      "last_scoped_evidence": [
+        "optimization_evidence/2026-11-10-local-v8-r2/c8-admission-recovery-retirement-host-tests-v2.log"
+      ],
+      "new_image_status": "NOT_RUN",
+      "reference_evidence_status": "PARTIAL_SCOPED_EVIDENCE_NOT_FULL_QUALIFICATION"
+    },
+    {
+      "id": "INC-006",
+      "title": "OCR/shared secondary queue saturation starves cameras or never times out",
+      "case_ids": [
+        "FLOW-06",
+        "FLOW-07",
+        "RES-03",
+        "RES-04"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "PARTIAL",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_v8_runtime.py",
+        "scripts/v8_capacity_probe.py"
+      ],
+      "required_assertions": [
+        "ocr_queue_bounded",
+        "secondary_queue_bounded",
+        "fair_camera_service",
+        "bounded_queue_wait_and_timeout",
+        "late_results_fenced",
+        "primary_and_scene_progress"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Saved unit coverage is not a loaded native OCR/secondary fairness test. A deterministic slow/blocked secondary fixture is still required.",
+      "last_scoped_evidence": [],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-007",
+      "title": "Native/model/GIL stall survives because the worker process is alive",
+      "case_ids": [
+        "RES-04",
+        "RES-05",
+        "FLOW-06"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "IMPLEMENTED_SCOPED",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_native_recovery.py",
+        "scripts/isolated_validation/v8_recovery_image_validation.py",
+        "scripts/isolated_validation/test_native_gil_fault.py",
+        "optimization_evidence/2026-11-12-remote64-c18/finish_campaign_c18.py"
+      ],
+      "required_assertions": [
+        "parent_watchdog_outside_native_worker",
+        "gil_blocked_child_reaped",
+        "stalled_model_fenced",
+        "bounded_process_replacement",
+        "new_worker_produces_packages"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Fresh C18 existing blocked-primary callback replacement PASS with external parent and child exit-9. Distinct actual GIL-held libc PyDLLsleep variant queued for postchecks with --native-hang-gil; requires injected GIL log, different parent PID, exact stuck worker SIGKILL, new worker fresh frames/packages. Test-helper negative controls PASS; this new native variant is not yet passed. It does not claim recovery from a global kernel/GPU hang.",
+      "last_scoped_evidence": [
+        "releases/v8-r2/REPAIR_RESULTS.json",
+        "MANAGEMENT_BLR_DECODER_STALL.md"
+      ],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-008",
+      "title": "Delivery handoff backlog/rejection/retry hides missing output",
+      "case_ids": [
+        "AGENT-01",
+        "AGENT-02",
+        "AGENT-03",
+        "AGENT-04",
+        "AGENT-06",
+        "AGENT-07",
+        "AGENT-08",
+        "AGENT-09",
+        "OBS-10"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "PARTIAL",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_v8_runtime.py",
+        "scripts/isolated_validation/v8_capture_agent.py",
+        "scripts/isolated_validation/v8_agent_api_fault_probe.py"
+      ],
+      "required_assertions": [
+        "agent_queue_bounded",
+        "retryable_and_terminal_errors_distinguished",
+        "stable_retry_ids_and_bytes",
+        "recovery_after_agent_outage",
+        "common_cutoff_ack_accounting",
+        "empty_queue_not_camera_health"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Native admission, OCR queues and delivery queues are separate. Real-agent disk durability/Management remain outside the requested API boundary.",
+      "last_scoped_evidence": [
+        "optimization_evidence/2026-11-10-local-v8-r2/c8-agent-api-faults/report.json"
+      ],
+      "new_image_status": "NOT_RUN",
+      "reference_evidence_status": "PARTIAL_SCOPED_EVIDENCE_NOT_FULL_QUALIFICATION"
+    },
+    {
+      "id": "INC-009",
+      "title": "Events and vectors arrive without their promised snapshots",
+      "case_ids": [
+        "ART-01",
+        "ART-02",
+        "ART-03",
+        "ART-04",
+        "AGENT-10"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "IMPLEMENTED_SCOPED",
+      "saved_tests": [
+        "scripts/isolated_validation/v8_capture_agent.py",
+        "scripts/isolated_validation/v8_recovery_image_validation.py",
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_v8_runtime.py",
+        "scripts/isolated_validation/v8_agent_api_fault_probe.py"
+      ],
+      "required_assertions": [
+        "all_declared_jpegs_received",
+        "jpeg_bytes_and_hash_valid",
+        "evidence_parent_ids_match",
+        "embedding_parent_and_profile_match",
+        "packages_valid_after_reconnect"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "API capture is not a downstream Management image-retrieval test. Subject-crop SigLIP on presence without scene_search is explicitly required by PRES-08 and needs its own saved semantic/native fixtures.",
+      "last_scoped_evidence": [
+        "optimization_evidence/2026-11-10-local-v8-r2/c8-agent-api-faults/report.json"
+      ],
+      "new_image_status": "NOT_RUN",
+      "reference_evidence_status": "PARTIAL_SCOPED_EVIDENCE_NOT_FULL_QUALIFICATION"
+    },
+    {
+      "id": "INC-010",
+      "title": "Refused face/body/plate admission incorrectly advances sent-quality/dedup state",
+      "case_ids": [
+        "AGENT-05",
+        "FACE-11",
+        "BODY-07",
+        "ANPR-10"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "FIXED_C18_BAKED_AND_NATIVE_IPC_AGENT_REFUSAL_RETRY_VERIFIED",
+      "saved_tests": [
+        "scripts/isolated_validation/test_policy_scenarios.py",
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_policy_admission.py",
+        "scripts/isolated_validation/policy_admission_fault_hook.py",
+        "scripts/isolated_validation/analyze_policy_admission.py",
+        "scripts/isolated_validation/test_policy_admission_fault.py"
+      ],
+      "required_assertions": [
+        "refused_sample_not_marked_sent",
+        "same_qualified_sample_remains_sendable",
+        "retry_accepted_once",
+        "dedup_updates_only_after_acceptance"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Reproduced C17 baked plate sent-state bug repaired. Fresh C18 standard366unit/22subtests and30policy +12API PASS; actual native ANPR one-shot scheduler refusals for plate_read and plate_outcome each recovered original observation with exactlyone matched admitted retry and complete agent capture, unchanged IDs/source timestamps/JPEG hashes. Face/body refusal semantics covered by unit controls; no claim of recognition/OCR accuracy or downstream agent storage. Broader campaign qualification remains separate.",
+      "last_scoped_evidence": [
+        "optimization_evidence/2026-11-12-remote64-c17/remote-artifacts/policy-admission-r2/stdout.log",
+        "optimization_evidence/2026-11-12-remote64-c17/remote-artifacts/policy-admission-source-patch-r2/stdout.log",
+        "optimization_evidence/2026-11-12-remote64-c17/pending-policy-admission-fix/STATUS.json",
+        "optimization_evidence/2026-11-12-remote64-c18/remote-artifacts/baked-checks/report.json",
+        "optimization_evidence/2026-11-12-remote64-c18/remote-artifacts/agent-api-regressions/report.json",
+        "optimization_evidence/2026-11-12-remote64-c18/remote-artifacts/native-policy-admission-result.json",
+        "optimization_evidence/2026-11-12-remote64-c18/INCIDENT_RESULTS.json"
+      ],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-011",
+      "title": "Camera/session/presence/frame association breaks across recovery or late completion",
+      "case_ids": [
+        "FLOW-01",
+        "FLOW-02",
+        "FLOW-03",
+        "PRES-04",
+        "ART-05"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "PARTIAL",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_v8_runtime.py",
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_native_recovery.py",
+        "scripts/isolated_validation/v8_recovery_image_validation.py"
+      ],
+      "required_assertions": [
+        "camera_local_ids_not_global_identity",
+        "late_old_generation_rejected",
+        "face_body_gait_same_presence",
+        "health_log_package_session_match",
+        "no_cross_camera_result_mix"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Current recovery/session evidence does not prove all identity-switch/ambiguity cases.",
+      "last_scoped_evidence": [
+        "releases/v8-r2/REPAIR_RESULTS.json",
+        "MANAGEMENT_BLR_DECODER_STALL.md"
+      ],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-012",
+      "title": "Crops use resized/wrong frame, wrong scaling, or confuse face evidence and model chip",
+      "case_ids": [
+        "FACE-05",
+        "FACE-06",
+        "BODY-03",
+        "ANPR-03",
+        "ART-03",
+        "ART-04"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "PARTIAL",
+      "saved_tests": [
+        "scripts/isolated_validation/test_policy_scenarios.py",
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_v8_runtime.py"
+      ],
+      "required_assertions": [
+        "source_frame_pixel_provenance",
+        "bbox_mapping_at_multiple_resolutions",
+        "expanded_face_evidence_clipped_correctly",
+        "aligned_chip_provenance_separate",
+        "vehicle_and_plate_crop_source_match"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Native source-marker and pixel checks at every claimed input geometry still required.",
+      "last_scoped_evidence": [],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-013",
+      "title": "Retired subject/gait/surface state accumulates or survives beyond ownership",
+      "case_ids": [
+        "GAIT-08",
+        "RES-01",
+        "RES-02",
+        "RES-09",
+        "RES-10"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "PARTIAL",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_gait_worker.py",
+        "CAPACITY_TEST_PROTOCOL.md",
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_gait_retirement.py"
+      ],
+      "required_assertions": [
+        "retired_candidates_and_sequences_removed",
+        "surface_lifetimes_bounded",
+        "thread_fd_memory_trends_recorded",
+        "bounded_state_under_turnover"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "load"
+      ],
+      "remaining_gap": "Known historical retention/memory findings remain open; short sparse-video smoke does not establish a leak fix.",
+      "last_scoped_evidence": [
+        "optimization_evidence/2026-11-10-local-v8-r2/baked-c8/unit/stdout.txt"
+      ],
+      "new_image_status": "NOT_RUN",
+      "reference_evidence_status": "PARTIAL_SCOPED_EVIDENCE_NOT_FULL_QUALIFICATION"
+    },
+    {
+      "id": "INC-014",
+      "title": "Count/presence/zone/dwell/crossing semantics change or emit false transitions",
+      "case_ids": [
+        "COUNT-01",
+        "COUNT-04",
+        "COUNT-07",
+        "PRES-03",
+        "ZONE-03",
+        "DWELL-03",
+        "LINE-03",
+        "MOT-05"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "PARTIAL",
+      "saved_tests": [
+        "scripts/isolated_validation/test_policy_scenarios.py",
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_v8_runtime.py"
+      ],
+      "required_assertions": [
+        "visible_now_count_scope",
+        "no_failed_camera_zero_count",
+        "loss_is_not_exit_or_dwell_complete",
+        "dwell_gaps_explicit",
+        "line_jitter_dedup",
+        "approved_emission_frequency"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Use deterministic positive/negative/milestone timelines, not just event totals.",
+      "last_scoped_evidence": [],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-015",
+      "title": "ANPR emits premature/conflicting plate reads or omits unreadable outcomes",
+      "case_ids": [
+        "ANPR-01",
+        "ANPR-02",
+        "ANPR-04",
+        "ANPR-06",
+        "ANPR-07",
+        "ANPR-08"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "PARTIAL",
+      "saved_tests": [
+        "scripts/isolated_validation/test_policy_scenarios.py",
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_v8_runtime.py"
+      ],
+      "required_assertions": [
+        "candidate_window_and_quality_gates",
+        "best_read_and_guarded_correction",
+        "unreadable_outcome_once",
+        "same_vehicle_evidence_and_plate_bbox",
+        "per_presence_dedup"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Calibrated text accuracy is separate; emission timing/outcomes still need labelled semantic fixtures.",
+      "last_scoped_evidence": [],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-016",
+      "title": "Scene evidence/embeddings disappear or sampling changes after motion gating",
+      "case_ids": [
+        "MOT-01",
+        "MOT-02",
+        "MOT-03",
+        "MOT-04",
+        "SCENE-01",
+        "SCENE-02",
+        "SCENE-04",
+        "TIME-09"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "PARTIAL",
+      "saved_tests": [
+        "scripts/isolated_validation/test_policy_scenarios.py",
+        "scripts/v8_capacity_probe.py"
+      ],
+      "required_assertions": [
+        "scene_enabled_every_configured_camera",
+        "active_interval_preserved",
+        "quiet_safety_sweep_preserved",
+        "scene_independent_of_tracks",
+        "jpeg_vector_same_frame",
+        "sampling_gaps_reported"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "A quiet five-second safety sweep is not unconditional two-second sampling or busy-camera capacity.",
+      "last_scoped_evidence": [],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-017",
+      "title": "Ready/healthy/FPS remain positive while processing is stale or failed",
+      "case_ids": [
+        "DEP-06",
+        "OBS-01",
+        "OBS-02",
+        "OBS-03",
+        "OBS-05",
+        "OBS-06",
+        "OBS-07",
+        "OBS-09"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "IMPLEMENTED_SCOPED",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_v8_health_recovery.py",
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_telemetry_liveness.py",
+        "scripts/isolated_validation/v8_recovery_image_validation.py"
+      ],
+      "required_assertions": [
+        "healthz_liveness_during_outage",
+        "all_stale_not_ready",
+        "healthy_peer_keeps_readiness",
+        "old_process_status_rejected",
+        "counter_deltas_and_frame_age",
+        "resource_scopes_truthful"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Telemetry refresh alone is never evidence of source/model progress; unsupported utilization must stay unavailable rather than fabricated.",
+      "last_scoped_evidence": [
+        "releases/v8-r2/REPAIR_RESULTS.json",
+        "MANAGEMENT_BLR_DECODER_STALL.md"
+      ],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-018",
+      "title": "Observation time is future UTC or processing/upload time replaces source time",
+      "case_ids": [
+        "TIME-01",
+        "TIME-02",
+        "TIME-03",
+        "TIME-04",
+        "TIME-05",
+        "TIME-07"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "OPEN_TEST_GAP",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_v8_runtime.py",
+        "CAPACITY_TEST_PROTOCOL.md"
+      ],
+      "required_assertions": [
+        "independent_signed_utc_error",
+        "no_future_time_beyond_uncertainty",
+        "evidence_event_same_source_time",
+        "backward_pts_and_clock_changes",
+        "no_hidden_source_backlog"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Known native 7.5\u201311-second future timestamp finding is not closed by source-clock unit tests. Preserve independent marked-source reproducer.",
+      "last_scoped_evidence": [],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-019",
+      "title": "Accepted revision/Secret change does not switch actual camera input",
+      "case_ids": [
+        "CFG-05",
+        "CFG-06",
+        "CFG-07",
+        "CFG-08",
+        "SITE-02"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "OPEN_TEST_GAP",
+      "saved_tests": [
+        "scripts/isolated_validation/test_policy_scenarios.py",
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_v8_runtime.py"
+      ],
+      "required_assertions": [
+        "new_secret_source_bytes_observed",
+        "new_revision_on_outputs",
+        "unchanged_peers_continue",
+        "removed_source_no_late_results",
+        "membership_change_no_native_crash"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "deployment"
+      ],
+      "remaining_gap": "Known isolated-campaign Secret/revision failure remains open; API revision alone cannot close it.",
+      "last_scoped_evidence": [],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-020",
+      "title": "Telemetry write failure crashes analytics or blocks healthy peers",
+      "case_ids": [
+        "OBS-04",
+        "DEP-03",
+        "RES-07"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "OPEN_TEST_GAP",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_telemetry_liveness.py"
+      ],
+      "required_assertions": [
+        "read_only_full_missing_metrics_paths_exercised",
+        "analytics_survives_observation_failure",
+        "failure_visible",
+        "healthy_peer_continues"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Reporting-liveness unit test is not the read-only/full-storage reproducer; prior camera-thread PermissionError failures remain open.",
+      "last_scoped_evidence": [],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-021",
+      "title": "Nested diagnostics leak credentials or benign HTTP disconnect looks like CV failure",
+      "case_ids": [
+        "OBS-08",
+        "OBS-01",
+        "TLS-11"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "IMPLEMENTED_SCOPED",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_native_diagnostics.py",
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_v8_health_recovery.py",
+        "scripts/isolated_validation/v8_recovery_image_validation.py"
+      ],
+      "required_assertions": [
+        "nested_and_embedded_json_redacted",
+        "native_errors_have_camera_session_pid",
+        "stage_counters_before_reset",
+        "requested_vs_verified_recovery_distinct",
+        "http_disconnect_benign"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Cover native error paths as well as formatter tests; never enable unredacted broad GST_DEBUG on credentialed sources.",
+      "last_scoped_evidence": [
+        "releases/v8-r2/REPAIR_RESULTS.json",
+        "MANAGEMENT_BLR_DECODER_STALL.md"
+      ],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-022",
+      "title": "Model export/classes/dimensions/backend precision differ from the declared profile",
+      "case_ids": [
+        "MODEL-01",
+        "MODEL-02",
+        "MODEL-03",
+        "MODEL-04",
+        "MODEL-05",
+        "MODEL-06",
+        "REL-05"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "PARTIAL",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_v8_runtime.py",
+        "scripts/v8_parity_harness.py"
+      ],
+      "required_assertions": [
+        "model_proc_hash_and_class_map_match",
+        "embedding_dimensions_and_normalization_match",
+        "actual_hardware_target",
+        "inactive_dynamic_route_not_enabled",
+        "numerical_and_detection_parity_scope_explicit"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Known QAFT/export and inactive dynamic-route findings remain visible. Common checkpoint/name is not sufficient proof of equivalent outputs.",
+      "last_scoped_evidence": [],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-023",
+      "title": "Native startup/membership/shutdown crashes masquerade as source/capacity limits",
+      "case_ids": [
+        "DEP-05",
+        "RES-05",
+        "RES-06",
+        "CFG-08",
+        "REL-05"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "PARTIAL",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_native_recovery.py",
+        "scripts/isolated_validation/v8_recovery_image_validation.py",
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_native_admission.py",
+        "scripts/isolated_validation/native_primary_control.py",
+        "scripts/isolated_validation/capture_native_stall.py",
+        "scripts/isolated_validation/gdb_va_pool_snapshot.py",
+        "native/src/va_pool_wakeup_regression.cpp",
+        "scripts/isolated_validation/va_pool_wakeup_probe.py",
+        "scripts/isolated_validation/capture_native_crash.py",
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_gva_compilation_options.py",
+        "scripts/isolated_validation/run_native_startup_repeats.py",
+        "scripts/isolated_validation/bootstrap_compilation_candidate.py"
+      ],
+      "required_assertions": [
+        "no_stack_smash_longjmp_or_gpu_allocation_abort",
+        "startup_failure_visible",
+        "missing_devices_models_do_not_cpu_fallback",
+        "native_failure_bounded",
+        "agent_accepted_packages_preserved",
+        "streaming_pad_never_waits_for_pending_inference_capacity",
+        "accepted_outputs_never_evicted_and_sink_holds_all_admissions",
+        "pre_admission_rejections_are_unevaluated_not_negative_or_quiet",
+        "native_output_deadline_runs_even_with_live_decoded_input",
+        "native_stall_reproducer_and_full_runtime_scene_regression_required"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "C8 unit boundaries passed; native16x8 single-variable no-wait3-slot control passed. Full-runtime rerun, deliberate native hang, reconnect and sustained neighboring capacity checks remain required; control is not release qualification. Exact installed2026.2.0 VA pool release lacks predicate mutex; controlled component test/live pool cause attribution and any repair are pending.",
+      "last_scoped_evidence": [
+        "optimization_evidence/2026-11-11-remote64-c14/native-startup-crash-finding.json",
+        "optimization_evidence/2026-11-11-remote64-c14/remote-artifacts/runs/remote64-c14/turbo-off-next-SA-4x8/"
+      ],
+      "new_image_status": "NOT_RUN",
+      "latest_candidate": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac",
+      "latest_scoped_finding": "2026-11-11 C14 four-camera all-app8fps first worker segfault/stack-smashing abort during graph startup; supervisor recovered, but test remains FAIL. No kernel OOM/GPU-reset entry in checked window. Native function unconfirmed; GDB diagnostic pending. Independent steady completion also below criteria. No thermal-stop or source-starvation attribution established.",
+      "candidate_mitigation": {
+        "image_config_id": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac",
+        "scope": "GPU-containing GVA COMPILATION_NUM_THREADS=1 only; inference streams/requests/precision and gates untouched",
+        "status": "UNQUALIFIED_NATIVE_FOUNDATION_RUNNING",
+        "fresh_uninstrumented_startups_without_native_fatal": 3,
+        "observed_diagnostic_controls_without_native_fatal": 6,
+        "remaining": "Short startups do not prove elimination. Native foundation, recovery, fresh capacity, hour and postchecks pending."
+      },
+      "last_scoped_status": "C15_MITIGATION_UNQUALIFIED_C14_FAILURE_RETAINED"
+    },
+    {
+      "id": "INC-024",
+      "title": "Camera-count/FPS/capacity or useful latency claim hides missed scenes and growing backlog",
+      "case_ids": [
+        "PERF-01",
+        "PERF-02",
+        "PERF-03",
+        "PERF-04",
+        "PERF-05",
+        "PERF-06",
+        "PERF-07",
+        "PERF-08",
+        "RES-08",
+        "RES-09",
+        "RES-10"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "PARTIAL",
+      "saved_tests": [
+        "CAPACITY_TEST_PROTOCOL.md",
+        "CAPACITY_TEST_MATRIX.json",
+        "scripts/v8_capacity_probe.py",
+        "scripts/isolated_validation/native_progress_parity.py",
+        "scripts/isolated_validation/test_reconnecting_replay.py",
+        "scripts/isolated_validation/test_guarded_case.py",
+        "scripts/isolated_validation/test_mpegts_pacing.py",
+        "scripts/isolated_validation/analyze_source_pacing.py"
+      ],
+      "required_assertions": [
+        "five_eight_ten_fps_profiles_declared",
+        "scene_on_every_camera",
+        "busy_and_quiet_distinguished",
+        "per_camera_fps_latency_and_source_age",
+        "resource_and_queue_envelope",
+        "capacity_claim_matches_sustained_evidence",
+        "full_stage_progress_counter_overhead_measured_without_disabling_tracing",
+        "observer_count_pts_lifetime_and_peer_isolation_parity",
+        "replay_source_accepts_worker_reconnect",
+        "thermal_abort_logs_include_stdout_and_stderr",
+        "source_dts_submission_no_catchup_after_suspend"
+      ],
+      "required_evidence_levels": [
+        "load"
+      ],
+      "remaining_gap": "Run bounded per-image load smoke; full frontier/soak required for capacity/sustained claims or scheduling/optimization changes. Old16/20 quiet-camera results are not busy8/10FPS qualification. Local C6/C7 campaign demonstrated Python pad-counter overhead and native shared-stage stalls; qualification must keep full tracing and rerun source recovery, marker freshness and continuous capacity after any observer replacement.",
+      "last_scoped_evidence": [],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-025",
+      "title": "Gait-enabled camera recovery raises missing close_backgrounds instead of releasing native owner",
+      "case_ids": [
+        "GAIT-09",
+        "FLOW-09",
+        "RES-05"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "FIXED_BAKED_UNIT_AND_NATIVE_TEARDOWN_VERIFIED",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_gait_close.py",
+        "scripts/isolated_validation/run_baked_checks.py",
+        "scripts/isolated_validation/v8_recovery_image_validation.py"
+      ],
+      "required_assertions": [
+        "baked_gait_teardown_method_present",
+        "foreground_and_background_references_released",
+        "peer_camera_state_preserved",
+        "engine_released_on_cleanup_error",
+        "gait_enabled_native_restart_without_attribute_error"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Actual C12 gait-enabled injected camera teardown recovered in1.654s; peer stayed in same session. Raw capacity harness intentionallyFAIL on fault, separate fault oraclePASS. Does not qualify positive gait accuracy or all recovery faults.",
+      "last_scoped_evidence": [
+        "optimization_evidence/2026-11-10-local-v8-r2/c12-baked-checks/report.json",
+        "optimization_evidence/2026-11-10-local-v8-r2/c11-cpu-profile-1x5-full-midrun.log",
+        "optimization_evidence/2026-11-10-local-v8-r2/c12-gait-native-teardown-fault-verdict.json"
+      ],
+      "new_image_status": "NOT_RUN",
+      "reference_evidence_status": "PARTIAL"
+    },
+    {
+      "id": "INC-026",
+      "title": "New native reservation races with pre-suspend pending snapshot and prevents safe recovery",
+      "case_ids": [
+        "FLOW-08",
+        "FLOW-09",
+        "TRACK-10"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "FIXED_SOURCE_AND_BAKED_UNIT_NATIVE_PENDING",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_native_admission.py",
+        "scripts/isolated_validation/v8_recovery_image_validation.py"
+      ],
+      "required_assertions": [
+        "admission_fence_and_pending_snapshot_atomic",
+        "pre_fence_winning_reservation_requests_shared_rebuild",
+        "post_fence_new_work_rejected",
+        "admitted_records_and_frozen_timestamps_retained",
+        "empty_fence_keeps_camera_local_restart",
+        "native_worker_recovers_without_unsafe_resume"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Controlled concurrency/component checks pass; C12 native recovery and peer continuity remain open. Do not describe this as proof of the original driver stall cause.",
+      "last_scoped_evidence": [
+        "optimization_evidence/2026-11-10-local-v8-r2/c12-baked-checks/report.json"
+      ],
+      "new_image_status": "NOT_RUN",
+      "reference_evidence_status": "PARTIAL"
+    },
+    {
+      "id": "INC-027",
+      "title": "Thermal SIGSTOP during native initialization or warmup manufactures decoder/socket timeouts",
+      "case_ids": [
+        "RES-08",
+        "PERF-04",
+        "FLOW-09"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "HARNESS_FIXED_UNPAUSED_600S_NATIVE_VERIFIED",
+      "saved_tests": [
+        "scripts/isolated_validation/test_guarded_case.py",
+        "scripts/isolated_validation/test_capacity_harness.py",
+        "scripts/isolated_validation/run_guarded_case.py",
+        "scripts/v8_capacity_probe.py"
+      ],
+      "required_assertions": [
+        "native_deadline_phase_forbids_sigstop_cooling",
+        "thermal_stop_preserves_failed_attempt_and_restarts_only_after_cooling",
+        "startup_cpu_budget_actual_cgroup_verified",
+        "full_budget_restored_before_warmup_and_steady",
+        "steady_hold_continuous_and_unpaused",
+        "fault_injection_separate_from_capacity_claim"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "load"
+      ],
+      "remaining_gap": "Unpaused C12 600s eight-camera test passed; one-hour and full-role capacity still open. Historical paused tests remain invalid for spontaneous-stall claims.",
+      "last_scoped_evidence": [
+        "optimization_evidence/2026-11-10-local-v8-r2/runs/diagnostic-c11/cpu-profile-all-role-people-1x5/events.jsonl",
+        "optimization_evidence/2026-11-10-local-v8-r2/startup-low-quota-actual-component.json",
+        "optimization_evidence/2026-11-10-local-v8-r2/c12-scene8x8-presoak-summary.json"
+      ],
+      "new_image_status": "NOT_RUN",
+      "reference_evidence_status": "PARTIAL"
+    },
+    {
+      "id": "INC-028",
+      "title": "Host becomes unreachable during all-use-case native initialization; cause must be separated from source, thermal and test-control failures",
+      "case_ids": [
+        "RES-08",
+        "FLOW-09",
+        "PERF-04"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "HOST_REACHABILITY_LOSS_OBSERVED_CAUSE_UNCONFIRMED",
+      "saved_tests": [
+        "scripts/isolated_validation/run_guarded_case.py",
+        "scripts/isolated_validation/campaign_observer.py",
+        "scripts/isolated_validation/capture_native_stall.py",
+        "scripts/isolated_validation/remote_case_bridge.py"
+      ],
+      "required_assertions": [
+        "all_app_cold_start_host_and_runtime_reachability_tracked_independently",
+        "actual_startup_cpu_limits_and_native_stage_progress_preserved",
+        "near_critical_stop_and_sampler_duration_explicit",
+        "host_loss_preserves_local_and_remote_evidence_without_claiming_image_cause",
+        "recovered_boot_kernel_device_and_isolation_state_revalidated",
+        "partial_offline_or_thermally_interrupted_run_not_capacity_pass"
+      ],
+      "required_evidence_levels": [
+        "native",
+        "deployment",
+        "load"
+      ],
+      "remaining_gap": "During the remoteC12 all-app startup .64 became unreachable. Root cause is unknown; recover previous-boot kernel/pstore and current Docker/guard evidence before more heavy inference. Test-only0.5CPU startup quota may have delayed model initialization; early quota removal did not return confirmation. Do not infer an image/kernel/thermal cause solely from lost reachability.",
+      "last_scoped_evidence": [
+        "optimization_evidence/2026-11-11-remote64-c12/host-unreachable-incident.json"
+      ],
+      "new_image_status": "NOT_RUN"
+    },
+    {
+      "id": "INC-029",
+      "title": "Prefetched native surfaces bypass missing-PTS validation and consumed-stage tracing",
+      "case_ids": [
+        "FLOW-10",
+        "TIME-01",
+        "OBS-07",
+        "OBS-08"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "C14_UNIT_AND_NATIVE_INJECTED_PREFETCH_PTS_REGRESSION_PASS",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_surface_consumption.py",
+        "scripts/isolated_validation/pixel_conversion_parity.py",
+        "scripts/isolated_validation/v8_recovery_image_validation.py"
+      ],
+      "required_assertions": [
+        "normal_and_prefetched_surface_missing_pts_rejected_before_clock_or_admission",
+        "retaining_or_converting_future_surface_does_not_mark_it_consumed",
+        "valid_consumption_marks_camera_consumed_and_processing_phase_once_in_order",
+        "prefetch_preserves_pixels_pts_camera_session_and_original_event_policy",
+        "missing_pts_fault_has_no_fabricated_event_timestamp_and_recovers_with_fresh_session_output"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "C14 pure timestamp/trace regression and actual retained-consumption metadata-fault recovery passed. Independent trace audit requires present/nonzero consumed count with valid prior PTS, current camera ID and recovered-session packages. Off/on C14 pixel parity and broader load/edge catalog remain pending; not whole release qualification.",
+      "last_scoped_evidence": [
+        "optimization_evidence/2026-11-11-remote64-c14/remote-artifacts/recovery-prefetch-missing-pts-controlled-SA-8/report.json",
+        "optimization_evidence/2026-11-11-remote64-c14/prefetch-fault-trace-audit.json",
+        "optimization_evidence/2026-11-11-remote64-c14/remote-artifacts/baked-checks/report.json"
+      ],
+      "new_image_status": "NOT_RUN",
+      "last_scoped_status": "PARTIAL_CURRENT_EVIDENCE"
+    },
+    {
+      "id": "INC-030",
+      "title": "Cached per-camera counters divided by HTTP poll time falsely report peer FPS loss",
+      "case_ids": [
+        "OBS-02",
+        "OBS-03",
+        "PERF-07"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "HARNESS_COUNTER_CLOCK_REGRESSION_AND_FRESH_C15_OUTAGE_PASS",
+      "saved_tests": [
+        "scripts/isolated_validation/test_capacity_harness.py::test_isolation_rate_uses_counter_clock_not_cached_http_poll_time",
+        "scripts/v8_capacity_probe.py"
+      ],
+      "required_assertions": [
+        "rates_use_fresh_reporter_counter_clock_in_same_snapshot_as_counters",
+        "missing_frozen_reversed_nonfinite_or_boolean_counter_clock_is_rejected",
+        "stale_telemetry_is_rejected",
+        "real_slow_selected_or_completed_work_still_fails_unchanged_rate_threshold",
+        "fresh_native_outage_retest_preserves_peer_health_pid_and_completion"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "Corrected C15 outage rerun passed; original FAIL is immutable. Every future candidate needs a fresh native retest. This fixes a test timebase, not a runtime policy or capacity threshold.",
+      "last_scoped_evidence": [
+        "optimization_evidence/2026-11-11-remote64-c15/outage-counter-clock-reanalysis.json",
+        "optimization_evidence/2026-11-11-remote64-c15/remote-artifacts/runs/remote64-c15/turbo-off-next-outage-all2x5-counter-clock-20261112-r2",
+        "optimization_evidence/2026-11-11-remote64-c15/remote-artifacts/recovery-bad-first-source-SA8-r3/report.json"
+      ],
+      "new_image_status": "NOT_RUN",
+      "last_scoped_status": "FRESH_C15_OUTAGE_AND_BAD_FIRST_NATIVE_ISOLATION_PASS"
+    },
+    {
+      "id": "INC-031",
+      "title": "Integrated fire GPU precision changes raw scores on identical black pixels and prevents quiet motion release",
+      "case_ids": [
+        "MODEL-01",
+        "MODEL-03",
+        "SCENE-05"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "OPEN_FP32_ONLY_EXPERIMENT_REJECTED_AND_WORKING_RUNTIME_RESTORED",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_gva_compilation_options.py",
+        "scripts/isolated_validation/fire_blank_parity_probe.py",
+        "scripts/isolated_validation/fire_raw_output_diagnostic_hook.py",
+        "scripts/isolated_validation/fire_raw_fp32_diagnostic_hook.py",
+        "scripts/isolated_validation/analyze_motion_transitions.py"
+      ],
+      "required_assertions": [
+        "compare_actual_integrated_fire_input_bytes_and_raw_scores_with_same_model_direct_reference",
+        "zero_pixels_must_not_emit_fire_or_smoke_or_prevent_evaluated_negative_motion_release",
+        "fire_only_f32_leaves_primary_precision_model_hashes_devices_and_production_gates_unchanged",
+        "quiet_active_quiet_and_scene_cadence_pass_over_complete_observed_cycle",
+        "positive_fire_suspected_then_evaluated_negative_clear_remains_functional",
+        "same_image_performance_and_long_run_must_be_requalified_not_inherited"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "remaining_gap": "FP32-only failed full300s real detector quiet/active/quiet check; .57943 smoke on verified black. Diagnostic good runs do not overrule failure. Proposed runtime/helper/test edits restored to actual C15 parent, experimental source and Dockerfile archived; no C16 image built. Exact preprocessing/execution difference remains under diagnosis.",
+      "new_image_status": "NOT_RUN",
+      "last_scoped_status": "NATIVE_MOTION_FUNCTIONAL_FAIL"
+    },
+    {
+      "id": "INC-032",
+      "title": "Validation image identity confuses Docker engine manifest ID with OCI config ID reported by CRI",
+      "case_ids": [
+        "REL-01",
+        "REL-02",
+        "REL-04",
+        "CFG-01"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "PURE_AND_NATIVE_KUBERNETES_EXACT_IMAGE_PASS",
+      "saved_tests": [
+        "scripts/isolated_validation/test_kubernetes_current_image.py",
+        "scripts/isolated_validation/kubernetes_current_image.py"
+      ],
+      "required_assertions": [
+        "cryptographically_verify_every_OCI_descriptor_and_config_blob_against_frozen_engine_identity",
+        "accept_manifest_vs_config_label_difference_only_when_verified_in_same_pinned_chain",
+        "reject_corrupted_content_wrong_config_platform_or_outside_chain_identity",
+        "sanitized_escaped_JSON_history_stays_parseable_without_revealing_credentials",
+        "actual_Kubernetes_pod_runs_frozen_image_and_preserves_contract_and_package_associations"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "new_image_status": "NOT_RUN",
+      "remaining_gap": "Fresh private K3s R7 passed exact manifest44\u2192config9e1 chain, projected inputs, revision1\u21922, health cgroup limits, GPU/NPU, associated packages and replacement pod. Privileged hostNetwork test and simulated agent ACK only; production device-plugin/remote ingest are not qualified. Each future image still requires a fresh run.",
+      "last_scoped_status": "C15_PRIVATE_K3S_PASS",
+      "last_scoped_evidence": [
+        "optimization_evidence/2026-11-11-remote64-c15/remote-artifacts/kubernetes-current-explicit-SA-r7/report.json",
+        "scripts/isolated_validation/test_kubernetes_current_image.py"
+      ]
+    },
+    {
+      "id": "INC-033",
+      "title": "Cancelled/coalesced handoff payloads and evicted semantic indexes outlive reported queue retention",
+      "case_ids": [
+        "AGENT-01",
+        "RES-01",
+        "RES-07",
+        "OBS-07"
+      ],
+      "required_for_release_qualification": true,
+      "implementation_status": "C17_BAKED_UNIT_AND_BLOCKED_IPC_AGENT_API_PASS_LOAD_IN_PROGRESS",
+      "saved_tests": [
+        "edge_runtime/solution_packs/sporada_secure/runtime_v8/tests/test_v8_handoff_retention.py",
+        "optimization_evidence/2026-11-12-remote64-c16/handoff-retention-review/reproduce.py"
+      ],
+      "required_assertions": [
+        "coalesced_payload_references_released_immediately",
+        "cancelled_heap_entries_do_not_accumulate_while_delivery_waits",
+        "evicted_semantic_index_references_removed",
+        "in_flight_package_bytes_never_cancelled_or_mutated",
+        "surviving_package_priority_order_and_exact_payload_bytes_preserved",
+        "reported_retained_count_and_bytes_match_owned_live_requests"
+      ],
+      "required_evidence_levels": [
+        "unit",
+        "native"
+      ],
+      "new_image_status": "NOT_RUN",
+      "remaining_gap": "Exact C16 baked source red/green proof retained. Fresh C17 baked unit suite includes all six retention regressions; corrected blocked-coalescing IPC/Unix-agent scenario passes on the baked C17 implementation with heap/index/payload bounds. Fresh native capacity and one-hour memory measurement remain in progress. The first API fixture used invalid unhealthy reason=none and was correctly rejected; that failed attempt is retained. No claim that this defect caused broader hour memory growth.",
+      "last_scoped_evidence": [
+        "optimization_evidence/2026-11-12-remote64-c16/handoff-retention-review/source-proof.json",
+        "optimization_evidence/2026-11-12-remote64-c16/handoff-retention-review/result.json",
+        "optimization_evidence/2026-11-12-remote64-c17/remote-artifacts/baked-checks/report.json",
+        "optimization_evidence/2026-11-12-remote64-c17/remote-artifacts/agent-api-blocked-r2/report.json",
+        "optimization_evidence/2026-11-12-remote64-c17/TEST_SCOPE_REVIEW.md"
+      ]
     }
   ]
 }

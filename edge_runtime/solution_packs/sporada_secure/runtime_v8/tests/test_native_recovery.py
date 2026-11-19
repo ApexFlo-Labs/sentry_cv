@@ -16,7 +16,7 @@ from pipeline.rtsp_source import RtspVideoLink
 
 
 def gate():
-    return DlsMotionPolicyGate(None, SimpleNamespace(set_gauge=lambda *a: None),
+    return DlsMotionPolicyGate(None, SimpleNamespace(set_gauge=lambda *a: None,count=lambda *a:None),
                               object(), 8, 10**9, maximum_pending=1)
 
 
@@ -24,7 +24,7 @@ def record(n):
     return AdmittedFrame(n, n*100, float(n), float(n), 'TRACKING', 'active')
 
 
-def test_suspend_unblocks_producer_without_erasing_unfinished_work():
+def test_suspend_fences_producer_without_erasing_unfinished_work():
     g=gate(); assert g._reserve(record(1))
     entered=threading.Event(); result=[]
     def reserve():

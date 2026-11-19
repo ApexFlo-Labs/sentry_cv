@@ -2,9 +2,9 @@
   "metadata": {
     "title": "Capacity/use-case balance protocol with scene on every camera",
     "date": "2026-11-05",
-    "status": "PLAN_ONLY_NOT_RUN",
-    "baseline_image": "ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.11.05-v8-qaft-int8-tlsfix2",
-    "baseline_registry_digest": "sha256:b5a5dc68db4cba9e2b18ec28c61175686189161b25f605b298c1241dbc4957fc",
+    "status": "IN_PROGRESS_NOT_QUALIFIED",
+    "baseline_image": "ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:v8-r2",
+    "baseline_registry_digest": "sha256:e8baec1ad054312f0081deb4bf6d34c7c8cc3bfb38516a3582d3d2fed32b4629",
     "fps_per_camera": [
       5,
       8,
@@ -131,7 +131,62 @@
       "passing/failing/untested counts and stop reasons"
     ],
     "delivery_scope": "CV package to compatible agent API, not downstream Management storage/search",
-    "no_tests_started": true
+    "no_tests_started": false,
+    "current_campaign_baseline": {
+      "image": "localhost/sentinel-cv:v8-c15-gpu-compile1",
+      "engine_oci_manifest": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac",
+      "scope": "Historical parent measurements retained separately, not inherited byC16"
+    },
+    "historical_baseline_image": "ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:intel-285h-2026.11.05-v8-qaft-int8-tlsfix2",
+    "historical_baseline_registry_digest": "sha256:b5a5dc68db4cba9e2b18ec28c61175686189161b25f605b298c1241dbc4957fc",
+    "active_campaign": {
+      "utc": "2026-11-12T16:32:51.776348+00:00",
+      "host": "192.168.1.64",
+      "remote_root": "/home/admin1/Documents/sentry-validation-20261112-c18",
+      "local_root": "/home/admin1/Documents/sentry_cv/optimization_evidence/2026-11-12-remote64-c18",
+      "image": "localhost/sentinel-cv:v8-c18-plate-admission",
+      "image_engine_id": "sha256:5373520573a203cd3b0a58c39a9a429030710c888a40278e77ee38632da1780d",
+      "oci_config_id": "sha256:a6474e223e33be398c85e36bbec2c4ade3eca8f93e8bbedafa3037068d2c435a",
+      "capacity_qualified": false,
+      "power_scope": "CPU turbo OFF; original0 restored only at finalend/userstop",
+      "no_publication": true
+    },
+    "campaign_history": [
+      {
+        "date": "2026-11-11T18:22:20.733372+00:00",
+        "candidate": "localhost/sentinel-cv:v8-c15-gpu-compile1",
+        "config_id": "sha256:44051227c6e04a350de178ccb2380605f5b3dc1024d19586b5ae74554eef1bac",
+        "remote_root": "/home/admin1/Documents/sentry-validation-20261111-c15",
+        "status_file": "optimization_evidence/2026-11-11-remote64-c15/CAMPAIGN_CURRENT.json",
+        "scope": "Fresh conditional turbo-off C15 compilation mitigation validation; C14 native crash retained, no historical capacity inherited"
+      },
+      {
+        "utc": "2026-11-12T12:20:51.807794+00:00",
+        "host": "192.168.1.64",
+        "remote_root": "/home/admin1/Documents/sentry-validation-20261112-c16",
+        "local_root": "/home/admin1/Documents/sentry_cv/optimization_evidence/2026-11-12-remote64-c16",
+        "image": "localhost/sentinel-cv:v8-c16-native-fire-npu",
+        "image_engine_id": "sha256:044c9557cabde7337513cf306a078ab953d452de8c4e108001b5d95e48399dfa",
+        "power_scope": "CPUturboOFF carriedfromC15; original0 mustrestore atfinalend",
+        "capacity_qualified": false,
+        "publication": "Local candidate only; no push"
+      },
+      {
+        "utc": "2026-11-12T14:45:31.077024+00:00",
+        "host": "192.168.1.64",
+        "remote_root": "/home/admin1/Documents/sentry-validation-20261112-c17",
+        "local_root": "/home/admin1/Documents/sentry_cv/optimization_evidence/2026-11-12-remote64-c17",
+        "image": "localhost/sentinel-cv:v8-c17-handoff-retention",
+        "image_engine_id": "sha256:f515a253a57831c2e7b72124e6ef6efecfa3679d07a80eb40e3bc9ed8ad3dffe",
+        "capacity_qualified": false,
+        "oci_config_id": "sha256:a86fac9ded3bf9a015cd2e448edd55cdb3c1128ae164da9a8ae5682e4ff2e409",
+        "power_scope": "CPU turbo OFF; original setting0 to restore after final test",
+        "publication": "Local candidate only; no push",
+        "status_file": "optimization_evidence/2026-11-12-remote64-c17/CAMPAIGN_CURRENT.json",
+        "fresh_results": "optimization_evidence/2026-11-12-remote64-c17/RESULTS_CURRENT.md",
+        "qualification_scope": "Only completed, individually scoped C17 results; historical C15/C16 do not qualify C17"
+      }
+    ]
   },
   "uniform_profiles": [
     {

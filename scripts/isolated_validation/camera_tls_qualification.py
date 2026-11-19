@@ -74,6 +74,7 @@ def server(certificate, key, response=404, encrypted=True):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--image", required=True)
+    parser.add_argument("--engine", choices=["podman", "docker"], default="podman")
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     args.output.mkdir(parents=True, exist_ok=True)
@@ -100,7 +101,7 @@ def main():
 
         def run(name, leaf="valid", mounted=None, mode="single", explicit_file=False, response=404, encrypted=True, public_url=None, tls_mode="strict"):
             with server(*certs[leaf], response=response, encrypted=encrypted) as (url, events):
-                command = ["podman", "run", "--rm", "--network=host", "--cpus=1", "--pids-limit=128", "--entrypoint", "python3", "-v", f"{probe}:/tmp/camera-tls-probe.py:ro"]
+                command = [args.engine, "run", "--rm", "--network=host", "--cpus=1", "--pids-limit=128", "--entrypoint", "python3", "-v", f"{probe}:/tmp/camera-tls-probe.py:ro"]
                 if tls_mode is not None:
                     command += ["-e", f"SENTINEL_CAMERA_TLS_MODE={tls_mode}"]
                 if mounted:

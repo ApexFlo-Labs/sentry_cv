@@ -17,6 +17,8 @@ if ! podman image inspect "$BASE_TAG" >/dev/null 2>&1; then
 fi
 
 base_id="$(podman image inspect "$BASE_TAG" --format '{{.Id}}')"
+python3 native/verify_gst_metadata.py
+python3 native/build_gst_progress.py
 podman build --platform linux/amd64 \
   --build-arg "INTEL_TRAFFIC_RUNTIME_BASE=${BASE_TAG}" \
   --build-arg "INTEL_TRAFFIC_RUNTIME_BASE_NAME=${BASE_TAG}" \

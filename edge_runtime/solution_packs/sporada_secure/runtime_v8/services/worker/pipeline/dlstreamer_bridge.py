@@ -252,7 +252,7 @@ class DlsMotionPolicyGate:
     """
 
     def __init__(self, switch, telemetry, source_clock, fps: float, gst_second: int,
-                 maximum_pending: int = 2):
+                 maximum_pending: int = 3):
         self.switch = switch
         self.telemetry = telemetry
         self.source_clock = source_clock
@@ -265,6 +265,7 @@ class DlsMotionPolicyGate:
         self._suspended = False
         self._generation = 0
         self._records: dict[int, deque[AdmittedFrame]] = {}
+        self._reservation_times: dict[int, deque[float]] = {}
         self._quiet: deque[AdmittedFrame] = deque()
         self._index = 0
         self._last_state = "TRACKING"
@@ -272,6 +273,7 @@ class DlsMotionPolicyGate:
         self.decoded = 0
         self.inferred = 0
         self.quiet = 0
+        self.rejected_before_admission = 0
         self.telemetry.set_gauge("dls_pending_admissions", 0)
 
     def reset_session(self, source_clock) -> None:
@@ -280,6 +282,7 @@ class DlsMotionPolicyGate:
             self.source_clock = source_clock
             self._generation += 1
             self._records.clear()
+            self._reservation_times.clear()
             self._quiet.clear()
             self._index = 0
             self._last_state = "TRACKING"
@@ -287,7 +290,7 @@ class DlsMotionPolicyGate:
             self.telemetry.set_gauge("dls_pending_admissions", 0)
             self._capacity.notify_all()
 
-    def suspend(self) -> None:
+    def suspend(self) -> int:
         """Fence blocked/new producers before source recovery, without closing.
 
         Already-admitted work remains accounted for. A caller must not reopen
@@ -297,6 +300,10 @@ class DlsMotionPolicyGate:
             self._suspended = True
             self._generation += 1
             self._capacity.notify_all()
+            # Return the count under the same lock that rejects producers.
+            # A pre-suspend snapshot can be zero while a streaming thread
+            # reserves its next buffer immediately before this fence.
+            return self.pending_admissions
 
     def resume(self, source_clock) -> None:
         with self._capacity:
@@ -314,20 +321,25 @@ class DlsMotionPolicyGate:
             self._capacity.notify_all()
 
     def _reserve(self, record) -> bool:
-        """Backpressure BEFORE inference; callbacks never wait for sink space.
+        """Try admission without blocking the GStreamer streaming thread.
 
         The non-dropping appsink must have at least maximum_pending slots.
         A reservation includes every admitted buffer until the camera has
         actually pulled its output, including native in-flight work.
         """
         with self._capacity:
-            generation = self._generation
-            while (not self._closed and not self._suspended and generation == self._generation
-                   and self.pending_admissions >= self.maximum_pending):
-                self._capacity.wait()
-            if self._closed or self._suspended or generation != self._generation:
+            if self._closed or self._suspended:
+                return False
+            if self.pending_admissions >= self.maximum_pending:
+                # Waiting in an upstream pad probe can prevent a shared native
+                # inference pool from returning the very outputs we wait for.
+                # Reject ONLY work not yet admitted. Never evict an accepted
+                # record or classify an unevaluated frame as a negative result.
+                self.rejected_before_admission += 1
+                self.telemetry.count("primary_pre_admission_rejected_frames")
                 return False
             self._records.setdefault(record.pts, deque()).append(record)
+            self._reservation_times.setdefault(record.pts, deque()).append(time.monotonic())
             return True
 
     def probe(self, pad, info):
@@ -352,9 +364,13 @@ class DlsMotionPolicyGate:
                 return Gst.PadProbeReturn.DROP
             self._index += 1
             self.decoded += 1
-            observed_at = self.source_clock.observe(
-                pts, received_at, clock_hz=float(self.gst_second)
-            )
+            try:
+                observed_at = self.source_clock.observe(
+                    pts, received_at, clock_hz=float(self.gst_second)
+                )
+            except LookupError:
+                self.telemetry.count('primary_timestamp_unavailable_frames')
+                return Gst.PadProbeReturn.DROP
             was_tracking = bool(self.switch.tracking)
             state, requested = self.switch.update(
                 candidate, self.fps, pts / float(self.gst_second)
@@ -374,6 +390,7 @@ class DlsMotionPolicyGate:
             self._last_reason = reason
             if requested:
                 if not self._reserve(record):
+                    self.telemetry.frame(inferred=None)
                     return Gst.PadProbeReturn.DROP
                 self.telemetry.set_gauge(
                     "dls_pending_admissions", self.pending_admissions
@@ -393,8 +410,11 @@ class DlsMotionPolicyGate:
             if not records:
                 raise RuntimeError("DL Streamer output has no admission record")
             record = records.popleft()
+            times = self._reservation_times[int(pts)]
+            times.popleft()
             if not records:
                 self._records.pop(int(pts), None)
+                self._reservation_times.pop(int(pts), None)
             self.inferred += 1
             self._capacity.notify_all()
             self.telemetry.set_gauge(
@@ -417,6 +437,13 @@ class DlsMotionPolicyGate:
     def pending_admissions(self) -> int:
         with self._lock:
             return sum(len(values) for values in self._records.values())
+
+    @property
+    def oldest_pending_age_seconds(self) -> float:
+        """Monotonic native-output deadline, independent of decode activity."""
+        with self._lock:
+            oldest = min((values[0] for values in self._reservation_times.values()), default=None)
+            return 0.0 if oldest is None else max(0.0, time.monotonic() - oldest)
 
     def observe_models(
         self,
@@ -662,50 +689,12 @@ class DlsFaceExtractor:
 
 
 def detections_from_sample(sample, class_names: dict[int, str]):
-    """Translate GVA ROI/tracking metadata into Sentinel detections."""
-    from gstgva import VideoFrame
-    from pipeline.types import Detection
-
-    label_to_id = {
-        ("person" if name == "pedestrian" else name): class_id
-        for class_id, name in class_names.items()
-    }
-    frame = VideoFrame(sample.get_buffer(), caps=sample.get_caps())
-    detections = []
-    for roi in frame.regions():
-        gva_label = str(roi.label() or "")
-        class_id = label_to_id.get(gva_label)
-        if class_id is None:
-            # Motion ROIs and the model's intentionally excluded "others"
-            # class are not primary Sentinel observations.
-            continue
-        rect = roi.rect()
-        track_id = roi.object_id()
-        if track_id is None:
-            raise RuntimeError("gvatrack did not attach a track ID")
-        class_name = class_names[class_id]
-        bbox = [
-            int(rect.x),
-            int(rect.y),
-            int(rect.x + rect.w),
-            int(rect.y + rect.h),
-        ]
-        detections.append(
-            Detection(
-                bbox=bbox,
-                class_id=int(class_id),
-                class_name=class_name,
-                confidence=float(roi.confidence()),
-                model_name="vehicle",
-                metadata={
-                    "track_id": int(track_id),
-                    "raw_bbox": list(bbox),
-                    "predicted": False,
-                    "tracker_backend": "gvatrack",
-                },
-            )
-        )
-    return detections
+    """Translate only primary native fields; tracking/policy remain unchanged."""
+    if os.getenv('SENTINEL_NATIVE_DETECTION_METADATA', '0') == '1':
+        from pipeline.gva_native_metadata import detections_from_sample as read
+    else:
+        from pipeline.gva_detection_metadata import detections_from_sample as read
+    return read(sample, class_names)
 
 
 def hazards_from_sample(sample):

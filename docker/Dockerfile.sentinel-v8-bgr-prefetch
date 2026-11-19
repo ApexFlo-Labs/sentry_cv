@@ -1,0 +1,9 @@
+# Qualification-only overlay. Build checks the exact local C12 parent ID.
+FROM localhost/sentinel-cv:v8-c12-recovery-fence
+USER 0:0
+COPY --chown=10001:10001 surface_stream.py /opt/traffic-pilot/services/worker/pipeline/surface_stream.py
+RUN python3 -m py_compile /opt/traffic-pilot/services/worker/pipeline/surface_stream.py
+LABEL org.opencontainers.image.version="v8-c13-bgr-prefetch" \
+      io.apexfabric.candidate.scope="unqualified-camera-local-ordered-conversion-prefetch" \
+      io.apexfabric.candidate.parent="02b5c8ab4ceec3fe9ba0481e916d5286d616abb39884f8fefc3aaaa8485d1ff1"
+USER 10001:10001

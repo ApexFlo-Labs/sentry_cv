@@ -97,7 +97,7 @@ RUN apt-get update \
     && echo "deb [signed-by=/usr/share/keyrings/intel-openvino.gpg] https://apt.repos.intel.com/openvino ubuntu24 main" \
         > /etc/apt/sources.list.d/intel-openvino.list \
     && apt-get update \
-    && apt-get install -y --no-install-recommends intel-dlstreamer \
+    && apt-get install -y --no-install-recommends intel-dlstreamer=2026.2.0 \
     && mkdir -p /opt/sentinel-gst-plugins \
     && ln -sf /opt/intel/dlstreamer/lib/libgstvideoanalytics.so \
         /opt/sentinel-gst-plugins/libgstvideoanalytics.so \
@@ -114,6 +114,17 @@ RUN apt-get update \
 ENV SENTINEL_GVA_TRACKER_TYPE=zero-term \
     PLATE_DEVICE=NPU \
     SENTINEL_GVA_VEHICLE_MODEL=/models/traffic/openvino/vehicle_person_qaft_int8/model_static_b1.xml
+
+# Pad progress is always retained without per-buffer Python callbacks.
+ENV SENTINEL_NATIVE_PROGRESS_REQUIRED=1 \
+    SENTINEL_NATIVE_DETECTION_METADATA=1
+
+# Match the graphics userspace used by C10/C11/C12 qualification. This changes
+# container packages only; the host kernel and accelerator drivers stay outside
+# this build. The installer pins every listed package to the SDK snapshot.
+COPY docker/gpu-stack-control/kobuk.asc docker/gpu-stack-control/install.sh docker/gpu-stack-control/pins.json /control/
+RUN /bin/bash /control/install.sh \
+    && cp /control/pins.json /opt/sentry-driver-control/pins.json
 
 COPY edge_runtime/solution_packs/sporada_secure/runtime_v8/services /opt/traffic-pilot/services
 COPY edge_runtime/solution_packs/sporada_secure/runtime_v8/traffic_pilot_runtime /opt/traffic-pilot/traffic_pilot_runtime
@@ -158,6 +169,7 @@ RUN python -m py_compile traffic_pilot_runtime/*.py \
         services/worker/pipeline/sentinel_v8_handoff.py \
         services/worker/pipeline/v8_events.py \
         services/worker/detectors/backends/openvino_face.py \
+    && python -c 'from services.worker.pipeline.gva_native_metadata import NativeDetectionReader; NativeDetectionReader({0:"person"})' \
     && test -f /models/traffic/openvino/vehicle_person_qaft_int8/model.xml \
     && test -f /models/traffic/openvino/vehicle_person_qaft_int8/model.bin \
     && test -f /models/traffic/openvino/vehicle_person_qaft_int8/model_static_b1.xml \

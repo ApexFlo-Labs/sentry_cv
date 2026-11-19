@@ -146,10 +146,18 @@ class V8EventPipeline:
         updated = (camera_config.get("analytics") or {}).get("v8_events", {}).get("v8") or {}
         if int(updated.get("config_revision", 0)) <= int(self.config["config_revision"]):
             return
+        gait_was_enabled = any(
+            b["app"] == "person_identity" and "gaitbase-v18.1" in b.get("embedding_profile_ids", [])
+            for b in self.bindings)
+        gait_stays_enabled = any(
+            b["app"] == "person_identity" and "gaitbase-v18.1" in b.get("embedding_profile_ids", [])
+            for b in updated["bindings"])
+        if gait_was_enabled and not gait_stays_enabled:
+            self._retire_gait_state()
         now = time.time()
         for candidate in self.face_candidates.values():
             candidate["deadline"] = now
-        self._flush_face_candidates(now)
+        self._flush_face_candidates(now, final=True)
         previous_zones = self.zones
         previous_lines = self.lines
         self.config = updated
@@ -253,7 +261,7 @@ class V8EventPipeline:
         if status == "unavailable":
             for candidate in self.face_candidates.values():
                 candidate["deadline"] = now
-            self._flush_face_candidates(now)
+            self._flush_face_candidates(now, final=True)
             for state in self.presences.values():
                 if not state.get("confirmed") or state["lost"]:
                     continue
@@ -275,7 +283,7 @@ class V8EventPipeline:
         if status == "healthy" and self.health_state == "unavailable":
             for candidate in self.face_candidates.values():
                 candidate["deadline"] = now
-            self._flush_face_candidates(now)
+            self._flush_face_candidates(now, final=True)
             for state in self.presences.values():
                 if not state.get("confirmed"):
                     continue
@@ -288,6 +296,7 @@ class V8EventPipeline:
                                               zone_episodes=self._episodes(state)))
             self.tracks.clear()
             self.presences.clear()
+            self._retire_gait_state()
             self.counts.clear()
             self.last_scene.clear()
             self.session_id = str(uuid.uuid4())
@@ -326,6 +335,7 @@ class V8EventPipeline:
             )
             if accepted:
                 self.telemetry.event_handoff_admitted(event, elapsed)
+        return bool(accepted)
 
     def _measure(self, stage: str, device: str | None = None):
         if self.telemetry is None:
@@ -344,7 +354,8 @@ class V8EventPipeline:
             )
         if device_time is not None:
             self.telemetry.observe_latency(
-                "scene_search.device_inference", float(device_time)
+                "scene_search.device_inference", float(device_time),
+                device=getattr(self.scene, "actual_device", None),
             )
 
     def _publish_policy(self) -> None:
@@ -592,7 +603,9 @@ class V8EventPipeline:
         timestamp; they simply avoid a VA-to-BGR download when no pixel
         consumer is due.
         """
-        if any(
+        subject_consumer = any(binding.get('app') not in {'scene_search', 'fire_smoke'}
+                               for binding in self.bindings)
+        if subject_consumer and any(
             getattr(item, "model_name", None) in {
                 "vehicle", "license_plate", "smoke_fire"
             }
@@ -664,7 +677,9 @@ class V8EventPipeline:
         observed = getattr(packet, "frame_observed_at", None)
         received = getattr(packet, "frame_received_at", None)
         now = observed or received or time.time()
-        self.timestamp_source = "source_pts" if observed is not None else "edge_received_at"
+        declared_source = (getattr(packet, "analytics_state", {}) or {}).get("timestamp_source")
+        self.timestamp_source = (declared_source if declared_source in {"source_pts", "rtsp_ntp", "edge_received_at"}
+                                 else "source_pts" if observed is not None else "edge_received_at")
         frame_id = f"{self.camera_id}:hazard:{packet.index}"
         self._hazards(packet, now, frame_id)
 
@@ -687,7 +702,9 @@ class V8EventPipeline:
         observed = getattr(packet, "frame_observed_at", None)
         received = getattr(packet, "frame_received_at", None)
         now = observed or received or time.time()
-        self.timestamp_source = "source_pts" if observed is not None else "edge_received_at"
+        declared_source = (getattr(packet, "analytics_state", {}) or {}).get("timestamp_source")
+        self.timestamp_source = (declared_source if declared_source in {"source_pts", "rtsp_ntp", "edge_received_at"}
+                                 else "source_pts" if observed is not None else "edge_received_at")
         self.last_reliable_at = now
         frame_id = f"{self.camera_id}:{packet.index}"
         frame = packet.frame
@@ -1011,7 +1028,7 @@ class V8EventPipeline:
             evidence.append(media)
             event["evidence_ids"] = [media[0]["evidence_id"]]
             if self.scene is not None and "siglip2-base-v1" in owner.get("embedding_profile_ids", []):
-                with self._measure("object_presence.semantic_embedding", "GPU"):
+                with self._measure("object_presence.semantic_embedding"):
                     vector = self.scene.embed(crop)
                 self._observe_shared_scene_execution()
                 embedding = self._embedding(event, media[0], frame_id, vector,
@@ -1054,6 +1071,7 @@ class V8EventPipeline:
             quality = self._body_quality(body_crop) if body_crop is not None else 0.0
             candidates.append(("body", body_vector, quality, item.bbox, "transreid-ssl-v18.1", None))
         if self.gait is not None and "gaitbase-v18.1" in profiles and packet.index % 3 == 0:
+            self._remember_gait_center(state)
             worker = getattr(self, "_gait_worker", None)
             if worker is None:
                 candidates.extend(self._collect_gait(packet, item, state, identity_policy, now))
@@ -1142,8 +1160,10 @@ class V8EventPipeline:
                                         state["id"], quality, sequence)
             event["evidence_ids"] = [media[0]["evidence_id"]]
             event["embedding_ids"] = [embedding["embedding_id"]]
-            self._persist(event, [media], [embedding])
-            state["last_feature"][kind] = (quality, now)
+            # Rejected admission is not a sent sample. Do not suppress the
+            # next qualified observation as though Management received this.
+            if self._persist(event, [media], [embedding]):
+                state["last_feature"][kind] = (quality, now)
 
     def _offer_face_candidate(self, packet, state, binding, vector, quality, box, now, frame_id):
         existing = self.face_candidates.get(state["id"])
@@ -1165,28 +1185,46 @@ class V8EventPipeline:
             "sample_reason": "first_qualified" if "face" not in state["last_feature"] else "quality_improved",
         }
 
-    def _flush_face_candidates(self, now):
+    def _flush_face_candidates(self, now, *, final=False):
         for presence_id, candidate in list(self.face_candidates.items()):
-            if now < candidate["deadline"]:
+            if now < candidate["deadline"] or (not final and now < candidate.get("retry_after", 0)):
                 continue
-            event = self._event("person_feature_sample", candidate["captured_at"],
-                                candidate["frame_id"], candidate["use_case_id"],
-                                presence_id=presence_id, track_id=candidate["track_id"],
-                                kind="face", profile_id="adaface-ir101-v18.1",
-                                quality=candidate["quality"], sample_reason=candidate["sample_reason"])
-            media = self._evidence(event, candidate["frame_id"], candidate["image"],
-                                   "face_crop", candidate["bounds"], candidate["frame_shape"],
-                                   candidate["captured_at"])
-            embedding = self._embedding(event, media[0], candidate["frame_id"],
-                                        candidate["vector"], "adaface-ir101-v18.1", "face",
-                                        candidate["captured_at"], presence_id, candidate["quality"])
-            event["evidence_ids"] = [media[0]["evidence_id"]]
-            event["embedding_ids"] = [embedding["embedding_id"]]
-            self._persist(event, [media], [embedding])
+            pending = candidate.get("pending_package")
+            if pending is None:
+                pending = self._face_candidate_package(presence_id, candidate)
+                candidate["pending_package"] = pending
+            event, media, embedding = pending
+            accepted = self._persist(event, [media], [embedding])
             state = self.presences.get(presence_id)
-            if state is not None:
+            if accepted and state is not None:
                 state["last_feature"]["face"] = (candidate["quality"], candidate["captured_at"])
+            if not accepted and not final and state is not None:
+                # Adaptive collection may already be backing off after this
+                # good face. Keep its original crop/vector/IDs until admission
+                # can be retried; do not require a better face to rediscover it.
+                # One candidate per live presence, 4 attempts/s maximum. This
+                # memory is NOT durable storage or an agent acknowledgement.
+                candidate["retry_after"] = now + .25
+                continue
+            if not accepted and self.telemetry is not None:
+                self.telemetry.count("face_unadmitted_candidate_discarded")
             self.face_candidates.pop(presence_id, None)
+
+    def _face_candidate_package(self, presence_id, candidate):
+        event = self._event("person_feature_sample", candidate["captured_at"],
+                            candidate["frame_id"], candidate["use_case_id"],
+                            presence_id=presence_id, track_id=candidate["track_id"],
+                            kind="face", profile_id="adaface-ir101-v18.1",
+                            quality=candidate["quality"], sample_reason=candidate["sample_reason"])
+        media = self._evidence(event, candidate["frame_id"], candidate["image"],
+                               "face_crop", candidate["bounds"], candidate["frame_shape"],
+                               candidate["captured_at"])
+        embedding = self._embedding(event, media[0], candidate["frame_id"],
+                                    candidate["vector"], "adaface-ir101-v18.1", "face",
+                                    candidate["captured_at"], presence_id, candidate["quality"])
+        event["evidence_ids"] = [media[0]["evidence_id"]]
+        event["embedding_ids"] = [embedding["embedding_id"]]
+        return event, media, embedding
 
     @staticmethod
     def _face_bounds(frame, box):
@@ -1197,6 +1235,43 @@ class V8EventPipeline:
         top = max(0, min(height - side, int(round((y1 + y2) / 2 - side / 2))))
         return left, top, left + side, top + side
 
+    def _remember_gait_center(self, state):
+        # The main camera thread owns lifecycle bookkeeping, including when
+        # stateless gait collection runs in the optional background worker.
+        key = (self.camera_id, int(state["track_id"]))
+        state.setdefault("_gait_center_keys", set()).add(key)
+        if not hasattr(self, "_gait_center_owners"):
+            self._gait_center_owners = {}
+        self._gait_center_owners[key] = state["id"]
+
+    def _retire_gait_state(self, presence_id=None):
+        gait = getattr(self, "gait", None)
+        if gait is None:
+            return
+        pending = getattr(self, "_pending_gait", None)
+        if pending is not None and (presence_id is None or pending[3]["id"] == presence_id):
+            self._finish_gait(emit=False)
+        owners = getattr(self, "_gait_center_owners", {})
+        for name in ("buffers", "buffer_times", "cache"):
+            values = getattr(gait, name, None)
+            if values is not None:
+                values.clear() if presence_id is None else values.pop(presence_id, None)
+        centers = getattr(gait, "centers", {})
+        if presence_id is None:
+            centers.clear()
+            owners.clear()
+            for state in self.presences.values():
+                state.pop("_gait_center_keys", None)
+        else:
+            state = self.presences.get(presence_id)
+            keys = (state.pop("_gait_center_keys", set()) if state is not None else
+                    [key for key, owner in owners.items() if owner == presence_id])
+            for key in keys:
+                # An ID reused by a different live presence belongs to it now.
+                if owners.get(key) == presence_id:
+                    owners.pop(key, None)
+                    centers.pop(key, None)
+
     def _lost_and_unknown(self, active_keys, now, tracker_keys=None):
         tracker_keys = active_keys if tracker_keys is None else tracker_keys
         for key, state in list(self.tracks.items()):
@@ -1205,6 +1280,7 @@ class V8EventPipeline:
             if not state.get("confirmed"):
                 gap = now - state["last_seen"]
                 if gap >= 8:
+                    self._retire_gait_state(state["id"])
                     self.tracks.pop(key, None)
                     self.presences.pop(state["id"], None)
                 continue
@@ -1236,6 +1312,7 @@ class V8EventPipeline:
                                               presence_id=state["id"], track_id=state["track_id"],
                                               object_type=state["kind"], last_seen_at=utc(state["last_seen"]),
                                               zone_episodes=self._episodes(state)))
+                self._retire_gait_state(state["id"])
                 self.tracks.pop(key, None)
                 self.presences.pop(state["id"], None)
 
@@ -1256,10 +1333,11 @@ class V8EventPipeline:
                     binding = next((item for item in self.bindings
                                     if item["use_case_id"] == use_case_id), None)
                     if binding is not None:
-                        self._emit_plate_read(state, binding, selected, None, now)
-                        attempt["started"] = now
-                        attempt["candidates"] = []
-                        attempt["seen_ocr_observations"].clear()
+                        if self._emit_plate_read(state, binding, selected, None, now):
+                            attempt["started"] = now
+                            attempt["candidates"] = []
+                            attempt["seen_ocr_observations"].clear()
+                            attempt.pop("pending_outcome_package", None)
                         continue
                 self._emit_plate_outcome(state, use_case_id, attempt)
 
@@ -1411,41 +1489,61 @@ class V8EventPipeline:
         return None
 
     def _emit_plate_read(self, state, binding, candidate, previous, now):
-        height, width = candidate["frame_shape"][:2]
-        zone_id = next((value for value in binding["geometry_ids"]
-                        if value in candidate["containing"]), None)
-        event = self._event("plate_read", candidate["captured_at"], candidate["frame_id"],
-                            binding["use_case_id"], presence_id=state["id"],
-                            track_id=state["track_id"], zone_id=zone_id,
-                            plate_text=candidate["text"], partial=False,
-                            confidence=candidate["confidence"],
-                            plate_bbox_normalized=bbox_normalized(candidate["bbox"], width, height),
-                            supersedes_observation_id=previous[1] if previous else None)
-        media = self._evidence(event, candidate["frame_id"], candidate["frame"],
-                               "frame", None, candidate["frame_shape"], candidate["captured_at"])
-        event["evidence_ids"] = [media[0]["evidence_id"]]
-        self._persist(event, [media])
+        # Admission refusal is not a sent read. Retain the selected source
+        # package with stable IDs/bytes for retry, bounded by the existing
+        # per-presence candidate history. Never advance correction/dedup state
+        # until the local handoff accepts it.
+        package_key = (binding["use_case_id"], previous[1] if previous else None)
+        pending = candidate.get("pending_read_package")
+        if pending is None or pending[0] != package_key:
+            height, width = candidate["frame_shape"][:2]
+            zone_id = next((value for value in binding["geometry_ids"]
+                            if value in candidate["containing"]), None)
+            event = self._event("plate_read", candidate["captured_at"], candidate["frame_id"],
+                                binding["use_case_id"], presence_id=state["id"],
+                                track_id=state["track_id"], zone_id=zone_id,
+                                plate_text=candidate["text"], partial=False,
+                                confidence=candidate["confidence"],
+                                plate_bbox_normalized=bbox_normalized(candidate["bbox"], width, height),
+                                supersedes_observation_id=previous[1] if previous else None)
+            media = self._evidence(event, candidate["frame_id"], candidate["frame"],
+                                   "frame", None, candidate["frame_shape"], candidate["captured_at"])
+            event["evidence_ids"] = [media[0]["evidence_id"]]
+            pending = (package_key, event, media)
+            candidate["pending_read_package"] = pending
+        _, event, media = pending
+        if not self._persist(event, [media]):
+            return False
         self.policy.observe_anpr_outcome(True)
         state["plates"][binding["use_case_id"]] = (
             candidate["text"], event["observation_id"], candidate["confidence"], now,
         )
+        return True
 
     def _emit_plate_outcome(self, state, use_case_id, attempt, outcome="unreadable"):
-        event_time = float(attempt.get("last_captured_at") or time.time())
-        frame_id = attempt.get("last_frame_id")
-        event = self._event("plate_outcome", event_time, frame_id, use_case_id,
-                            presence_id=state["id"], track_id=state["track_id"],
-                            outcome=outcome)
-        evidence = []
-        frame = attempt.get("last_frame")
-        frame_shape = attempt.get("last_frame_shape")
-        if frame is not None and frame_id is not None and frame_shape is not None:
-            media = self._evidence(event, frame_id, frame, "frame", None, frame_shape, event_time)
-            event["evidence_ids"] = [media[0]["evidence_id"]]
-            evidence.append(media)
-        self._persist(event, evidence)
+        pending = attempt.get("pending_outcome_package")
+        if pending is None:
+            event_time = float(attempt.get("last_captured_at") or time.time())
+            frame_id = attempt.get("last_frame_id")
+            event = self._event("plate_outcome", event_time, frame_id, use_case_id,
+                                presence_id=state["id"], track_id=state["track_id"],
+                                outcome=outcome)
+            evidence = []
+            frame = attempt.get("last_frame")
+            frame_shape = attempt.get("last_frame_shape")
+            if frame is not None and frame_id is not None and frame_shape is not None:
+                media = self._evidence(event, frame_id, frame, "frame", None, frame_shape, event_time)
+                event["evidence_ids"] = [media[0]["evidence_id"]]
+                evidence.append(media)
+            pending = (event, evidence)
+            attempt["pending_outcome_package"] = pending
+        event, evidence = pending
+        if not self._persist(event, evidence):
+            return False
         self.policy.observe_anpr_outcome(False)
         state["plate_outcomes"].add(use_case_id)
+        attempt.pop("pending_outcome_package", None)
+        return True
 
     def _plates(self, packet, now, frame_id):
         height, width = packet.frame.shape[:2]
@@ -1504,11 +1602,12 @@ class V8EventPipeline:
                 previous = state["plates"].get(use_case_id)
                 selected = self._plate_candidate_ready(attempt, previous, now)
                 if selected is not None:
-                    self._emit_plate_read(state, binding, selected, previous, now)
-                    attempt["started"] = now
-                    attempt["candidates"] = []
-                    attempt["seen_ocr_observations"].clear()
-                    state["plate_outcomes"].discard(use_case_id)
+                    if self._emit_plate_read(state, binding, selected, previous, now):
+                        attempt["started"] = now
+                        attempt["candidates"] = []
+                        attempt["seen_ocr_observations"].clear()
+                        attempt.pop("pending_outcome_package", None)
+                        state["plate_outcomes"].discard(use_case_id)
         for state in self.presences.values():
             if state["kind"] != "vehicle" or state["lost"]:
                 continue
@@ -1525,10 +1624,11 @@ class V8EventPipeline:
                     binding = next((item for item in self.bindings
                                     if item["use_case_id"] == use_case_id), None)
                     if binding is not None:
-                        self._emit_plate_read(state, binding, selected, None, now)
-                        attempt["started"] = now
-                        attempt["candidates"] = []
-                        attempt["seen_ocr_observations"].clear()
+                        if self._emit_plate_read(state, binding, selected, None, now):
+                            attempt["started"] = now
+                            attempt["candidates"] = []
+                            attempt["seen_ocr_observations"].clear()
+                            attempt.pop("pending_outcome_package", None)
                         continue
                 self._emit_plate_outcome(state, use_case_id, attempt)
 
@@ -1672,7 +1772,7 @@ class V8EventPipeline:
         vector_key = ("scene", id(self.scene), content_key)
         vector = cache.get(vector_key) if cache is not None else None
         if vector is None:
-            with self._measure("scene_search.embedding", "GPU"):
+            with self._measure("scene_search.embedding"):
                 vector = self.scene.embed(crop)
             self._observe_shared_scene_execution()
             if cache is not None:

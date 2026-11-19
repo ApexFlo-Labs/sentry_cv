@@ -1,10 +1,12 @@
 """Bounded observations of native progress, independent of camera policy.
 
-Snapshots only read Python counters. Ages describe the last observed buffers;
+Snapshots only read bounded counters, never query native element state. Ages
+describe the last observed buffers;
 they do not identify the cause of a timeout or imply that a stage is faulty.
 """
 import logging
 import math
+import os
 import threading
 import time
 
@@ -38,6 +40,8 @@ class NativeProgressTrace:
         self._phase_at = time.monotonic()
         self._stop = threading.Event()
         self._attached = False
+        self._native = None
+        self._python_probes = []
         self._thread = threading.Thread(
             target=self._report, daemon=True, name=f"native-progress-{self.camera_id}"
         )
@@ -83,13 +87,29 @@ class NativeProgressTrace:
                 if len(self._stages) < self.MAX_STAGES:
                     self._stages.setdefault(stage, (0, None, None))
 
+            # Fake pads in offline tests are never passed as raw pointers.
+            # Real deployed pads use native callbacks, with no Python/GIL
+            # transition per observed buffer. Only snapshots cross the FFI.
+            if hasattr(Gst, 'Pad') and isinstance(pad, Gst.Pad):
+                from .native_pad_progress import NativePadProgress
+                if self._native is None:
+                    try:
+                        self._native = NativePadProgress()
+                    except OSError:
+                        if os.getenv('SENTINEL_NATIVE_PROGRESS_REQUIRED','0') == '1':
+                            raise
+                if self._native is not None:
+                    self._native.attach(pad,stage)
+                    continue
+
             def observe(_pad, info, stage=stage):
                 buffer = info.get_buffer()
                 if buffer is not None:
                     self.mark(stage, buffer.pts)
                 return Gst.PadProbeReturn.OK
 
-            pad.add_probe(Gst.PadProbeType.BUFFER, observe)
+            probe_id = pad.add_probe(Gst.PadProbeType.BUFFER, observe)
+            self._python_probes.append((pad,probe_id))
         self._attached = True
         self._thread.start()
 
@@ -97,6 +117,9 @@ class NativeProgressTrace:
         """Return detached, on-demand timeout evidence without native queries."""
         with self._lock:
             now = time.monotonic()
+            stages = dict(self._stages)
+            if self._native is not None:
+                stages.update(self._native.snapshot())
             return {
                 "camera_id": self.camera_id,
                 "stream_session_id": self.session_id,
@@ -111,7 +134,7 @@ class NativeProgressTrace:
                         ),
                         "pts_ns": value[2],
                     }
-                    for name, value in self._stages.items()
+                    for name, value in stages.items()
                 },
             }
 
@@ -129,5 +152,11 @@ class NativeProgressTrace:
 
     def close(self):
         self._stop.set()
+        with self._lock:
+            if self._native is not None:
+                self._native.close()
+            for pad,probe_id in self._python_probes:
+                pad.remove_probe(probe_id)
+            self._python_probes.clear()
         if self._thread.is_alive() and threading.current_thread() is not self._thread:
             self._thread.join(timeout=2)

@@ -1,6 +1,8 @@
 # Opt79 isolated-host validation plan
 
-Forward regression work uses [PIPELINE_TEST_PLAN.md](PIPELINE_TEST_PLAN.md), its 282-case matrix and execution ledger. This file remains the completed historical Opt79 campaign plan; it is not the checklist or a passing verdict for the latest image.
+Every new candidate also needs the [cumulative incident regressions and same-image evidence audit](PIPELINE_TEST_PLAN.md#permanent-incident-regressions-required-for-each-candidate). Historical partial results cannot qualify a new image.
+
+Forward regression work uses [PIPELINE_TEST_PLAN.md](PIPELINE_TEST_PLAN.md), its 282-case matrix and execution ledger. This file remains the historical Opt79 campaign plan; it is not the checklist or a passing verdict for the latest image.
 
 Prepared 2026-11-05 (Asia/Kolkata). Campaign completed; see [final report](ISOLATED_VALIDATION_REPORT.md) for actual results and exclusions. Target host: `192.168.1.64`, user `admin1`, working directory under `/home/admin1/Documents`. Credentials must not be written into this plan, handoff, commands saved as artifacts, or logs.
 
@@ -239,3 +241,8 @@ These preserve prior findings rather than repeating rejected tuning or changing 
 10. Evidence/embedding association samples,known defects and supported operating recommendations with explicit headroom.
 
 Hardware, access, sources and sensors were unverified when this plan was prepared; use the execution report for observed results. Downstream Management is outside scope. Labelled recognition accuracy remains separate. No historical shared-host result is counted as a new isolated-host pass. Credentials are never included in saved artifacts.
+
+
+### INC-033: cancelled delivery payload retention
+
+For every new image, block delivery workers and repeatedly replace one scene scope, then evict many distinct optional scopes. Assert real payload references, heap entries and semantic indexes remain bounded; removing counters alone is insufficient. Preserve in-flight requests, caller bytes, priority order, stable retry IDs and final acknowledgements. Run `tests/test_v8_handoff_retention.py` against the baked module and repeat with the compatible agent API. Exact C16-source failure evidence is in `optimization_evidence/2026-11-12-remote64-c16/handoff-retention-review/`. New-image native validation remains pending; do not infer this was the cause of live RAM growth.

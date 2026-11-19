@@ -137,9 +137,40 @@ def test_v8_primary_pixel_admission_preserves_policy_and_scene_requirements():
         bbox=[1, 2, 20, 40], class_id=7, class_name="pedestrian",
         confidence=0.8, model_name="vehicle",
     )
+    assert not pipeline.primary_pixels_required(100.0, [detection])
+    pipeline.bindings = [{'app':'person_presence'}]
     assert pipeline.primary_pixels_required(100.0, [detection])
     pipeline.policy = SimpleNamespace(image_sample_due=lambda now: True)
     assert pipeline.primary_pixels_required(100.0, [])
+
+
+@pytest.mark.parametrize('app', ['person_identity','anpr','person_presence','vehicle_presence',
+                               'people_counting','vehicle_counting','line_crossing',
+                               'people_entry_exit_counts','vehicle_entry_exit_counts'])
+def test_subject_binding_pixel_requirements_remain_conservative(app):
+    pipeline = V8EventPipeline.__new__(V8EventPipeline)
+    pipeline.scene = None
+    pipeline.policy = SimpleNamespace(image_sample_due=lambda now: False)
+    pipeline.bindings = [{'app': app}]
+    detection = Detection(bbox=[1,2,20,40],class_id=7,class_name='pedestrian',
+                          confidence=.8,model_name='vehicle')
+    assert pipeline.primary_pixels_required(100, [detection])
+
+
+def test_scene_only_skips_unused_pixels_but_keeps_scene_and_quality_samples():
+    pipeline = V8EventPipeline.__new__(V8EventPipeline)
+    pipeline.scene = object()
+    pipeline.policy = SimpleNamespace(image_sample_due=lambda now: False,
+        snapshot=lambda:{'scene':{'optional_sampling_allowed':True,'pressure_interval_multiplier':1}})
+    pipeline.bindings = [{'app':'scene_search','use_case_id':'scene','scope':'full_frame',
+                          'sample_interval_seconds':2}]
+    pipeline.last_scene = {('scene', None): 100}
+    detection = Detection(bbox=[1,2,20,40],class_id=7,class_name='pedestrian',
+                          confidence=.8,model_name='vehicle')
+    assert not pipeline.primary_pixels_required(101, [detection])
+    assert pipeline.primary_pixels_required(102, [detection])
+    pipeline.policy.image_sample_due = lambda now: True
+    assert pipeline.primary_pixels_required(101, [detection])
 
 
 def test_dlstreamer_secondary_models_have_isolated_instance_ids():

@@ -1,0 +1,33 @@
+{
+  "utc": "2026-11-10T20:58:04.493195+00:00",
+  "command": [
+    "gcc",
+    "-std=c11",
+    "-O2",
+    "-DNDEBUG",
+    "-march=x86-64",
+    "-mtune=generic",
+    "-fPIC",
+    "-shared",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-Wl,-z,defs",
+    "/home/admin1/Documents/sentry_cv/native/src/gst_progress.c",
+    "-I/usr/include/gstreamer-1.0",
+    "-I/usr/include/glib-2.0",
+    "-I/usr/lib/x86_64-linux-gnu/glib-2.0/include",
+    "-pthread",
+    "-I/usr/include/x86_64-linux-gnu",
+    "-lgstreamer-1.0",
+    "-lgobject-2.0",
+    "-lglib-2.0",
+    "-o",
+    "/home/admin1/Documents/sentry_cv/native/lib/libsentinel_gst_progress.so"
+  ],
+  "source_sha256": "4c87095ec8b84110a5c331a6a50ef3ba83b65c8045994d5379e31bba02522b8b",
+  "binary_sha256": "f57295caf4a9a2dbdc5eda1541a2ddd06e759e4873b5173c6ffbb6abdd090d92",
+  "compiler": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\nCopyright (C) 2023 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n",
+  "headers_gstreamer": "1.24.2",
+  "scope": "Public GStreamer1.x/GLib2 stable C ABI. Actual target-image native fixture is mandatory."
+}

@@ -10,6 +10,7 @@ import json
 from pathlib import Path
 import time
 import sys
+import hashlib
 
 sys.path.insert(0, "/opt/traffic-pilot/services/worker")
 
@@ -43,6 +44,16 @@ def main():
         width=224, height=224, device=args.device, name="plate-detector",
         expected_elements=1800, owner_id=f"fixture-{i}",
     ) for i in range(2)]
+    engine=handles[0]._engine
+    configuration={'lanes':len(engine._lanes),'device':engine.device,
+        'model_properties':[{key:str(lane.pipeline.get_by_name('infer').get_property(key))
+            for key in ['device','nireq','model-instance-id','model','model-proc']}
+            for lane in engine._lanes],
+        'baked_files_sha256':{str(p):hashlib.sha256(p.read_bytes()).hexdigest()for p in
+            [Path('/models/traffic/openvino/license_plate.xml'),
+             Path('/models/traffic/openvino/license_plate.bin'),
+             Path('/opt/traffic-pilot/config/plate_raw_model_proc.json')]}}
+    Path(args.output+'.configuration.json').write_text(json.dumps(configuration,indent=2)+'\n')
     results = [None] * len(images)
     started = time.perf_counter()
 
@@ -56,7 +67,7 @@ def main():
             for future in futures:
                 future.result(timeout=90)
         np.savez(args.output, outputs=np.stack(results), inputs=np.stack(images))
-        print(json.dumps({"samples": len(images), "device": args.device,
+        print(json.dumps({"samples": len(images), "device": args.device,"lanes":len(engine._lanes),
                           "seconds": time.perf_counter()-started}))
     finally:
         for handle in handles:

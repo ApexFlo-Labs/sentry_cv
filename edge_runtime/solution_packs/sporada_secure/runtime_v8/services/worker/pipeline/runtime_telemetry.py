@@ -424,11 +424,12 @@ class CameraTelemetry:
             "fire_smoke.detection", "person_identity.face_detection",
             "person_identity.face_pose", "person_identity.face_embedding",
             "person_identity.body_embedding", "person_identity.gait_processing",
-            "scene_search.embedding",
+            "scene_search.device_inference",
         }
         parent_stages = {
             "pipeline.frame_processing_total", "event_policy.active_frame",
             "person_identity.face_pipeline",
+            "scene_search.embedding", "object_presence.semantic_embedding",
         }
         if stage == "anpr.ocr":
             return "async_submit_to_callback_wall_time", False

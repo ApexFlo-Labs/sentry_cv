@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -39,12 +40,9 @@ def main() -> int:
     from detectors.backends.openvino_detector import OpenVINOYOLODetector
     from detectors.base import openvino_model_path
 
+    model_path = Path(args.model if os.path.isabs(args.model) else openvino_model_path(args.model))
     detector = OpenVINOYOLODetector(
-        (
-            args.model
-            if os.path.isabs(args.model)
-            else openvino_model_path(args.model)
-        ),
+        str(model_path),
         "vehicle",
         device=os.getenv("VEHICLE_DEVICE", "GPU"),
         imgsz=640,
@@ -71,6 +69,7 @@ def main() -> int:
                 "frame_index": frame_index,
                 "width": int(frame.shape[1]),
                 "height": int(frame.shape[0]),
+                "input_bgr_sha256": hashlib.sha256(frame.tobytes()).hexdigest(),
                 "detections": [
                     {
                         "class_name": item.class_name,
@@ -84,6 +83,11 @@ def main() -> int:
         capture.release()
     payload = {
         "video": Path(args.video).name,
+        "model_path": str(model_path),
+        "model_sha256": {suffix: hashlib.sha256(model_path.with_suffix(suffix).read_bytes()).hexdigest()
+                         for suffix in ('.xml', '.bin')},
+        "device_requested": detector.device,
+        "execution_devices": detector.exec_devices,
         "sample_every": max(1, args.sample_every),
         "sample_count": len(records),
         "frames": records,

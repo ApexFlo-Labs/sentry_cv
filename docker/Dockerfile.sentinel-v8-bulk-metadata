@@ -1,0 +1,10 @@
+# Local qualification candidate. Exact C8 SDK, models, tracker and V8 policy.
+FROM 6a35d007fc3cb9ecda5a01403b1b4452c59b5a9339472d8391ecca91bd8a68b1
+USER 0:0
+COPY --chown=10001:10001 native/lib/libsentinel_gst_metadata.so /opt/finalcombo/libsentinel_gst_metadata.so
+COPY --chown=10001:10001 edge_runtime/solution_packs/sporada_secure/runtime_v8/services/worker/pipeline/dlstreamer_bridge.py edge_runtime/solution_packs/sporada_secure/runtime_v8/services/worker/pipeline/gva_native_metadata.py edge_runtime/solution_packs/sporada_secure/runtime_v8/services/worker/pipeline/v8_events.py edge_runtime/solution_packs/sporada_secure/runtime_v8/services/worker/pipeline/runtime_telemetry.py /opt/traffic-pilot/services/worker/pipeline/
+RUN python3 -c 'import ctypes; c=ctypes.CDLL("/opt/finalcombo/libsentinel_gst_metadata.so"); assert c.sentinel_detection_abi()==1; assert c.sentinel_detection_row_size()==56' && python3 -m py_compile /opt/traffic-pilot/services/worker/pipeline/dlstreamer_bridge.py /opt/traffic-pilot/services/worker/pipeline/gva_native_metadata.py /opt/traffic-pilot/services/worker/pipeline/v8_events.py /opt/traffic-pilot/services/worker/pipeline/runtime_telemetry.py
+ENV SENTINEL_NATIVE_DETECTION_METADATA=1
+LABEL org.opencontainers.image.version="v8-c9" \
+      io.apexfabric.candidate.scope="bulk-read-only-metadata-and-scene-device-telemetry"
+USER 10001:10001

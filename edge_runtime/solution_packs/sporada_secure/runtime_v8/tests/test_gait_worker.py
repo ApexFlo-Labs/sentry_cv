@@ -79,6 +79,8 @@ def test_worker_preserves_background_history_vectors_timestamps_and_evidence():
 
 def test_row_parallel_background_preserves_emitted_gait_packages(monkeypatch):
     from pipeline import person_reid, parallel_background
+    if not hasattr(person_reid, 'create_gait_background'):
+        pytest.skip('Opt80 parallel-background integration is unpromoted; accepted runtime uses whole-frame MOG2')
     cv2.setNumThreads(1)
     monkeypatch.setattr(parallel_background, '_cpu_capacity', lambda: 4)
     monkeypatch.setattr(person_reid, 'create_gait_background', lambda:
