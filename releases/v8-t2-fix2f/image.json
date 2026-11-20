@@ -10,7 +10,10 @@
   "contract": "sentry-v8",
   "models_changed": false,
   "models_in_use_note": "plain model files only; graph face chain (scrfd_top1x_u8, face_align_u8) and gait montage wrapper no longer used by default",
-  "image_published": false,
+  "image_published": true,
   "production_deployed": false,
-  "git_branch": "v8-t2-fix2f"
+  "git_branch": "v8-t2-fix2f",
+  "published_as": "ghcr.io/kiranmaibattu-cyber/sentinel-cv-runtime:v8-t2-fix2f",
+  "published_digest": "sha256:aaa353d1b490b91a90df5db0a3a248f17253214d7adc2084b186fea261b1da92",
+  "published_on": "2026-11-20, copied registry-to-registry with skopeo (digest preserved, checked with skopeo inspect)"
 }
