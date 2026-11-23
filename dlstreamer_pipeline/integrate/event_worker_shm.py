@@ -12,7 +12,7 @@ import collections
 
 STATS = ["frames", "fire", "pixels", "geometry_only", "overwritten", "skipped", "face_frames", "errors",
          "ms_wait_pixels", "ms_tracker", "ms_faces", "ms_events", "ms_fire", "busy_ms",
-         "ms_parse", "missed_main", "missed_fire", "no_pixels", "steady_at", "plates_in", "plates_used", "plates_unmatched", "identity_frames", "pix_requests", "lazy_frames", "lazy_fetch", "lazy_miss", "jpeg_direct", "jpeg_decoded", "cpu_encoded", "lazy_stale", "region_decoded", "region_checked", "region_mismatch", "lazy_copy", "copy_miss", "plates_exact", "plates_fallback"]
+         "ms_parse", "missed_main", "missed_fire", "no_pixels", "steady_at", "plates_in", "plates_used", "plates_unmatched", "identity_frames", "pix_requests", "lazy_frames", "lazy_fetch", "lazy_miss", "jpeg_direct", "jpeg_decoded", "cpu_encoded", "lazy_stale", "region_decoded", "region_checked", "region_mismatch", "lazy_copy", "copy_miss", "plates_exact", "plates_fallback", "plates_bytrack", "plates_inline", "plates_gated", "plates_noparent"]
 LAYOUT = {"ps": 6, "pb": 3840 * 2160 * 3 // 2, "js": 16, "jb": 512 * 1024, "fs": 8, "fb": 64 * 1024}
 VEHICLE_CLASS_NAMES = {0: "bus", 1: "car", 2: "minivan", 3: "motorcycle", 4: "rickshaw", 5: "truck", 6: "bicycle", 7: "pedestrian"}
 
@@ -381,9 +381,14 @@ def run(name, config, deployment_id, handoff_conn, inbox, stats, paths, face_int
         """The engine's former results_from_json (integrate4.py), unchanged logic. cfaces (Option 7 face path): the faces
         with their C AdaFace embedding from the frame JSON, used instead of face objects' tensors."""
         detections, people, faces = [], [], []
+        plates_seen.clear()
         for o in objects:
             label = (o.get("detection") or {}).get("label", "")
             x, y, w, h = int(o["x"]), int(o["y"]), int(o["w"]), int(o["h"])
+            if label == "license_plate":  # PLATE_INLINE: plate gvadetect box on THIS frame + its OCR tensor (gvaclassify)
+                ocr = next((t.get("data") for t in (o.get("tensors") or []) if t.get("data") is not None and len(t["data"]) == 15 * 37), None)
+                plates_seen.append((x, y, w, h, float((o.get("detection") or {}).get("confidence", 0.0)), ocr))
+                continue
             if label == "face":
                 faces.append((o, (x, y, w, h)))
                 continue
@@ -440,6 +445,50 @@ def run(name, config, deployment_id, handoff_conn, inbox, stats, paths, face_int
         return out
 
     pending_plates = []
+    plates_seen = []  # PLATE_INLINE: plates of the frame being processed (from its own JSON)
+    import re
+    OCR_ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+    OCR_PATTERNS = (re.compile(r"^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}$"), re.compile(r"^[0-9]{2}BH[0-9]{4}[A-Z]{1,2}$"))
+    ROAD = {"bus", "car", "minivan", "motorcycle", "rickshaw", "truck"}
+
+    def read_ocr(data):
+        """edge_app SecondaryModels.read_plate on the gvaclassify tensor: positional decode, Indian formats only,
+        confidence = geometric mean of the kept positions' probabilities."""
+        p = np.asarray(data, dtype=np.float64).reshape(15, 37)
+        idx = p.argmax(axis=1)
+        keep = idx != OCR_ALPHABET.index("_")
+        text = "".join(OCR_ALPHABET[int(i)] for i in idx if int(i) != OCR_ALPHABET.index("_"))
+        text = text if any(r.fullmatch(text) for r in OCR_PATTERNS) else ""
+        if not keep.any():
+            return text, 0.0
+        sel = p[np.arange(len(idx))[keep], idx[keep]]
+        return text, float(np.exp(np.mean(np.log(np.clip(sel, 1e-12, 1.0)))))
+
+    def inline_plates(dets, frame_no):
+        """Each plate goes to the road vehicle whose box holds the plate centre ON THE SAME FRAME (smallest such box).
+        Gates as gates_shared.plate_usable at native size (>= 16x5 px, aspect 0.8-12); OCR text kept at >= 0.40."""
+        out = []
+        vehicles = [d for d in dets if d.model_name == "vehicle" and d.class_name in ROAD and d.metadata.get("track_id") is not None]
+        for i, (x, y, w, h, conf, ocr) in enumerate(plates_seen):
+            add("plates_inline", 1)
+            if w < 16 or h < 5 or not 0.8 <= w / max(h, 1) <= 12.0 or ocr is None:
+                add("plates_gated", 1)
+                continue
+            cx, cy = x + w / 2.0, y + h / 2.0
+            owners = [d for d in vehicles if d.bbox[0] <= cx <= d.bbox[2] and d.bbox[1] <= cy <= d.bbox[3]]
+            if not owners:
+                add("plates_noparent", 1)
+                continue
+            owner = min(owners, key=lambda d: (d.bbox[2] - d.bbox[0]) * (d.bbox[3] - d.bbox[1]))
+            text, ocr_conf = read_ocr(ocr)
+            if ocr_conf < 0.4:
+                text = ""
+            out.append(Detection(bbox=[x, y, x + w, y + h], class_id=0, class_name="license_plate", confidence=conf, model_name="license_plate",
+                                 parent_id=int(owner.metadata["track_id"]),
+                                 metadata={"ocr_text": text, "ocr_confidence": float(ocr_conf), "ocr_observation_id": f"inl-{name}-{frame_no}-{i}"}))
+            add("plates_used", 1)
+        return out
+
     vehicle_history = collections.OrderedDict()  # pts -> [(normalized detector box, track id)] of recent frames
 
     def iou_n(a, b):
@@ -459,8 +508,11 @@ def run(name, config, deployment_id, handoff_conn, inbox, stats, paths, face_int
             vb, pb, text, ocr_conf, det_conf, oid = item[:6]
             spts = item[6] if len(item) > 6 else None
             best, best_iou = None, 0.0
-            track = None
-            if spts is not None and spts in vehicle_history:  # the plate's own frame: its vehicle box is one of that frame's boxes
+            track = item[7] if len(item) > 7 else None  # the plate step's own gvatrack id of the vehicle (works for frames we never got)
+            by_track = track is not None
+            if by_track:
+                pass
+            elif spts is not None and spts in vehicle_history:  # the plate's own frame: its vehicle box is one of that frame's boxes
                 seen = [(iou_n(box, vb), tid) for box, tid in vehicle_history[spts]]
                 if seen and max(seen)[0] >= 0.7:
                     track = max(seen)[1]
@@ -473,7 +525,7 @@ def run(name, config, deployment_id, handoff_conn, inbox, stats, paths, face_int
                         add("plates_unmatched", 1)
                     continue
                 best_iou = 1.0
-                add("plates_exact", 1)
+                add("plates_bytrack" if by_track else "plates_exact", 1)
             for d in (vehicles if track is None else []):
                 b = (d.bbox[0] / width, d.bbox[1] / height, d.bbox[2] / width, d.bbox[3] / height)
                 ix = max(0.0, min(b[2], vb[2]) - max(b[0], vb[0]))
@@ -614,6 +666,8 @@ def run(name, config, deployment_id, handoff_conn, inbox, stats, paths, face_int
                             vehicle_history.popitem(last=False)
                         if pending_plates:
                             packet.detections.extend(plates_for(packet.detections, width, height))
+                        if plates_seen:  # PLATE_INLINE: plates found on this very frame
+                            packet.detections.extend(inline_plates(packet.detections, frame_count))
                         t2 = time.perf_counter()
                         add("ms_tracker", (t2 - t1) * 1000)
                         faces = []
@@ -691,6 +745,7 @@ def run(name, config, deployment_id, handoff_conn, inbox, stats, paths, face_int
         if pkg_conn is not None:
             st.update(pkg_conn.stats)
         print(f"{time.strftime('%T')} {name}: PIXSTATS {st}", flush=True)
+    print(f"{time.strftime('%T')} {name}: PLATESTATS " + str({k: int(stats[s[k]]) for k in ("plates_in", "plates_used", "plates_bytrack", "plates_exact", "plates_fallback", "plates_unmatched", "plates_inline", "plates_gated", "plates_noparent")}), flush=True)
     print(f"{time.strftime('%T')} {name}: CPU_USAGE cores={cpu / max(wall, 1e-6):.3f} cpu_s={cpu:.1f} wall_s={wall:.1f} "
           f"threads={len(os.listdir('/proc/self/task'))} frames={int(stats[s['frames']])}", flush=True)
     if profiler is not None:

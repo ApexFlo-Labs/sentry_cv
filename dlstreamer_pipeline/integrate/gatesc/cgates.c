@@ -39,7 +39,7 @@ extern int gst_buffer_remove_meta(void *buffer, void *meta);
 static volatile long n_vehicles, n_dedup, n_faces, n_small, n_frames_dedup, n_frames_face;
 static int face_min_px = 28;
 
-typedef struct { guint id; double conf, x1, y1, x2, y2; int vehicle, face, w; } Box;
+typedef struct { guint id; double conf, x1, y1, x2, y2; int vehicle, face, w, bike, plate; } Box;
 
 static int is_road_vehicle(const char *label) {
     static const char *v[] = {"bicycle", "bus", "car", "minivan", "motorcycle", "rickshaw", "truck", 0};
@@ -67,6 +67,8 @@ static int read_boxes(void *buffer, Box *b) {  /* all OD boxes, in relation-meta
         b[n].vehicle = is_road_vehicle(label);
         b[n].face = label && strcmp(label, "face") == 0;
         b[n].w = w;
+        b[n].bike = label && strcmp(label, "bicycle") == 0;
+        b[n].plate = label && strcmp(label, "license_plate") == 0;
         n++;
     }
     return n;
@@ -1306,3 +1308,199 @@ void csec_attach(void *ctx, void *pre_pad, void *post_pad) {
     gst_pad_add_probe(post_pad, PROBE_TYPE_BUFFER, sec_post_probe, ctx, 0);
 }
 void csec_counts(long *out) { out[0] = cs_frames; out[1] = cs_no_boxes; out[2] = cs_too_big; }
+
+/* ---------------- plate vehicle selection (PLATE_INLINE + PLATE_SELECT) ----------------
+   The plate detector (gvadetect object-class=plate_vehicle) runs only on helper boxes added here: one per road vehicle
+   (not bicycle) at least plate_min_w px wide, same box as the vehicle (clamped to the frame), parent_id = the vehicle.
+   A narrower vehicle cannot carry a plate of >= 16 px (the plate gate), so its plate would be rejected anyway. */
+static int plate_min_w = 80;
+static volatile long pv_vehicles, pv_selected;
+/* ---------------- per-vehicle plate state (PLATE_STATE=1) ---------------- */
+extern int gst_analytics_relation_meta_get_direct_related(void *meta, guint an_meta_id, int relation_type, GType type, gpointer *state, Mtd *rlt_mtd);
+typedef struct { unsigned long long tid; double last_seen, confirmed_at, last_try; float conf; int used; double lx1, ly1, lx2, ly2; } PTrack;
+#define PT_MAX 1024
+typedef struct { PoseCtx p; int state_on; char lock; int c_every, change_on; long frame_no; PTrack t[PT_MAX]; } PlateCtx;
+static double plate_stable_s = 60, plate_confirm_conf = 0.75, plate_expiry_s = 30;
+static volatile long ps_due, ps_skip_confirmed, ps_confirmed, ps_reads, ps_notrack, ps_last_print, ps_skip_still;
+static double chg_move = 0.15, chg_grow = 1.25, chg_max_s = 3.0;
+static double now_s(void) { struct timespec ts; clock_gettime(CLOCK_MONOTONIC, &ts); return ts.tv_sec + ts.tv_nsec * 1e-9; }
+static int track_of(void *rm, guint od_id, unsigned long long *tid) {  /* gvatrack's id of this box */
+    gpointer st = 0; Mtd trk;
+    if (!gst_analytics_relation_meta_get_direct_related(rm, od_id, 0x7fffffff, gst_analytics_tracking_mtd_get_mtd_type(), &st, &trk)) return 0;
+    unsigned long long first, last; int lost;
+    return gst_analytics_tracking_mtd_get_info((const AMtd *)&trk, tid, &first, &last, &lost);
+}
+static PTrack *pt_get(PlateCtx *c, unsigned long long tid, double now) {
+    PTrack *freeslot = 0, *oldest = 0;
+    for (int i = 0; i < PT_MAX; i++) {
+        PTrack *e = &c->t[i];
+        if (e->used && e->tid == tid) return e;
+        if (e->used && now - e->last_seen > plate_expiry_s) e->used = 0;
+        if (!e->used) { if (!freeslot) freeslot = e; continue; }
+        if (!oldest || e->last_seen < oldest->last_seen) oldest = e;
+    }
+    PTrack *e = freeslot ? freeslot : oldest;
+    memset(e, 0, sizeof *e);
+    e->used = 1; e->tid = tid; e->confirmed_at = -1; e->last_seen = now;
+    return e;
+}
+static void ps_print(void) {
+    long t = (long)now_s(), last = ps_last_print;
+    if (t - last >= 30 && __atomic_compare_exchange_n(&ps_last_print, &last, t, 0, __ATOMIC_RELAXED, __ATOMIC_RELAXED))
+        fprintf(stderr, "plate state: due=%ld skip_confirmed=%ld skip_still=%ld confirmed=%ld reads=%ld notrack=%ld\n",
+                ps_due, ps_skip_confirmed, ps_skip_still, ps_confirmed, ps_reads, ps_notrack), fflush(stderr);
+}
+/* 1 = send this vehicle to the plate detector, 0 = its plate is confirmed and not due for a re-check yet */
+static int plate_state_due(PlateCtx *c, void *rm, guint od_id, const Box *bx) {
+    unsigned long long tid;
+    ps_print();
+    if (!track_of(rm, od_id, &tid)) { __atomic_add_fetch(&ps_notrack, 1, __ATOMIC_RELAXED); return 1; }
+    double now = now_s();
+    int due = 1;
+    while (__atomic_test_and_set(&c->lock, __ATOMIC_ACQUIRE)) ;
+    PTrack *e = pt_get(c, tid, now);
+    e->last_seen = now;
+    int still = 0;
+    if (e->confirmed_at >= 0 && now - e->confirmed_at < plate_stable_s) due = 0;
+    else if (c->change_on && e->last_try > 0 && now - e->last_try < chg_max_s) {  /* no change since its last try -> skip */
+        double lw = e->lx2 - e->lx1, w = bx->x2 - bx->x1;
+        double move = lw > 0 ? fabs((bx->x1 + bx->x2) / 2 - (e->lx1 + e->lx2) / 2) / lw : 1;
+        double movey = lw > 0 ? fabs((bx->y1 + bx->y2) / 2 - (e->ly1 + e->ly2) / 2) / lw : 1;
+        if (move < chg_move && movey < chg_move && (lw <= 0 || w / lw < chg_grow)) { due = 0; still = 1; }
+    }
+    if (due) { e->last_try = now; e->lx1 = bx->x1; e->ly1 = bx->y1; e->lx2 = bx->x2; e->ly2 = bx->y2; }
+    __atomic_clear(&c->lock, __ATOMIC_RELEASE);
+    __atomic_add_fetch(due ? &ps_due : still ? &ps_skip_still : &ps_skip_confirmed, 1, __ATOMIC_RELAXED);
+    return due;
+}
+static int read_tensor(RoiMeta *roi, float *out, unsigned long nfloat) {  /* raw tensor attached by gvaclassify */
+    for (GListNode *p = roi->params; p; p = p->next) {
+        const GType *value = gst_structure_get_value(p->data, "data_buffer");
+        if (!value || strcmp(g_type_name(*value), "GVariant") != 0) continue;
+        void *v = g_value_get_variant(value);
+        if (!v || g_variant_get_size(v) != nfloat * sizeof(float)) continue;
+        unsigned long count = 0;
+        const unsigned char *bytes = g_variant_get_fixed_array(v, &count, 1);
+        if (!bytes || count != nfloat * sizeof(float)) continue;
+        memcpy(out, bytes, nfloat * sizeof(float));
+        return 1;
+    }
+    return 0;
+}
+static int up_(char ch) { return ch >= 'A' && ch <= 'Z'; }
+static int dg_(char ch) { return ch >= '0' && ch <= '9'; }
+static int plate_format_ok(const char *s) {  /* ^[A-Z]{2}[0-9]{1,2}[A-Z]{1,3}[0-9]{4}$  or  ^[0-9]{2}BH[0-9]{4}[A-Z]{1,2}$ */
+    int n = (int)strlen(s), i = 2, k;
+    if (n >= 8 && up_(s[0]) && up_(s[1])) {
+        for (k = 0; i < n && dg_(s[i]) && k < 2; i++, k++) ;
+        if (k >= 1) {
+            for (k = 0; i < n && up_(s[i]) && k < 3; i++, k++) ;
+            if (k >= 1) { for (k = 0; i < n && dg_(s[i]); i++, k++) ; if (k == 4 && i == n) return 1; }
+        }
+    }
+    if ((n == 9 || n == 10) && dg_(s[0]) && dg_(s[1]) && s[2] == 'B' && s[3] == 'H' && dg_(s[4]) && dg_(s[5]) && dg_(s[6])
+        && dg_(s[7]) && up_(s[8]) && (n == 9 || up_(s[9]))) return 1;
+    return 0;
+}
+static int plate_report_probe(void *pad, ProbeInfo *info, void *data) {  /* after OCR: confirm tracks with a good read */
+    PlateCtx *c = data;
+    void *buffer = info->data;
+    void *rm = gst_buffer_get_analytics_relation_meta(buffer);
+    if (!rm) return PROBE_OK;
+    static __thread Box b[MAXB];
+    int n = read_boxes(buffer, b);
+    static const char *A = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ_";
+    for (int i = 0; i < n; i++) {
+        if (!b[i].plate) continue;
+        RoiMeta *roi = gst_buffer_get_video_region_of_interest_meta_id(buffer, (gint)b[i].id);
+        float p[15 * 37];
+        if (!roi || !read_tensor(roi, p, 15 * 37)) continue;
+        __atomic_add_fetch(&ps_reads, 1, __ATOMIC_RELAXED);
+        char text[16]; int m = 0, kept = 0; double lsum = 0;
+        for (int t = 0; t < 15; t++) {  /* as edge_app read_plate: argmax per position, '_' dropped, geometric mean */
+            int a = 0;
+            for (int j = 1; j < 37; j++) if (p[t * 37 + j] > p[t * 37 + a]) a = j;
+            if (a == 36) continue;
+            text[m++] = A[a];
+            double v = p[t * 37 + a] < 1e-12 ? 1e-12 : p[t * 37 + a];
+            lsum += log(v); kept++;
+        }
+        text[m] = 0;
+        double conf = kept ? exp(lsum / kept) : 0;
+        if (conf < plate_confirm_conf || !plate_format_ok(text)) continue;
+        double cx = (b[i].x1 + b[i].x2) / 2, cy = (b[i].y1 + b[i].y2) / 2, best_area = 1e18;
+        int best = -1;
+        for (int j = 0; j < n; j++) {
+            if (!b[j].vehicle || b[j].bike) continue;
+            if (cx < b[j].x1 || cx > b[j].x2 || cy < b[j].y1 || cy > b[j].y2) continue;
+            double area = (b[j].x2 - b[j].x1) * (b[j].y2 - b[j].y1);
+            if (area < best_area) { best_area = area; best = j; }
+        }
+        unsigned long long tid;
+        if (best < 0 || !track_of(rm, b[best].id, &tid)) continue;
+        double now = now_s();
+        while (__atomic_test_and_set(&c->lock, __ATOMIC_ACQUIRE)) ;
+        PTrack *e = pt_get(c, tid, now);
+        e->last_seen = now; e->confirmed_at = now; e->conf = (float)conf;
+        __atomic_clear(&c->lock, __ATOMIC_RELEASE);
+        __atomic_add_fetch(&ps_confirmed, 1, __ATOMIC_RELAXED);
+    }
+    return PROBE_OK;
+}
+void cplate_attach_report(void *ctx, void *pad, double stable_s, double confirm_conf) {
+    PlateCtx *c = ctx;
+    plate_stable_s = stable_s; plate_confirm_conf = confirm_conf;
+    c->state_on = 1;
+    gst_pad_add_probe(pad, PROBE_TYPE_BUFFER, plate_report_probe, c, 0);
+}
+static int plate_select_probe(void *pad, ProbeInfo *info, void *data) {
+    PoseCtx *c = data;
+    frame_size(pad, c);
+    void *buffer = gst_mini_object_make_writable(info->data);
+    info->data = buffer;
+    Box b[MAXB];
+    int n = read_boxes(buffer, b);
+    void *rm = gst_buffer_get_analytics_relation_meta(buffer);
+    GQuark q = g_quark_from_string("plate_vehicle");
+    PlateCtx *pcx = (PlateCtx *)c;  /* PLATE_C_EVERY: this C step picks every Nth frame itself */
+    if (pcx->c_every > 1 && (pcx->frame_no++ % pcx->c_every) != 0) return PROBE_OK;
+    for (int i = 0; i < n && rm && c->W > 0; i++) {
+        if (!b[i].vehicle || b[i].bike) continue;
+        __atomic_add_fetch(&pv_vehicles, 1, __ATOMIC_RELAXED);
+        if (b[i].w < plate_min_w) continue;
+        if (((PlateCtx *)c)->state_on && !plate_state_due((PlateCtx *)c, rm, b[i].id, &b[i])) continue;
+        gint x = (gint)b[i].x1, y = (gint)b[i].y1, x2 = (gint)b[i].x2, y2 = (gint)b[i].y2;
+        if (x < 0) x = 0;
+        if (y < 0) y = 0;
+        if (x2 > c->W) x2 = c->W;
+        if (y2 > c->H) y2 = c->H;
+        gint w = x2 - x, h = y2 - y;
+        if (w < 2 || h < 2) continue;
+        Mtd od;
+        if (!gst_analytics_relation_meta_add_od_mtd(rm, q, x, y, w, h, 1.0f, &od)) continue;
+        RoiMeta *roi = gst_buffer_add_video_region_of_interest_meta_id(buffer, q, (guint)x, (guint)y, (guint)w, (guint)h);
+        if (!roi) continue;
+        roi->id = (gint)od.id;
+        roi->parent_id = (gint)b[i].id;
+        void *det = gst_structure_new_empty("detection");  /* as gstgva add_region: the normalised box DL Streamer crops by */
+        gst_structure_set(det, "confidence", G_TYPE_DOUBLE_, 1.0, "x_min", G_TYPE_DOUBLE_, (double)x / c->W,
+                          "x_max", G_TYPE_DOUBLE_, (double)(x + w) / c->W, "y_min", G_TYPE_DOUBLE_, (double)y / c->H,
+                          "y_max", G_TYPE_DOUBLE_, (double)(y + h) / c->H, (char *)0);
+        gst_video_region_of_interest_meta_add_param(roi, det);
+        __atomic_add_fetch(&pv_selected, 1, __ATOMIC_RELAXED);
+    }
+    return PROBE_OK;
+}
+void *cplate_attach_select(void *pad, int min_w) {
+    plate_min_w = min_w;
+    PlateCtx *ctx = calloc(1, sizeof *ctx);
+    gst_pad_add_probe(pad, PROBE_TYPE_BUFFER, plate_select_probe, ctx, 0);
+    return ctx;
+}
+void cplate_counts(long *out) { out[0] = pv_vehicles; out[1] = pv_selected; }  /* road vehicles seen, sent to the plate detector */
+
+void cplate_config_change(void *ctx, int c_every, int change_on, double move, double grow, double max_s) {
+    PlateCtx *c = ctx;
+    c->c_every = c_every; c->change_on = change_on;
+    chg_move = move; chg_grow = grow; chg_max_s = max_s;
+}

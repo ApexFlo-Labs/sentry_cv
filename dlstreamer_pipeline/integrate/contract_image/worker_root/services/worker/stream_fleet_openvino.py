@@ -21,7 +21,11 @@ PASS = ["CAMERAS_FILE", "APEXFABRIC_CAMERA_READY_DIR", "APEXFABRIC_WORKER_STOP_F
         # her final switches (image ENV, see Dockerfile)
         "HANDOFF_PROCESS", "HANDOFF_QUEUE", "PIX_VIA_MAP", "CFACES", "POLICY_OURS", "PIX_JPEG", "PIX_JPEG_OD",
         "PIX_ON_DEMAND", "PIX_LAZY", "REGION_DECODE", "PKG_SHM", "VEH_MODEL", "CPU_OPT", "CPU_OPT_THREADS",
-        "SCENE_DEVICE", "BODY_DEVICE", "GAIT_DEVICE", "HEAD_POSE_DEVICE", "WARMUP_S", "T_GAIT_SCALE"]
+        "SCENE_DEVICE", "BODY_DEVICE", "GAIT_DEVICE", "HEAD_POSE_DEVICE", "WARMUP_S", "T_GAIT_SCALE", "SEC_NATIVE",
+        # option A plate path (README "Plates inside the graph"); not set in the image, so its behaviour is unchanged
+        "PLATE_INLINE", "PLATE_SELECT", "PLATE_VEH_MIN_W", "PLATE_PREPROC", "PLATE_NIREQ", "OCR_NIREQ", "PLATE_INTERVAL",
+        "PLATE_C_EVERY", "PLATE_STATE", "PLATE_STABLE_S", "PLATE_CONFIRM_CONF", "PLATE_CHANGE", "PLATE_CHANGE_MOVE",
+        "PLATE_CHANGE_GROW", "PLATE_CHANGE_MAX_S", "FACE_INTERVAL", "FIRE_DEVICE"]
 # DL Streamer 2026.2 setup_dls_env.sh (Ubuntu branch), as her runs sourced it
 DLS = {
     "LIBVA_DRIVER_NAME": "iHD", "GST_VA_ALL_DRIVERS": "1", "LIBVA_DRIVERS_PATH": "/usr/lib/x86_64-linux-gnu/dri",
@@ -40,7 +44,7 @@ def main():
     os.makedirs(cache, exist_ok=True)
     os.makedirs(GENERATED, exist_ok=True)
     # Secondary branch (plates + OCR) camera list, generated from the supervisor's cameras instead of her 20-camera
-    # test file; 1920x1080 is what her gates were measured with (sec_gates.py scales by 640/width).
+    # test file; 1920x1080 is what her gates were measured with (only used with SEC_NATIVE=0: sec_gates.py then scales by 640/width).
     cameras = json.load(open(os.environ["CAMERAS_FILE"], encoding="utf-8"))["cameras"]
     ingest = {"cameras": [{"name": c["camera_id"], "url": "", "width": 1920, "height": 1080} for c in cameras],
               "models_dir": os.path.join(ROOT, "group_ingest", "models"), "procs_dir": os.path.join(ROOT, "group_ingest"),

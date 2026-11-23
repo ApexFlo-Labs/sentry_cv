@@ -10,7 +10,17 @@ import gates_shared
 import sec_shared
 
 _cameras = json.load(open(os.environ["INGEST_CONFIG"]))["cameras"]
-_scale = {f"camera-{i + 1:02d}": 640.0 / c["width"] for i, c in enumerate(_cameras)}
+# Plate/body size limits are in camera pixels. The branch frame is the camera's own size by default (scale 1; plates and
+# OCR from the original pixels); SEC_NATIVE=0 = the earlier 640-wide copy (scale 640 / camera width).
+_native = os.getenv("SEC_NATIVE", "1") != "0"
+
+
+def scale_for(width):
+    """Branch-frame pixels per camera pixel for a camera of this width."""
+    return 1.0 if _native else 640.0 / width
+
+
+_scale = {f"camera-{i + 1:02d}": scale_for(c["width"]) for i, c in enumerate(_cameras)}
 _gated = []
 
 Stash = sec_shared.Stash

@@ -1,8 +1,8 @@
 """Quality gates taken from sentry_cv main (runtime_v6, commit 2dd99d2), shared by every camera.
 
 Same rules and thresholds as main; every size limit is in camera pixels, the same for every camera
-(a uniform floor, no camera is treated differently). The secondary branch sees a 640x360 copy of each
-frame, so there the limits are scaled by 640 / camera width.
+(a uniform floor, no camera is treated differently). The secondary branch sees each frame at the camera's
+own size (scale 1); with SEC_NATIVE=0 it sees a 640x360 copy and the limits are scaled by 640 / camera width.
 
   vehicle_dedup  main pipeline/detection_quality.py deduplicate_vehicles: a second road-vehicle box
                  overlapping a kept one (IoU >= 0.55, or >= 85 % of it inside) is removed, whatever its class
@@ -83,7 +83,7 @@ def duplicate_vehicles(boxes):
 
 
 def plate_usable(crop, scale):
-    """Main's plate_crop_is_usable; crop is from the 640x360 copy, scale = 640 / camera width."""
+    """Main's plate_crop_is_usable; scale = branch-frame pixels per camera pixel (1 at native size, 640 / width for the 640 copy)."""
     if crop is None or crop.size == 0:
         return False
     height, width = crop.shape[:2]

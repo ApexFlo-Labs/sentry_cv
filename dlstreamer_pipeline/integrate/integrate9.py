@@ -122,6 +122,29 @@ def static_scene_model():
 
 
 BRANCH = f"{G}/app/secondary_branch_gates.py"
+# PLATE_INLINE=1: plates as faces - plate gvadetect on the vehicle boxes of the native frame + OCR gvaclassify on the
+# plate boxes, inside the graph (same frame as the vehicle, no frame copy); the Python plate branch is not built.
+PLATE_INLINE = os.getenv("PLATE_INLINE") == "1"
+PLATE_INTERVAL = int(os.getenv("PLATE_INTERVAL") or "10")  # every 10th frame = 1 frame/s at 10 fps (as the old branch)
+PLATE_DEV = os.getenv("PLATE_DEVICE") or "NPU"
+OCR_DEV = os.getenv("OCR_DEVICE") or "NPU"  # OCR (gvaclassify) device, separate from the plate detector's
+PLATE_NIREQ = int(os.getenv("PLATE_NIREQ") or "4")  # plate inferences in flight (one shared model instance, all cameras)
+OCR_NIREQ = int(os.getenv("OCR_NIREQ") or "4")
+_PIE = f"ie-config={os.getenv('PLATE_IECONFIG')} " if os.getenv("PLATE_IECONFIG") else ""  # e.g. PERFORMANCE_HINT=THROUGHPUT
+_PDEV = (f"device={PLATE_DEV} pre-process-backend={os.getenv('PLATE_PREPROC') or 'va-surface-sharing'}" if PLATE_DEV == "GPU"
+         else f"device={PLATE_DEV} pre-process-backend={os.getenv('PLATE_PREPROC') or 'va'}")  # PLATE_PREPROC=opencv: no VA crop
+PLATE_SELECT = PLATE_INLINE and os.getenv("PLATE_SELECT") == "1"  # plate detector only on vehicles >= PLATE_VEH_MIN_W px wide (C helper boxes)
+PLATE_VEH_MIN_W = int(os.getenv("PLATE_VEH_MIN_W") or "80")
+PLATE_ELEMS = (("identity name=pv@N@ silent=true ! " + Q + " ! ") if PLATE_SELECT else "") + (f"gvadetect model={SEC}/traffic-v11/openvino/license_plate.xml model-proc={P}/plate_model_proc.json {_PDEV} {_PIE}nireq={PLATE_NIREQ} "
+               f"inference-region=roi-list object-class={'plate_vehicle' if PLATE_SELECT else 'bus,car,minivan,motorcycle,rickshaw,truck'} inference-interval={PLATE_INTERVAL} "
+               f"threshold=0.35 model-instance-id=plate-shared ! {Q} ! "
+               f"gvaclassify model={SEC}/traffic-v11/openvino/ocr.xml model-proc={P}/ocr_model_proc.json device={OCR_DEV} pre-process-backend=opencv nireq={OCR_NIREQ} "
+               f"inference-region=roi-list object-class=license_plate model-instance-id=ocr-shared ! {Q} ! "
+               + (("identity name=pr@N@ silent=true ! " + Q + " ! ") if os.getenv("PLATE_STATE") == "1" and PLATE_SELECT else "")) if PLATE_INLINE else ""
+# Plate branch frame: the camera's own size by default, so vehicle crops, plate crops and the OCR input are cut from the
+# original pixels (as the face path does). SEC_NATIVE=0 restores the earlier 640x360 copy (GPU-shrunk).
+SEC_NATIVE = os.getenv("SEC_NATIVE", "1") != "0"
+SEC_CAPS = "video/x-raw,format=BGRx" if SEC_NATIVE else "video/x-raw,format=BGRx,width=640,height=360"
 # TEST switches (default unchanged = GPU): run the fire detector and/or SCRFD on the CPU to free GPU compute for the detector
 FIRE_DEV = os.getenv("FIRE_DEVICE") or "GPU"
 SEC_PROCESS = os.getenv("SEC_PROCESS") == "1" and os.getenv("NO_SECONDARY") != "1"
@@ -162,7 +185,7 @@ def main():
         n = c["n"]
         parts.append(f"queue name=min{n} leaky=downstream max-size-buffers=4 ! gvadetect model={os.getenv("VEH_MODEL") or M + "/vehicle_v11_static.xml"} model-proc={P}/v11_model_proc.json "
                      f"device=GPU pre-process-backend=va-surface-sharing model-instance-id=det-shared nireq=6 threshold=0.3 ! {Q} ! identity name=vd{n} silent=true ! {Q} ! "
-                     f"gvatrack tracking-type=zero-term-imageless ! {Q} ! tee name=s{n} ! {Q} ! gvadetect model={HERE}/facecmp/models/scrfd_top1lm_u8.xml model-proc={HERE}/facecmp/scrfd_top1lm_proc.json "
+                     f"gvatrack tracking-type=zero-term-imageless ! {Q} ! tee name=s{n} ! {PLATE_ELEMS.replace('@N@', str(n))}{Q} ! gvadetect model={HERE}/facecmp/models/scrfd_top1lm_u8.xml model-proc={HERE}/facecmp/scrfd_top1lm_proc.json "
                      f"{SCRFD_DEV} nireq=8 inference-region=roi-list object-class=person "
                      f"inference-interval={FACE_INTERVAL} threshold=0.55 model-instance-id=scrfdlm-shared ! {Q} ! identity name=lm{n} silent=true ! {Q} ! identity name=fs{n} silent=true ! {Q} ! identity name=hp{n} silent=true ! {Q} ! identity name=ae{n} silent=true "
                      f"! {Q} ! gvametaconvert name=mc{n} add-tensor-data={TENSORS} add-empty-results=true ! tee name=et{n} ! "
@@ -172,14 +195,14 @@ def main():
             parts.append(f"appsrc name=jsrc{n} is-live=true format=time do-timestamp=false block=false max-buffers=8 leaky-type=downstream "
                          f"! queue name=jq{n} leaky=downstream max-size-buffers=4 max-size-bytes=0 max-size-time=0 ! vajpegenc quality=88 ! fakesink name=jpg{n} sync=false async=false enable-last-sample=false")
         key = '{"key":%d}' % n  # Option 6's secondary branch (plates+OCR, body ReID, gait, scene; NPU), 1 frame/s per camera
-        if os.getenv("NO_SECONDARY") != "1":  # NO_SECONDARY=1: TEST ONLY, measures the secondary branch's cost in the engine
+        if os.getenv("NO_SECONDARY") != "1" and not PLATE_INLINE:  # NO_SECONDARY=1: TEST ONLY, measures the secondary branch's cost in the engine
           if SEC_PROCESS:  # TEST: same branch, no Python in the engine: C probes hand frame + boxes to sec_process.py
             parts.append(f"s{n}. ! queue leaky=downstream max-size-buffers=2 ! videorate drop-only=true skip-to-first=true max-rate=1 ! identity name=sst{n} silent=true "
                          f"! vapostproc ! video/x-raw,format=BGRx,width=640,height=360 ! identity name=ssp{n} silent=true "
                          f"! fakesink name=sec{n} sync=false async=false")
           else:
             parts.append(f"s{n}. ! queue leaky=downstream max-size-buffers=2 ! videorate drop-only=true skip-to-first=true max-rate=1 ! gvapython module={BRANCH} class=Stash "
-                         f"function=process kwarg={key} ! vapostproc ! video/x-raw,format=BGRx,width=640,height=360 ! gvapython module={BRANCH} class=Secondary "
+                         f"function=process kwarg={key} ! vapostproc ! {SEC_CAPS} ! gvapython module={BRANCH} class=Secondary "
                          f"function=process kwarg={key} ! fakesink name=sec{n} sync=false async=false")
         parts.append(f"queue name=fin{n} leaky=downstream max-size-buffers=2 ! {FIRE_CONV}gvadetect model={M}/smoke_fire.xml model-proc={P}/fire_rgb_model_proc.json "
                      f"device={FIRE_DEV} pre-process-backend=opencv threshold=0.35 model-instance-id=fire-shared ! gvametaconvert name=fmc{n} add-empty-results=true ! fakesink name=fevt{n} sync=false async=false enable-last-sample=false")
@@ -213,6 +236,23 @@ def main():
         if not cg.cgates_attach_pose_direct(src("hp"), os.path.join(HERE, "models", "best_a0_fp16.xml").encode(), pose_device.encode(), None):
             log(f"FATAL head-pose model failed to load on {pose_device}")
             sys.exit(4)
+    if PLATE_SELECT:  # plate detector only on vehicles big enough for a readable plate
+        cg.cplate_attach_select.argtypes = [ctypes.c_void_p, ctypes.c_int]
+        cg.cplate_attach_select.restype = ctypes.c_void_p
+        cg.cplate_attach_report.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_double, ctypes.c_double]
+        plate_state = os.getenv("PLATE_STATE") == "1"
+        stable_s, confirm = float(os.getenv("PLATE_STABLE_S") or 60), float(os.getenv("PLATE_CONFIRM_CONF") or 0.75)
+        for c in cams:
+            sel = cg.cplate_attach_select(ctypes.c_void_p(hash(pipeline.get_by_name(f"pv{c['n']}").get_static_pad("src"))), PLATE_VEH_MIN_W)
+            cg.cplate_config_change.argtypes = [ctypes.c_void_p, ctypes.c_int, ctypes.c_int, ctypes.c_double, ctypes.c_double, ctypes.c_double]
+            cg.cplate_config_change(ctypes.c_void_p(sel), int(os.getenv("PLATE_C_EVERY") or 0), int(os.getenv("PLATE_CHANGE") == "1"),
+                                    float(os.getenv("PLATE_CHANGE_MOVE") or 0.15), float(os.getenv("PLATE_CHANGE_GROW") or 1.25),
+                                    float(os.getenv("PLATE_CHANGE_MAX_S") or 3.0))
+            if plate_state:  # per-vehicle state: a confirmed plate is not read again for stable_s seconds
+                cg.cplate_attach_report(ctypes.c_void_p(sel), ctypes.c_void_p(hash(pipeline.get_by_name(f"pr{c['n']}").get_static_pad("src"))), stable_s, confirm)
+        log(f"plate C every {os.getenv('PLATE_C_EVERY') or 'off'}, change gate {'on' if os.getenv('PLATE_CHANGE') == '1' else 'off'}")
+        log(f"plate selection: plate detector on road vehicles >= {PLATE_VEH_MIN_W} px wide"
+            + (f"; plate state on: confirmed (OCR >= {confirm}, valid format) tracks skipped for {stable_s:.0f} s" if plate_state else ""))
     cg.cface_new.restype = ctypes.c_void_p
     cg.cface_attach_landmarks.argtypes = [ctypes.c_void_p] * 2
     cg.cface_attach_embed.argtypes = [ctypes.c_void_p, ctypes.c_void_p, ctypes.c_char_p, ctypes.c_char_p]
@@ -332,14 +372,14 @@ def main():
 
     # ---------- camera sources (Option 5) ----------
     def forward_plates(key, payload):
-        """Secondary results -> camera's rules process: plates only, boxes normalized by the 640x360 branch frame."""
+        """Secondary results -> camera's rules process: plates only, boxes normalized by the branch frame (native size, or 640x360 with SEC_NATIVE=0)."""
         plates = payload.get("plates") or []
         if not plates:
             return
         w, h = float(payload["frame"]["width"]), float(payload["frame"]["height"])
         norm = lambda b: (b[0] / w, b[1] / h, b[2] / w, b[3] / h)
         items = [(norm(p["vehicle_bbox"]), norm(p["bbox"]), p.get("text") or "", float(p.get("ocr_confidence") or 0.0),
-                  float(p.get("detection_confidence") or 0.0), f"sec-{key}-{time.monotonic_ns()}-{i}", payload.get("pts"))
+                  float(p.get("detection_confidence") or 0.0), f"sec-{key}-{time.monotonic_ns()}-{i}", payload.get("pts"), p.get("track_id"))
                  for i, p in enumerate(plates)]
         send(cams[int(key)], ("plates", items))
     plate_sink.append(forward_plates)

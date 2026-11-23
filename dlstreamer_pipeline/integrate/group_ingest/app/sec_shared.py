@@ -1,8 +1,8 @@
 """Shared part of secondary_branch.py: his secondary analytics (plates + OCR, body ReID, gait, scene), run unchanged inside our pipeline.
 
 gvapython class Secondary, one instance per camera, on a branch that gets 1 frame/s per camera:
-7 of every 10 are used, as his input_fps 0.7. The frame arrives as 640x360 BGRx (the GPU shrinks it,
-the same pixels as his 640x640 letterbox without the borders). Boxes come from the detector's
+7 of every 10 are used, as his input_fps 0.7. The frame arrives as BGRx at the camera's own size, so the
+vehicle crops, plate crops and OCR input are original pixels (SEC_NATIVE=0: a 640x360 copy shrunk by the GPU, as before). Boxes come from the detector's
 normalized coordinates, read by class Stash before the GPU shrinks the frame (the shrink drops the
 box metadata) and handed over by camera key and frame timestamp. His SecondaryPipeline._process does the work, with his models and settings;
 one lock serialises it across cameras, as his single secondary worker does. Faces are left to our
@@ -97,7 +97,7 @@ class Stash:
         self.boxes = _stash.setdefault(str(key), {})
 
     def process(self, frame):
-        self.boxes[_pts(frame)] = [(region.label(), float(region.confidence()), region.normalized_rect())
+        self.boxes[_pts(frame)] = [(region.label(), float(region.confidence()), region.normalized_rect(), region.object_id())
                                  for region in frame.regions()]
         while len(self.boxes) > 20:
             self.boxes.pop(next(iter(self.boxes)))
@@ -121,10 +121,12 @@ class Secondary:
             return True
         info = frame.video_info()
         width, height = info.width, info.height
-        detections = []
-        for label, confidence, (x, y, w, h) in self.boxes.pop(_pts(frame), []):
-            detections.append({"label": label, "confidence": confidence,
-                               "bbox": [int(x * width), int(y * height), int((x + w) * width), int((y + h) * height)]})
+        detections, tracks = [], {}
+        for label, confidence, (x, y, w, h), object_id in self.boxes.pop(_pts(frame), []):
+            bbox = [int(x * width), int(y * height), int((x + w) * width), int((y + h) * height)]
+            detections.append({"label": label, "confidence": confidence, "bbox": bbox})
+            if object_id is not None:
+                tracks[tuple(bbox)] = int(object_id)  # gvatrack id: the same id the rules process sees on the main frames
         if not detections:
             _count["empty"] += 1  # frames reaching the branch with no boxes (would show lost metadata)
         with frame.data() as image:
@@ -146,5 +148,7 @@ class Secondary:
             _count["scene"] += payload["scene"] is not None
             _report()
         payload["pts"] = _pts(frame)  # frame the plates were found on: the rules process matches them by track on this frame
+        for plate in payload["plates"]:  # vehicle's track id, so the rules process needs no frame lookup (frames it never got)
+            plate["track_id"] = tracks.get(tuple(plate["vehicle_bbox"]))
         publish_shared.write(self.key, payload)
         return True

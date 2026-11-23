@@ -90,6 +90,7 @@ git contents (with LFS) plus the three items above, and then run with `HOME=<tha
 ./run_best20.sh                 # final configuration, 20 cameras, 420 s (120 s warm-up + 300 s steady)
 CAMS=4 DUR=240 ./run_best20.sh  # quick check
 VEH_MODEL= ./run_best20.sh      # same, with the FP16 detector
+./run_option_a.sh               # option A: plates inside the graph, plates + faces every 5th frame (see below)
 ```
 
 Results go to `run/<timestamp>/`: `integrate.log` (STEADY fps, PIXSTATS, handoff counters),
@@ -174,6 +175,49 @@ Known, not pipeline faults:
 - About one "frame no longer held" per 1.5 min at 20 cameras (10 in 15 min); each skips one frame's events.
 - The engine can crash on shutdown after all results are delivered (seen since 17 Nov); results are not affected.
 
+## Plates inside the graph (option A, `run_option_a.sh`)
+
+Plates now work like faces: everything on the same native frame, inside the DL Streamer graph, so the plate box is on
+the plate (98–100 % in every test; the separate Python branch placed plates found on an earlier frame and was ~13 %
+on the plate at 20 cameras) and OCR reads the original pixels.
+
+```
+gvadetect vehicle (GPU) -> gvatrack
+ -> identity pv{n}  C: helper box "plate_vehicle" for road vehicles >= PLATE_VEH_MIN_W px, every PLATE_C_EVERY-th frame,
+                    skipping confirmed plates (PLATE_STATE) and unchanged vehicles (PLATE_CHANGE)
+ -> gvadetect license_plate.xml  roi-list object-class=plate_vehicle  (NPU, OpenCV crop from the native NV12 frame)
+ -> gvaclassify ocr.xml          roi-list object-class=license_plate  (NPU, OpenCV crop from the native NV12 frame)
+ -> identity pr{n}  C: decodes the OCR tensor; valid Indian format with confidence >= 0.75 confirms the vehicle's track
+ -> SCRFD ... (unchanged)
+event process: decodes the OCR tensor as edge_app read_plate (OCR >= 0.40 kept), gates 16x5 px / aspect 0.8-12, and
+gives her V8 code a license_plate detection with parent_id = the vehicle on the same frame. The Python plate branch
+(gvapython Secondary) is not built when PLATE_INLINE=1.
+```
+
+Measured on argus-2 (Core Ultra 9 285H), 20 cameras, plates + faces every 5th frame, vehicles >= 80 px:
+
+| Setup | Total fps | NPU | GPU compute | Plate boxes on plate |
+|---|---|---|---|---|
+| plate detector on every selected vehicle, every 5th frame | 142.3 | 98 % | 78 % | 99 % |
+| + confirmed plates skipped 60 s (`PLATE_STATE`) | 151.6 | 96 % | 92 % | 99 % |
+| **+ unchanged vehicles skipped (`PLATE_CHANGE`), option A** | **160.9** | 87 % | 96 % | 99 % |
+| for reference: plates every 10th frame, vehicles >= 120 px, faces every 43rd, fire on NPU | ~210 | 62 % | 98 % | 100 % |
+
+The GPU crop route (`PLATE_PREPROC=va`) stopped the whole pipeline at random on broken video frames
+(`vaSyncSurface ... internal decoding error`); the OpenCV route maps the GPU frame (vaDeriveImage, ~1.4 ms per 1080p
+frame) and reads only the vehicle / plate area.
+
+| Switch | Effect |
+|---|---|
+| `PLATE_INLINE=1` | plate detector + OCR inside the graph (above); without it, the Python plate branch as before |
+| `PLATE_SELECT=1 PLATE_VEH_MIN_W=80` | plate detector only on road vehicles at least this wide (C helper boxes) |
+| `PLATE_C_EVERY=5` (with `PLATE_INTERVAL=1`) | the C step picks every Nth frame for plates |
+| `PLATE_STATE=1 PLATE_STABLE_S=60 PLATE_CONFIRM_CONF=0.75` | a vehicle with a confirmed plate is not read again for 60 s |
+| `PLATE_CHANGE=1` (`PLATE_CHANGE_MOVE=0.15 PLATE_CHANGE_GROW=1.25 PLATE_CHANGE_MAX_S=3`) | a vehicle is sent again only if it moved, came closer or 3 s passed |
+| `PLATE_PREPROC=opencv` / `PLATE_DEVICE` / `OCR_DEVICE` / `PLATE_NIREQ` / `OCR_NIREQ` / `PLATE_IECONFIG` | crop route and devices (default NPU) |
+| `FACE_INTERVAL=5` | SCRFD (and head pose / AdaFace) every Nth frame (default 43) |
+| `FIRE_DEVICE` | fire/smoke detector device (default GPU) |
+
 ## Switches (all off unless set; `run_best20.sh` sets the final ones)
 
 | Switch | Effect |
@@ -187,6 +231,8 @@ Known, not pipeline faults:
 | `EVENTS_IDLE=1 NO_PIX=1 NO_IDENTITY=1` | diagnosis only (V8 parts off) |
 
 ## Known issues
+- Option A: about 1 in 10,000 packages is a `plate_outcome` without `source_frame_id` (rejected by the schema check);
+  not yet traced.
 - Run without the supervisor, every run leaves 2 orphan `multiprocessing` processes (resource tracker + one spawn
   child, parent PID 1); kill them after each run. Under `runtime_supervisor.py` they are stopped with the engine's
   process group.

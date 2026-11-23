@@ -325,7 +325,7 @@ REVISION_CODE = """
             c["hdr"][7] = pipeline.get_base_time()
         sec = sys.modules.get("sec_gates")
         if sec is not None:  # secondary (plates) branch: frame scale of this camera key (ingest_config width 1920)
-            sec._scale[f"camera-{n + 1:02d}"] = 640.0 / 1920
+            sec._scale[f"camera-{n + 1:02d}"] = sec.scale_for(1920) if hasattr(sec, "scale_for") else 640.0 / 1920
         branch.sync_state_with_parent()
         if h_ctl is None:
             raise RuntimeError("handoff scheduler runs in the engine process (HANDOFF_PROCESS!=1): no live add")
