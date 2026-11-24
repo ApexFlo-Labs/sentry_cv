@@ -93,8 +93,9 @@ class Gate:
         self.fps, self.on_quiet = float(fps), on_quiet
         self.switch = Switch()
         self.lock = threading.Lock()
-        self.passed = self.quiet = self.motion_frames = 0
+        self.passed = self.quiet = self.motion_frames = self.fire_hits = 0
         self.fire_at, self.fire_hit = 0.0, False
+        self.hit_labels = collections.Counter()  # detector labels that kept the camera active (diagnosis)
 
     def reset(self, fps=None):
         with self.lock:
@@ -126,8 +127,10 @@ class Gate:
         from gstgva import VideoFrame
         buffer = info.get_buffer()
         if buffer is not None:
-            hit = any(r.label() != "motion" for r in VideoFrame(buffer, caps=pad.get_current_caps()).regions())
+            labels = [r.label() for r in VideoFrame(buffer, caps=pad.get_current_caps()).regions() if r.label() != "motion"]
+            hit = bool(labels)
             with self.lock:
+                self.hit_labels.update(labels)
                 fire_recent = time.monotonic() - self.fire_at <= 1.0
                 self.switch.observe_models(hit, fire_recent and self.fire_hit, fully_evaluated=fire_recent)
         return Gst.PadProbeReturn.OK
@@ -141,6 +144,7 @@ class Gate:
             hit = bool(list(VideoFrame(buffer, caps=pad.get_current_caps()).regions()))
             with self.lock:
                 self.fire_at, self.fire_hit = time.monotonic(), hit
+                self.fire_hits += hit
                 if hit:
                     self.switch.observe_models(False, True, fully_evaluated=True)
         return Gst.PadProbeReturn.OK
@@ -162,6 +166,20 @@ def attach(pipeline, cam, send):
         gate.on_quiet = lambda pts, c=cam: send(c, ("quiet", pts))
         gate.reset(cam["fps"])
     return gate
+
+
+def summary(cams):
+    """One line for the engine report: per camera active/quiet, motion votes, detector labels and fire hits."""
+    parts = []
+    for c in cams:
+        g = c.get("motion")
+        if g is None:
+            continue
+        with g.lock:
+            top = ",".join(f"{k}:{v}" for k, v in g.hit_labels.most_common(3))
+            parts.append(f"{c['name']}={'active' if g.switch.tracking else 'quiet'} pass={g.passed} quiet={g.quiet} "
+                         f"motion={g.motion_frames} sweeps={g.switch.sweeps} fire_hits={g.fire_hits} hits[{top}]")
+    return "; ".join(parts)
 
 
 def quiet_total(cams):

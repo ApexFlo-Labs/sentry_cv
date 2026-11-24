@@ -162,7 +162,8 @@ patch(root / "integrate9.py", [
      "        quiet_last[0] = quiet_now\n"
      "        if motion_gate.ENABLED:\n"
      "            log(f\"motion gate: quiet {quiet_rate:.1f}/s (dropped before the detector), cameras active \"\n"
-     "                f\"{sum(1 for c in cams if c.get('motion') is not None and c['motion'].switch.tracking)}/{len(cams)}\")\n"
+     "                f\"{sum(1 for c in cams if c.get('motion') is not None and c['motion'].switch.tracking)}/{len(cams)} | \"\n"
+     "                + motion_gate.summary(cams))\n"
      "        stalled[0] = stalled[0] + 1 if total_in > 0 and main_rate + quiet_rate < 0.05 * sum("),
 ])
 
