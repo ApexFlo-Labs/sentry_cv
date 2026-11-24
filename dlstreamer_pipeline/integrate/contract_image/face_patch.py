@@ -125,10 +125,6 @@ patch(root / "v8code" / "pipeline" / "v8_events.py", [
 ])
 patch(root / "event_worker_shm.py", [
     # landmarks, detector confidence and person box of each face, by its box (the gate needs them for the chosen face)
-    ("    def results_from_json(objects, cfaces=None):\n",
-     "    face_side = collections.OrderedDict()  # face_patch.py: face box -> (landmarks, detector confidence, person box)\n"
-     "\n"
-     "    def results_from_json(objects, cfaces=None):\n"),
     ('            faces = [({"detection": {"confidence": f["conf"]}, "tensors": [{"data": f["emb"]}]}, (f["x"], f["y"], f["w"], f["h"])) for f in cfaces]\n',
      '            faces = [({"detection": {"confidence": f["conf"]}, "tensors": [{"data": f["emb"]}], "lm": f.get("lm")}, (f["x"], f["y"], f["w"], f["h"])) for f in cfaces]\n'),
     ("            owner = min(owners, key=lambda p: p[3] * p[4])\n"
@@ -141,6 +137,7 @@ patch(root / "event_worker_shm.py", [
      "            candidates.append(DlsFaceCandidate("),
     ("    v8._gait_store = v8.gait  # T2 parity C: gait cleanup also on frames where her schedule sets v8.gait = None\n",
      "    v8._gait_store = v8.gait  # T2 parity C: gait cleanup also on frames where her schedule sets v8.gait = None\n"
+     "    face_side = collections.OrderedDict()  # face_patch.py: face box -> (landmarks, detector confidence, person box)\n"
      "    if face_extractor is not None and paths.get(\"model_server\") is not None:  # face_patch.py: clear-face gate\n"
      "        from face_gate import ClearFaceGate\n"
      "        from model_server import Remote\n"
