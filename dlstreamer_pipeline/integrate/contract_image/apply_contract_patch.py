@@ -547,3 +547,12 @@ patch(root / "model_server.py", [
      "            responses[message[1]] = message[2]\n"
      "            continue\n"),
 ])
+
+# CONTRACT (live add onto a reused idle branch): the camera's event process starts reading the shared-memory rings at
+# their current position. Before, a camera added onto a removed camera's idle branch first replayed that camera's last
+# ring messages as its own events (seen 2026-11-24: first packages ~60 s old, from the removed camera). A fresh branch
+# starts at 0 anyway; a restarted event process now skips what is already in the ring instead of replaying it.
+patch(root / "event_worker_shm.py", [
+    ("    last_main = last_fire = frame_count = 0\n",
+     "    last_main, last_fire, frame_count = int(H[0]), int(H[1]), 0  # CONTRACT: no replay of a previous camera's messages\n"),
+])
