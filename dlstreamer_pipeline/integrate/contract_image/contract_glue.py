@@ -20,6 +20,13 @@ READY_DIR = os.getenv("APEXFABRIC_CAMERA_READY_DIR")
 STOP_FILE = os.getenv("APEXFABRIC_WORKER_STOP_FILE")
 
 
+def enable_crash_report():
+    """A crash (SIGSEGV, SIGABRT, ...) prints every thread's Python stack to stderr (the container log). The shim starts
+    the engine with env -i, so PYTHONFAULTHANDLER from the image does not reach it; enabled here instead."""
+    import faulthandler
+    faulthandler.enable(all_threads=True)
+
+
 def die_with_parent():
     """Child processes end when the worker ends, also on SIGKILL from the supervisor (no orphan event processes
     publishing with an old revision, no orphan holding NPU/GPU contexts)."""
@@ -47,6 +54,7 @@ class _LockedCore:
 
 def child(module, function, *args):
     """multiprocessing target: die_with_parent(), then module.function(*args)."""
+    enable_crash_report()
     die_with_parent()
     install_shared_memory()  # same shared-memory backing as the worker's main process (DLS_SHM_DIR)
     if module == "event_worker_shm":  # V8's shared_core caches in /tmp/ov_cache: outside the contract's writable mounts,

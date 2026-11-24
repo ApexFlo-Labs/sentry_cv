@@ -556,3 +556,11 @@ patch(root / "event_worker_shm.py", [
     ("    last_main = last_fire = frame_count = 0\n",
      "    last_main, last_fire, frame_count = int(H[0]), int(H[1]), 0  # CONTRACT: no replay of a previous camera's messages\n"),
 ])
+
+# Crash report: the engine's main process prints every thread's Python stack on a crash (child processes do it in
+# contract_glue.child). The shim's env -i drops PYTHONFAULTHANDLER, so it is enabled here.
+patch(root / "integrate9.py", [
+    ("import contract_glue  # noqa: E402  (V8 supervisor interface: ready/stop files, child processes)\n",
+     "import contract_glue  # noqa: E402  (V8 supervisor interface: ready/stop files, child processes)\n"
+     "contract_glue.enable_crash_report()\n"),
+])
