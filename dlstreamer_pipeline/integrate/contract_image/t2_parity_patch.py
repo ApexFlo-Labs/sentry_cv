@@ -167,41 +167,65 @@ patch(root / "integrate9.py", [
      "        stalled[0] = stalled[0] + 1 if total_in > 0 and main_rate + quiet_rate < 0.05 * sum("),
 ])
 
-# E: event time = when the frame arrived (as T2's frame_time: source PTS anchored to the receive clock), not when the
-# engine finished it. Pipeline clock = CLOCK_MONOTONIC; base time is in the shared header ([7]); arrival =
-# base + PTS, converted to wall time. Falls back to the output time if that is not available or not plausible.
+# E: event time = when the frame arrived (as T2's frame_time: anchored to the receive clock), not when the engine
+# finished it. The C reader stamps the wall time each frame enters the camera branch (after decode and the fps gate)
+# and writes it with that frame's results (slot int64 [5]). Source PTS alone is not usable: tcp:// sources and sources
+# rebuilt later do not carry running-time PTS. Falls back to the output time if no stamp is found or it is implausible.
+patch(root / "gatesc" / "cgates.c", [
+    ("    int jpeg;  /* pix branch carries GPU-encoded JPEG (vajpegenc): copy the bytes, slot int64 [5] = length */\n"
+     "} Reader;\n",
+     "    int jpeg;  /* pix branch carries GPU-encoded JPEG (vajpegenc): copy the bytes, slot int64 [5] = length */\n"
+     "    long long in_pts[64], in_wall[64]; long in_w;  /* T2 parity E: wall time each frame entered the branch */\n"
+     "} Reader;\n"),
+    ("    sh[4] = len;\n"
+     "    __atomic_store_n(&sh[0], n, __ATOMIC_RELEASE);\n"
+     "    __atomic_store_n(&hdr(r)[hdr_seq], n, __ATOMIC_RELEASE);\n",
+     "    sh[4] = len;\n"
+     "    {   /* T2 parity E: arrival wall time of this frame (latest entry with the same PTS), 0 if not found */\n"
+     "        long long arrival = 0;\n"
+     "        for (int i = 0; i < 64; i++) if (r->in_pts[i] == pts && r->in_wall[i] > arrival) arrival = r->in_wall[i];\n"
+     "        sh[5] = arrival;\n"
+     "    }\n"
+     "    __atomic_store_n(&sh[0], n, __ATOMIC_RELEASE);\n"
+     "    __atomic_store_n(&hdr(r)[hdr_seq], n, __ATOMIC_RELEASE);\n"),
+    ("    __atomic_add_fetch(&hdr(r)[3], 1, __ATOMIC_RELAXED);\n",
+     "    __atomic_add_fetch(&hdr(r)[3], 1, __ATOMIC_RELAXED);\n"
+     "    {   long i = __atomic_fetch_add(&r->in_w, 1, __ATOMIC_RELAXED) & 63;  /* T2 parity E */\n"
+     "        r->in_wall[i] = now_ns(CLOCK_REALTIME); r->in_pts[i] = buf_pts(info->data); }\n"),
+])
 # D (event side): a quiet frame from the motion gate -> V8EventPipeline.process_quiet + camera status counters.
 # F: scene turn-taking as T2 fix2f: her scene rate is kept (one sample per 10 s = every 7th identity frame), but each
 # camera has its own evenly spaced slot k/n on a shared wall clock (cameras sorted by id from CAMERAS_FILE, re-read
 # every 30 s, so added/removed cameras re-spread); the slot advances only after a sample was taken. Her identity
 # frames (1/s, 7 of every 10 s) are counted by the clock instead of by frames, so the motion gate does not change them.
 patch(root / "event_worker_shm.py", [
+    ("        pts, t_real, lat, length = int(h[1]), int(h[2]), int(h[3]), int(h[4])\n",
+     "        pts, t_real, lat, length, arrival = int(h[1]), int(h[2]), int(h[3]), int(h[4]), int(h[5])\n"),
     ("        return pts, t_real, lat, text\n",
-     "        return pts, t_real, lat, text\n"
+     "        return pts, t_real, lat, text, arrival\n"
      "\n"
-     "    _wall_minus_mono = time.time_ns() - time.monotonic_ns()\n"
-     "\n"
-     "    def arrival_s(pts, t_real):\n"
-     "        \"\"\"T2 parity E: wall time the frame arrived (pipeline base + PTS on CLOCK_MONOTONIC).\"\"\"\n"
-     "        base = int(H[7])\n"
-     "        if base > 0 and pts >= 0:\n"
-     "            t = (base + pts + _wall_minus_mono) / 1e9\n"
-     "            if 0.0 <= t_real / 1e9 - t < 30.0:\n"
-     "                return t\n"
+     "    def arrival_s(arrival, t_real):\n"
+     "        \"\"\"T2 parity E: wall time the frame arrived (stamped by the C reader), else the output time.\"\"\"\n"
+     "        if arrival > 0 and 0 <= t_real - arrival < 30_000_000_000:\n"
+     "            return arrival / 1e9\n"
      "        return t_real / 1e9\n"),
+    ("                pts, t_real, lat, text = got\n",
+     "                pts, t_real, lat, text, arrival = got\n"),
+    ("                    pts, t_real, _lat, text = got\n",
+     "                    pts, t_real, _lat, text, arrival = got\n"),
     ("                    evaluated = (frame_count - 1) % face_interval == 0\n"
      "                    observed = t_real / 1e9\n",
      "                    evaluated = (frame_count - 1) % face_interval == 0\n"
-     "                    observed = arrival_s(pts, t_real)\n"),
+     "                    observed = arrival_s(arrival, t_real)\n"),
     ("                    add(\"fire\", 1)\n"
      "                    observed = t_real / 1e9\n",
      "                    add(\"fire\", 1)\n"
-     "                    observed = arrival_s(pts, t_real)\n"),
+     "                    observed = arrival_s(arrival, t_real)\n"),
     ("            if message[0] == \"status\":\n",
      "            if message[0] == \"quiet\":  # T2 parity D: a frame the motion gate kept from the models\n"
      "                try:\n"
      "                    quiet_count[0] += 1\n"
-     "                    v8.process_quiet(arrival_s(int(message[1]), time.time_ns()), frame_count)\n"
+     "                    v8.process_quiet(int(message[1]) / 1e9, frame_count)  # wall time the gate saw it\n"
      "                    _status.quiet()\n"
      "                except Exception as exc:  # noqa: BLE001\n"
      "                    add(\"errors\", 1)\n"

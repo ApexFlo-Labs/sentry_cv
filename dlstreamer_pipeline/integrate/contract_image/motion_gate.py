@@ -118,7 +118,7 @@ class Gate:
                 self.passed += 1
                 return Gst.PadProbeReturn.OK
             self.quiet += 1
-        self.on_quiet(pts)
+        self.on_quiet(time.time_ns())  # wall time the frame was seen (its arrival, for process_quiet)
         return Gst.PadProbeReturn.DROP
 
     def detections_probe(self, pad, info):
@@ -160,12 +160,12 @@ def attach(pipeline, cam, send):
     if gate is None:
         # fps is only the fallback when a frame has no timestamp; a branch built for a live-added camera exists
         # before the camera's fields are filled in, so it may not be known yet (frame timestamps are used then)
-        gate = cam["motion"] = Gate(cam.get("fps") or 10, lambda pts, c=cam: send(c, ("quiet", pts)))
+        gate = cam["motion"] = Gate(cam.get("fps") or 10, lambda seen_ns, c=cam: send(c, ("quiet", seen_ns)))
         pipeline.get_by_name(f"mg{n}").get_static_pad("sink").add_probe(Gst.PadProbeType.BUFFER, gate.gate_probe)
         pipeline.get_by_name(f"vd{n}").get_static_pad("src").add_probe(Gst.PadProbeType.BUFFER, gate.detections_probe)
         pipeline.get_by_name(f"fdet{n}").get_static_pad("src").add_probe(Gst.PadProbeType.BUFFER, gate.fire_probe)
     else:  # a reused idle branch: same probes, new camera
-        gate.on_quiet = lambda pts, c=cam: send(c, ("quiet", pts))
+        gate.on_quiet = lambda seen_ns, c=cam: send(c, ("quiet", seen_ns))
         gate.reset(cam.get("fps"))
     return gate
 
