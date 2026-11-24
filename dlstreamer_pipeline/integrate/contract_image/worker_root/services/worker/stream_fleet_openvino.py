@@ -25,7 +25,10 @@ PASS = ["CAMERAS_FILE", "APEXFABRIC_CAMERA_READY_DIR", "APEXFABRIC_WORKER_STOP_F
         # option A plate path (README "Plates inside the graph"); not set in the image, so its behaviour is unchanged
         "PLATE_INLINE", "PLATE_SELECT", "PLATE_VEH_MIN_W", "PLATE_PREPROC", "PLATE_NIREQ", "OCR_NIREQ", "PLATE_INTERVAL",
         "PLATE_C_EVERY", "PLATE_STATE", "PLATE_STABLE_S", "PLATE_CONFIRM_CONF", "PLATE_CHANGE", "PLATE_CHANGE_MOVE",
-        "PLATE_CHANGE_GROW", "PLATE_CHANGE_MAX_S", "FACE_INTERVAL", "FIRE_DEVICE"]
+        "PLATE_CHANGE_GROW", "PLATE_CHANGE_MAX_S", "FACE_INTERVAL", "FIRE_DEVICE",
+        # OpenCV image preparation (plate/OCR/fire crops) on the CPU, not OpenCL on the GPU (as T2; image ENV
+        # OPENCV_OPENCL_RUNTIME=disabled): with OpenCL, GPU load gave CL_OUT_OF_RESOURCES aborts of the engine (2026-11-24)
+        "OPENCV_OPENCL_RUNTIME"]
 # DL Streamer 2026.2 setup_dls_env.sh (Ubuntu branch), as her runs sourced it
 DLS = {
     "LIBVA_DRIVER_NAME": "iHD", "GST_VA_ALL_DRIVERS": "1", "LIBVA_DRIVERS_PATH": "/usr/lib/x86_64-linux-gnu/dri",
