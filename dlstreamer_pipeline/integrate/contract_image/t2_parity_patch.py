@@ -309,3 +309,54 @@ patch(root / "event_worker_shm.py", [
      "                        if v8.scene is not None and v8.last_scene != scene_before:\n"
      "                            scene_taken(observed)\n"),
 ])
+
+# G: clear error for a video format the engine cannot decode (T2 parity item 5, user decision 2026-11-24). T2 probes the
+# codec first and accepts only H.264/H.265; her engine also decodes MJPEG, MPEG-2 and H.265 (tested 2026-11-24), so
+# nothing is rejected up front. When a camera's source fails with a GStreamer stream error before it produced a single
+# frame (seen: MPEG-4 Part 2, "general stream error"), it is reported unavailable with reason decode_error (the contract's
+# reason list has no "unsupported format") instead of stream_disconnected, its format is named in the log (ffprobe in
+# the background; tcp:// sources are not probed - single-client senders, as T2), and it is retried every 60 s.
+patch(root / "integrate9.py", [
+    ("    def start(cam):\n"
+     "        _u = urlparse(cam[\"url\"])",
+     "    def start(cam):\n"
+     "        cam[\"frames_at_start\"] = int(cam[\"hdr\"][3])  # T2 parity G: did this start produce any frame?\n"
+     "        _u = urlparse(cam[\"url\"])"),
+    ("                log(f\"{cam['name']}: error from {path.rsplit('/', 1)[1]}: {err.message}\")\n"
+     "                remove(cam, \"error\")\n"
+     "                return\n",
+     "                log(f\"{cam['name']}: error from {path.rsplit('/', 1)[1]}: {err.message}\")\n"
+     "                undecodable = (int(cam[\"hdr\"][3]) <= cam.get(\"frames_at_start\", -1)\n"
+     "                               and err.domain == \"gst-stream-error-quark\")  # T2 parity G: no frame, stream error\n"
+     "                remove(cam, \"error\", \"decode_error\" if undecodable else \"stream_disconnected\")\n"
+     "                if undecodable:\n"
+     "                    cam[\"retry_at\"] = time.time() + 60\n"
+     "                    name_video_format(cam)\n"
+     "                return\n"),
+    ("    def remove(cam, why):\n",
+     "    def remove(cam, why, reason=\"stream_disconnected\"):  # T2 parity G: reason for the camera's health\n"),
+    ("        send(cam, (\"status\", \"unavailable\", \"stream_disconnected\"), droppable=False)\n"
+     "        log(f\"{cam['name']}: removed ({why}) in {(time.time() - t0) * 1000:.0f} ms\")\n",
+     "        send(cam, (\"status\", \"unavailable\", reason), droppable=False)\n"
+     "        log(f\"{cam['name']}: removed ({why}) in {(time.time() - t0) * 1000:.0f} ms\")\n"),
+    ("    def on_error(_bus, message):\n",
+     "    def name_video_format(cam):\n"
+     "        \"\"\"T2 parity G: log the camera's video format (ffprobe, background thread; not for tcp:// sources).\"\"\"\n"
+     "        url, name = cam[\"url\"], cam[\"name\"]\n"
+     "\n"
+     "        def probe():\n"
+     "            codec = \"unknown\"\n"
+     "            if urlparse(url).scheme.lower() != \"tcp\":\n"
+     "                import subprocess\n"
+     "                try:\n"
+     "                    out = subprocess.run([\"ffprobe\", \"-v\", \"error\", \"-select_streams\", \"v:0\", \"-show_entries\",\n"
+     "                                          \"stream=codec_name\", \"-of\", \"csv=p=0\", url], capture_output=True, text=True, timeout=20)\n"
+     "                    codec = out.stdout.strip().splitlines()[0] if out.stdout.strip() else \"unknown\"\n"
+     "                except (OSError, subprocess.SubprocessError, IndexError):\n"
+     "                    pass\n"
+     "            log(f\"{name}: video cannot be decoded here (format: {codec}; H.264, H.265, MJPEG and MPEG-2 can); \"\n"
+     "                f\"reported unavailable (decode_error), retried every 60 s\")\n"
+     "        threading.Thread(target=probe, daemon=True, name=f\"format-{name}\").start()\n"
+     "\n"
+     "    def on_error(_bus, message):\n"),
+])
