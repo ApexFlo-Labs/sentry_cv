@@ -572,3 +572,12 @@ patch(root / "integrate9.py", [
      '            log("FATAL frames go in but none come out for 60 s")\n'
      '            contract_glue.dump_threads("stall: nothing out for 60 s")\n'),
 ])
+
+# CONTRACT (live add onto a reused idle branch): the camera process's frame-request numbers start above the last ones
+# in its shared-memory header. The engine skips a request whose number it has already served ([16+2i] <= done); a
+# reused branch keeps the removed camera's numbers, so a new camera process counting from 1 was ignored until it
+# passed them ("frame no longer held", almost no packages; live-revision test R9, 2026-11-25).
+patch(root / "event_worker_shm.py", [
+    ("    req = [0]\n",
+     "    req = [max(int(v) for v in H[16:80:2])]  # CONTRACT: continue after the branch's previous camera's requests\n"),
+])
