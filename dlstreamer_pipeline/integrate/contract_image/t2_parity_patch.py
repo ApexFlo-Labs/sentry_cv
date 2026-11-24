@@ -374,8 +374,9 @@ patch(root / "integrate9.py", [
      "                         ctypes.c_void_p(cam[\"hdr\"].ctypes.data))\n"),
     ("        motion_gate.publish(cams)  # T2 parity D: quiet-frame counts -> each camera's shared-memory header\n",
      "        motion_gate.publish(cams)  # T2 parity D: quiet-frame counts -> each camera's shared-memory header\n"
-     "        for c in cams:  # T2 parity H: say once per camera that its frames come without timestamps\n"
-     "            if c.get(\"hdr\") is not None and int(c[\"hdr\"][22]) > 0 and not c.get(\"pts_logged\"):\n"
-     "                c[\"pts_logged\"] = True\n"
-     "                log(f\"{c['name']}: camera sends frames without timestamps; they get their arrival time (as C18)\")\n"),
+     "        for c in cams:  # T2 parity H: frames without timestamps, counted; logged when the count changes, at most once a minute\n"
+     "            if c.get(\"hdr\") is not None and int(c[\"hdr\"][22]) != c.get(\"pts_logged\", 0) and time.time() - c.get(\"pts_logged_at\", 0) >= 60:\n"
+     "                c[\"pts_logged\"], c[\"pts_logged_at\"] = int(c[\"hdr\"][22]), time.time()\n"
+     "                log(f\"{c['name']}: {c['pts_logged']} frames so far came without a timestamp (of {int(c['hdr'][3])} in); \"\n"
+     "                    f\"they got their arrival time (as C18)\")\n"),
 ])
