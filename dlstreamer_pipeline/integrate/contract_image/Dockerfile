@@ -41,7 +41,7 @@ ENV HANDOFF_PROCESS=1 HANDOFF_QUEUE=64 PIX_VIA_MAP=1 CFACES=1 POLICY_OURS=1 \
 # frame (NPU), vehicles >= 80 px, every 5th frame, confirmed plates skipped 60 s, unchanged vehicles skipped; faces every 5th
 ENV PLATE_INLINE=1 PLATE_SELECT=1 PLATE_VEH_MIN_W=80 PLATE_PREPROC=opencv PLATE_NIREQ=4 PLATE_INTERVAL=1 \
     PLATE_C_EVERY=5 PLATE_STATE=1 PLATE_CHANGE=1 FACE_INTERVAL=5 FIRE_DEVICE=GPU \
-    PLATE_CONFIRM_CONF=0.88
+    PLATE_CONFIRM_CONF=0.88 PLATE_C=1
 # PLATE_CONFIRM_CONF: the C plate state stops re-reading a vehicle only at a read V8 may send alone (strict 0.88;
 # t2_parity_patch.py A), so it never cuts V8's 2-read / single-read confirmation short
 
