@@ -28,7 +28,7 @@ from pathlib import Path
 
 IMAGE, BASE_STATE, FIXTURE, OUT = sys.argv[1], Path(sys.argv[2]), sys.argv[3], Path(sys.argv[4]).resolve()
 REPO = Path.home() / "Documents/sentry_cv"
-PORT, SRC = 18495, (19851, 19852, 19853, 19854, 19855)
+PORT, SRC = int(os.getenv("TEST_API_PORT", "18495")), (19851, 19852, 19853, 19854, 19855)  # TEST_API_PORT: run next to camera_types_test.py
 NAME = "dlsint-revision-per-camera"
 OBSERVE = 75
 results, samples, stop_sampling = [], [], threading.Event()
