@@ -27,6 +27,27 @@ def enable_crash_report():
     faulthandler.enable(all_threads=True)
 
 
+def dump_threads(reason):
+    """Before the worker stops itself (stall): where every thread is - Python stacks (faulthandler) and, per thread,
+    its name and what the kernel says it waits on (wchan), so a freeze can be traced to the step that holds it."""
+    import faulthandler
+    print(f"{time.strftime('%T')} THREAD DUMP ({reason})", flush=True)
+    try:
+        for task in sorted(os.listdir("/proc/self/task"), key=int):
+            base = f"/proc/self/task/{task}"
+            try:
+                comm = open(f"{base}/comm").read().strip()
+                wchan = open(f"{base}/wchan").read().strip() or "-"
+                state = open(f"{base}/stat").read().split(")")[-1].split()[0]
+            except OSError:
+                continue
+            print(f"  thread {task} {comm:<16} state {state} waits in {wchan}", flush=True)
+    except OSError:
+        pass
+    faulthandler.dump_traceback(all_threads=True)
+    sys.stderr.flush()
+
+
 def die_with_parent():
     """Child processes end when the worker ends, also on SIGKILL from the supervisor (no orphan event processes
     publishing with an old revision, no orphan holding NPU/GPU contexts)."""

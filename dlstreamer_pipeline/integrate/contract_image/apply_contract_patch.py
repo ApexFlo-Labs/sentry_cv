@@ -564,3 +564,11 @@ patch(root / "integrate9.py", [
      "import contract_glue  # noqa: E402  (V8 supervisor interface: ready/stop files, child processes)\n"
      "contract_glue.enable_crash_report()\n"),
 ])
+
+# Stall diagnosis: before the worker stops itself because nothing came out for 60 s, every thread's state is logged
+# (contract_glue.dump_threads), so an engine freeze can be traced to the step that holds it.
+patch(root / "integrate9.py", [
+    ('            log("FATAL frames go in but none come out for 60 s")\n',
+     '            log("FATAL frames go in but none come out for 60 s")\n'
+     '            contract_glue.dump_threads("stall: nothing out for 60 s")\n'),
+])
