@@ -120,3 +120,21 @@ void cmotion_stats(void *gp, long *out) {  /* tracking, passed, quiet, motion, s
     out[4] = g->sweeps; out[5] = g->fire_hits; out[6] = g->det_hits;
     mg_unlock(g);
 }
+
+/* ---------------- T2 parity H: frames without timestamps (as C18's missing-PTS recovery) ----------------
+   Some cameras send frames without timestamps (seen: MJPEG over HTTP, every frame); her fps step (videorate) then drops
+   every frame and the camera produces nothing. A pad probe right after the source's decoder gives such a frame the
+   pipeline running time of its arrival (CLOCK_MONOTONIC - base time from the camera's shared-memory header [7]) and
+   counts it in header [22]. Frames that carry a timestamp are not touched. */
+static int stamp_probe(void *pad, ProbeInfo *info, void *data) {
+    volatile long long *h = data;
+    if (buf_pts(info->data) != -1) return PROBE_OK;  /* GST_CLOCK_TIME_NONE */
+    long long base = h[7];
+    if (base <= 0) return PROBE_OK;
+    void *b = gst_mini_object_make_writable(info->data);
+    info->data = b;
+    *(long long *)((unsigned char *)b + 72) = now_ns(CLOCK_MONOTONIC) - base;  /* GstBuffer.pts */
+    __atomic_add_fetch(&h[22], 1, __ATOMIC_RELAXED);
+    return PROBE_OK;
+}
+void cstamp_attach(void *pad, void *header) { gst_pad_add_probe(pad, PROBE_TYPE_BUFFER, stamp_probe, header, 0); }

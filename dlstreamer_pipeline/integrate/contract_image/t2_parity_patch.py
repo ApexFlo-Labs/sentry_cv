@@ -360,3 +360,22 @@ patch(root / "integrate9.py", [
      "\n"
      "    def on_error(_bus, message):\n"),
 ])
+
+# H: frames without timestamps (T2 parity item 7; C18 had a missing-PTS recovery). MJPEG over HTTP delivers every frame
+# without a timestamp and her fps step dropped them all (0 frames, no error). cmotion.c cstamp_attach: a probe after the
+# source's decoder stamps such frames with their arrival (running time); the count is logged once per camera.
+patch(root / "integrate9.py", [
+    ("        desc = (f\"{_src} ! vapostproc ! video/x-raw(memory:VAMemory),format=NV12 \"",
+     "        desc = (f\"{_src} ! vapostproc name=srcpp ! video/x-raw(memory:VAMemory),format=NV12 \""),
+    ("        cg.creader_attach_in(cam[\"creader\"], ctypes.c_void_p(hash(src)))  # frame counting in C\n",
+     "        cg.creader_attach_in(cam[\"creader\"], ctypes.c_void_p(hash(src)))  # frame counting in C\n"
+     "        cg.cstamp_attach.argtypes = [ctypes.c_void_p, ctypes.c_void_p]  # T2 parity H: frames without timestamps\n"
+     "        cg.cstamp_attach(ctypes.c_void_p(hash(cam[\"bin\"].get_by_name(\"srcpp\").get_static_pad(\"src\"))),\n"
+     "                         ctypes.c_void_p(cam[\"hdr\"].ctypes.data))\n"),
+    ("        motion_gate.publish(cams)  # T2 parity D: quiet-frame counts -> each camera's shared-memory header\n",
+     "        motion_gate.publish(cams)  # T2 parity D: quiet-frame counts -> each camera's shared-memory header\n"
+     "        for c in cams:  # T2 parity H: say once per camera that its frames come without timestamps\n"
+     "            if c.get(\"hdr\") is not None and int(c[\"hdr\"][22]) > 0 and not c.get(\"pts_logged\"):\n"
+     "                c[\"pts_logged\"] = True\n"
+     "                log(f\"{c['name']}: camera sends frames without timestamps; they get their arrival time (as C18)\")\n"),
+])
