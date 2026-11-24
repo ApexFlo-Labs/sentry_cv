@@ -307,6 +307,13 @@ REVISION_CODE = """
         if not cg.cface_attach_embed(c["cface"], src("ae"), ada, os.getenv("ADA_DEVICE", "NPU").encode()):
             raise RuntimeError("AdaFace step not attached")
         cg.cface_attach_json(c["cface"], src("mc"))
+        if PLATE_SELECT:  # option A plate steps, as main() attaches them per camera (otherwise this camera reads no plates)
+            sel = cg.cplate_attach_select(src("pv"), PLATE_VEH_MIN_W)
+            cg.cplate_config_change(ctypes.c_void_p(sel), int(os.getenv("PLATE_C_EVERY") or 0), int(os.getenv("PLATE_CHANGE") == "1"),
+                                    float(os.getenv("PLATE_CHANGE_MOVE") or 0.15), float(os.getenv("PLATE_CHANGE_GROW") or 1.25),
+                                    float(os.getenv("PLATE_CHANGE_MAX_S") or 3.0))
+            if plate_state:
+                cg.cplate_attach_report(ctypes.c_void_p(sel), src("pr"), stable_s, confirm)
         strip.strip_batch_meta(sinkpad("fmc"))
         c["shm"] = shared_memory.SharedMemory(create=True, size=event_worker.shm_bytes())
         c["hdr"] = np.ndarray((128,), dtype=np.int64, buffer=c["shm"].buf)

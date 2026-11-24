@@ -37,6 +37,10 @@ ENV HANDOFF_PROCESS=1 HANDOFF_QUEUE=64 PIX_VIA_MAP=1 CFACES=1 POLICY_OURS=1 \
     VEH_MODEL=/opt/dls-integrate/home/chandana_optimization/integrate/models/vehicle_qaft_int8_b1.xml \
     CPU_OPT=threads CPU_OPT_THREADS=2 SCENE_DEVICE=NPU BODY_DEVICE=NPU GAIT_DEVICE=NPU HEAD_POSE_DEVICE=NPU \
     WARMUP_S=120 T_GAIT_SCALE=1
+# option A (her run_option_a.sh, commit d6d8d81; user decision 2026-11-24): plates + OCR inside the graph on the native
+# frame (NPU), vehicles >= 80 px, every 5th frame, confirmed plates skipped 60 s, unchanged vehicles skipped; faces every 5th
+ENV PLATE_INLINE=1 PLATE_SELECT=1 PLATE_VEH_MIN_W=80 PLATE_PREPROC=opencv PLATE_NIREQ=4 PLATE_INTERVAL=1 \
+    PLATE_C_EVERY=5 PLATE_STATE=1 PLATE_CHANGE=1 FACE_INTERVAL=5 FIRE_DEVICE=GPU
 
 LABEL org.opencontainers.image.title="sentinel-cv-dls-integrate" \
       org.opencontainers.image.source="https://github.com/ApexFlo-Labs/sentry_cv" \

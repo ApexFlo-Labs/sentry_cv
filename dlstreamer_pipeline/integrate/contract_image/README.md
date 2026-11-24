@@ -36,6 +36,7 @@ in the image but not used: the V8 supervisor runs instead (it also handles per-c
 | 8 | Camera down at start, or added while unreachable: reported unavailable and retried; its idle branch's errors are not fatal | patch | runtimeAvailability, cameraIsolation |
 | 9 | Camera sources: RTSP sets up only video tracks, over TCP (site report 2026-11-19: cameras with audio/metadata tracks failed "not-linked"); TLS without CA matching (rtsps/https), user decision 2026-11-18 | `contract_glue.camera_source_setup` | adapter source types |
 | 16 | No core files (RLIMIT_CORE 0): crashes filled the host disk with 5-6 GB cores through apport | shim | resources |
+| 17 | Option A on (her `run_option_a.sh`, d6d8d81; user decision 2026-11-24): plates + OCR inside the graph on the native frame (NPU), vehicles >= 80 px, every 5th frame, confirmed plates skipped 60 s, unchanged vehicles skipped; faces every 5th frame (was 43rd). A camera added live gets the same plate C steps | Dockerfile ENV, patch (build_branch) | — |
 | 10 | Shared memory as V8: /dev/shm when it holds every camera's blocks, else files in /tmp/sentinel/shm | `contract_glue.install_shared_memory` | resources (writable mounts) |
 | 11 | OpenVINO caches in /tmp/sentinel, one shared cache with compiles taking turns (file lock) | `contract_glue.child`, shim | resources |
 | 12 | A dead camera event process is restarted alone (max 5); near-zero output for 60 s (GPU hang) stops the worker; a worker that exits is restarted with the last valid revision (5 s .. 300 s backoff) | patch, `dls_entrypoint.py` | cameraIsolation, recovery |
@@ -43,7 +44,7 @@ in the image but not used: the V8 supervisor runs instead (it also handles per-c
 | 14 | Secondary branch camera list generated from the real cameras | shim | up to 50 cameras |
 | 15 | Ubuntu's GStreamer 1.24 Python bindings removed (they shadowed DL Streamer's 1.28 ones) | Dockerfile | — |
 
-Not changed: her models, her policy (face every 43rd frame, body/gait 0.7 frames/s, scene every 7th identity frame,
+Not changed: her models, her policy (body/gait 0.7 frames/s, scene every 7th identity frame,
 plates 1 read OCR >= 0.40), her V8 code copy, her handoff scheduler (only its dispatch loop re-reads its connections).
 
 ## Build
