@@ -238,6 +238,7 @@ class CameraStatus:
                                 retry_backoff_seconds=0.0)
         self.fps, self.H, self.state = float(fps), header, "starting"
         self.t_last, self.in_last, self.out_last = time.monotonic(), int(header[3]), int(header[0])
+        self.quiet_total = self.quiet_last = 0
 
     def attach(self, session_id):
         self.decoder.set_session(session_id)
@@ -258,19 +259,28 @@ class CameraStatus:
     def skipped(self, key):
         self.telemetry.count(key)
 
+    def quiet(self):
+        """A frame the motion gate kept from the models (nothing moved): decoded and seen, not inferred (as T2)."""
+        self.decoder.frame()
+        self.telemetry.frame(inferred=False)
+        self.quiet_total += 1
+
     def tick(self):
-        """Every 2 s: requested vs. delivered fps, frames the engine dropped (leaky queues) - reported, never hidden."""
+        """Every 2 s: requested vs. delivered fps, frames the engine dropped (leaky queues) - reported, never hidden.
+        Motion-gate quiet frames count as delivered (handled, no models needed), never as dropped."""
         now = time.monotonic()
         dt = now - self.t_last
         if dt < 2.0:
             return
         frames_in, frames_out = int(self.H[3]), int(self.H[0])
         d_in, d_out = frames_in - self.in_last, frames_out - self.out_last
-        self.t_last, self.in_last, self.out_last = now, frames_in, frames_out
+        d_quiet = self.quiet_total - self.quiet_last
+        self.t_last, self.in_last, self.out_last, self.quiet_last = now, frames_in, frames_out, self.quiet_total
         self.telemetry.set_gauge("requested_fps", self.fps)
         self.telemetry.set_gauge("engine_input_fps", d_in / dt)
         self.telemetry.set_gauge("engine_output_fps", d_out / dt)
-        self.telemetry.set_gauge("engine_dropped_fps", max(0, d_in - d_out) / dt)
-        self.telemetry.set_gauge("delivered_fraction_of_requested", (d_out / dt) / self.fps if self.fps else 0.0)
-        if d_in > d_out:
-            self.telemetry.count("engine_dropped_frames", d_in - d_out)
+        self.telemetry.set_gauge("motion_quiet_fps", d_quiet / dt)
+        self.telemetry.set_gauge("engine_dropped_fps", max(0, d_in - d_out - d_quiet) / dt)
+        self.telemetry.set_gauge("delivered_fraction_of_requested", ((d_out + d_quiet) / dt) / self.fps if self.fps else 0.0)
+        if d_in > d_out + d_quiet:
+            self.telemetry.count("engine_dropped_frames", d_in - d_out - d_quiet)
