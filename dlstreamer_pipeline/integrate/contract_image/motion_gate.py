@@ -17,7 +17,7 @@ import ctypes
 import os
 
 ENABLED = os.getenv("MOTION_GATE", "1") != "0"
-QUIET_SLOT = 20  # int64 slot in each camera's shared-memory header: quiet frames so far (engine -> event process)
+QUIET_SLOT = 100  # int64 slot (16..79 are her frame-request slots) in each camera's shared-memory header: quiet frames so far (engine -> event process)
 ELEMENT = ("gvamotiondetect name=mot{n} pixel-diff-threshold=15 motion-threshold=0.05 block-size=64 confirm-frames=1 "
            "min-persistence=1 max-miss=0 min-rel-area=0.0005 ! identity name=mg{n} silent=true ! ")
 _STATS = ("tracking", "passed", "quiet", "motion", "sweeps", "fire_hits", "det_hits")

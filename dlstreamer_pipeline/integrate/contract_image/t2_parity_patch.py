@@ -236,7 +236,7 @@ patch(root / "event_worker_shm.py", [
      "                    observed = arrival_s(arrival, t_real)\n"),
     ("        newest = int(H[0])\n"
      "        if newest > last_main:\n",
-     "        quiet_now = int(H[20])  # T2 parity D: frames the motion gate kept from the models (published once a second)\n"
+     "        quiet_now = int(H[100])  # T2 parity D: frames the motion gate kept from the models (published once a second)\n"
      "        if quiet_count[0] is None or quiet_now < quiet_count[0]:\n"
      "            quiet_count[0] = quiet_now\n"
      "        elif quiet_now > quiet_count[0]:\n"
@@ -375,8 +375,8 @@ patch(root / "integrate9.py", [
     ("        motion_gate.publish(cams)  # T2 parity D: quiet-frame counts -> each camera's shared-memory header\n",
      "        motion_gate.publish(cams)  # T2 parity D: quiet-frame counts -> each camera's shared-memory header\n"
      "        for c in cams:  # T2 parity H: frames without timestamps, counted; logged when the count changes, at most once a minute\n"
-     "            if c.get(\"hdr\") is not None and int(c[\"hdr\"][22]) != c.get(\"pts_logged\", 0) and time.time() - c.get(\"pts_logged_at\", 0) >= 60:\n"
-     "                c[\"pts_logged\"], c[\"pts_logged_at\"] = int(c[\"hdr\"][22]), time.time()\n"
+     "            if c.get(\"hdr\") is not None and int(c[\"hdr\"][101]) != c.get(\"pts_logged\", 0) and time.time() - c.get(\"pts_logged_at\", 0) >= 60:\n"
+     "                c[\"pts_logged\"], c[\"pts_logged_at\"] = int(c[\"hdr\"][101]), time.time()\n"
      "                log(f\"{c['name']}: {c['pts_logged']} frames so far came without a timestamp (of {int(c['hdr'][3])} in); \"\n"
      "                    f\"they got their arrival time (as C18)\")\n"),
 ])
