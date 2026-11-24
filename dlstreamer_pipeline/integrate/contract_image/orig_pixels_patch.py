@@ -193,3 +193,10 @@ patch(root / "event_worker_shm.py", [
      "            lazy_state[\"raw\"] = wait_slot(pts, 0)\n"
      "        return lazy_state.get(\"raw\")\n"),
 ])
+
+# ANPR like the face path: OCR's crop preparation becomes a setting (OCR_PREPROC, default her opencv), as the plate
+# detector's already is (PLATE_PREPROC); both cut only the box from the original frame. 'va' = GPU crop + resize.
+patch(root / "integrate9.py", [
+    ("model-proc={P}/ocr_model_proc.json device={OCR_DEV} pre-process-backend=opencv ",
+     "model-proc={P}/ocr_model_proc.json device={OCR_DEV} pre-process-backend={os.getenv('OCR_PREPROC') or 'opencv'} "),
+])
