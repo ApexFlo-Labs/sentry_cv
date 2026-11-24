@@ -138,9 +138,14 @@ patch(root / "event_worker_shm.py", [
      "    v8._gait_store = v8.gait  # T2 parity C: gait cleanup also on frames where her schedule sets v8.gait = None\n"),
 ])
 
-# D: motion gate as T2 (contract_image/motion_gate.py): gvamotiondetect + T2's SurfaceSwitch before the shared detector
-# of each camera branch; quiet frames are dropped there and reported to the camera's rules (process_quiet); the stall
-# check counts quiet frames as frames that came out (a still scene is not a stall).
+# D: motion gate as T2 (contract_image/motion_gate.py + cmotion.c): gvamotiondetect + T2's SurfaceSwitch (in C) before
+# the shared detector of each camera branch; quiet frames are dropped there, their count is published to the camera's
+# shared-memory header once a second and the camera's rules run process_quiet for each; the stall check counts quiet
+# frames as frames that came out (a still scene is not a stall).
+_cgates = root / "gatesc" / "cgates.c"
+_cgates.write_text(_cgates.read_text(encoding="utf-8") + (Path(__file__).resolve().parent / "cmotion.c").read_text(encoding="utf-8"),
+                   encoding="utf-8")
+print(f"appended cmotion.c to {_cgates}")
 patch(root / "integrate9.py", [
     ("import contract_glue  # noqa: E402  (V8 supervisor interface: ready/stop files, child processes)\n",
      "import contract_glue  # noqa: E402  (V8 supervisor interface: ready/stop files, child processes)\n"
@@ -152,17 +157,25 @@ patch(root / "integrate9.py", [
      "    quiet_last = [0]  # T2 parity D: motion-gate quiet frames counted at the last report\n"),
     ("        cg.cgates_attach_dedup_real(src(\"vd\"))  # really removes duplicates (rebuilds the analytics meta)\n",
      "        cg.cgates_attach_dedup_real(src(\"vd\"))  # really removes duplicates (rebuilds the analytics meta)\n"
-     "        motion_gate.attach(pipeline, c, lambda cam, msg: send(cam, msg))  # T2 parity D\n"),
+     "        motion_gate.attach(pipeline, c, cg)  # T2 parity D\n"),
     ("            raise RuntimeError(\"head-pose step not attached\")\n",
      "            raise RuntimeError(\"head-pose step not attached\")\n"
-     "        motion_gate.attach(pipeline, c, send)  # T2 parity D: same gate on a branch built live\n"),
+     "        motion_gate.attach(pipeline, c, cg)  # T2 parity D: same gate on a branch built live\n"),
+    ("            how = f\"idle branch {c['n']} reused\"\n",
+     "            how = f\"idle branch {c['n']} reused\"\n"
+     "            motion_gate.attach(pipeline, c, cg)  # T2 parity D: the branch's gate starts fresh for the new camera\n"),
+    ("    def watchdog():\n"
+     "        if contract_glue.stop_requested():",
+     "    def watchdog():\n"
+     "        motion_gate.publish(cams)  # T2 parity D: quiet-frame counts -> each camera's shared-memory header\n"
+     "        if contract_glue.stop_requested():"),
     ("        stalled[0] = stalled[0] + 1 if total_in > 0 and main_rate < 0.05 * sum(",
      "        quiet_now = motion_gate.quiet_total(cams)\n"
      "        quiet_rate = max(0.0, (quiet_now - quiet_last[0]) / REPORT)\n"
      "        quiet_last[0] = quiet_now\n"
      "        if motion_gate.ENABLED:\n"
      "            log(f\"motion gate: quiet {quiet_rate:.1f}/s (dropped before the detector), cameras active \"\n"
-     "                f\"{sum(1 for c in cams if c.get('motion') is not None and c['motion'].switch.tracking)}/{len(cams)} | \"\n"
+     "                f\"{sum(1 for c in cams if c.get('motion') is not None and motion_gate.stats(c)['tracking'])}/{len(cams)} | \"\n"
      "                + motion_gate.summary(cams))\n"
      "        stalled[0] = stalled[0] + 1 if total_in > 0 and main_rate + quiet_rate < 0.05 * sum("),
 ])
@@ -221,19 +234,27 @@ patch(root / "event_worker_shm.py", [
      "                    observed = t_real / 1e9\n",
      "                    add(\"fire\", 1)\n"
      "                    observed = arrival_s(arrival, t_real)\n"),
-    ("            if message[0] == \"status\":\n",
-     "            if message[0] == \"quiet\":  # T2 parity D: a frame the motion gate kept from the models\n"
-     "                try:\n"
-     "                    quiet_count[0] += 1\n"
-     "                    v8.process_quiet(int(message[1]) / 1e9, frame_count)  # wall time the gate saw it\n"
+    ("        newest = int(H[0])\n"
+     "        if newest > last_main:\n",
+     "        quiet_now = int(H[20])  # T2 parity D: frames the motion gate kept from the models (published once a second)\n"
+     "        if quiet_count[0] is None or quiet_now < quiet_count[0]:\n"
+     "            quiet_count[0] = quiet_now\n"
+     "        elif quiet_now > quiet_count[0]:\n"
+     "            t_quiet = time.time()\n"
+     "            try:\n"
+     "                for _ in range(min(quiet_now - quiet_count[0], 120)):\n"
+     "                    v8.process_quiet(t_quiet, frame_count)\n"
      "                    _status.quiet()\n"
-     "                except Exception as exc:  # noqa: BLE001\n"
-     "                    add(\"errors\", 1)\n"
-     "                    print(f\"{time.strftime('%T')} {name}: quiet frame error: {type(exc).__name__}: {exc}\", flush=True)\n"
-     "            if message[0] == \"status\":\n"),
+     "            except Exception as exc:  # noqa: BLE001\n"
+     "                add(\"errors\", 1)\n"
+     "                print(f\"{time.strftime('%T')} {name}: quiet frame error: {type(exc).__name__}: {exc}\", flush=True)\n"
+     "            quiet_count[0] = quiet_now\n"
+     "            did = True\n"
+     "        newest = int(H[0])\n"
+     "        if newest > last_main:\n"),
     ("    scene_phase = zlib.crc32(name.encode(\"utf-8\")) % 7  # as the secondary code's scene phase per camera\n",
      "    scene_phase = zlib.crc32(name.encode(\"utf-8\")) % 7  # as the secondary code's scene phase per camera\n"
-     "    quiet_count = [0]\n"
+     "    quiet_count = [None]  # T2 parity D: quiet frames already handled (None: take the current count at start)\n"
      "    id_sec = [None]  # T2 parity F: last wall-clock second that had an identity frame\n"
      "\n"
      "    def identity_due(t):\n"
