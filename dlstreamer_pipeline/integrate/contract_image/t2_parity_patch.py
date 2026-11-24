@@ -245,14 +245,18 @@ patch(root / "event_worker_shm.py", [
      "        while scene_grid[\"due\"] is not None and scene_grid[\"due\"] <= now:\n"
      "            scene_grid[\"due\"] += SCENE_PERIOD\n"),
     ("                                  or (frame_count % fps == 0 and (frame_count // fps) % 10 < 7))  # identity frame (0.7/s)\n",
-     "                                  or identity_due(observed))  # identity frame (0.7/s, by the clock: T2 parity F)\n"),
+     "                                  or identity_due(observed) or scene_due(observed))  # identity frame (0.7/s, by the clock) or scene slot: T2 parity F\n"),
     ("                            second = frame_count // fps\n"
      "                            identity_frame = (frame_count % fps == 0) and (second % 10 < 7)\n",
      "                            identity_frame = identity_due(observed)  # T2 parity F: 1/s by the clock, 7 of every 10 s\n"
      "                            if identity_frame:\n"
      "                                id_sec[0] = int(observed)\n"),
     ("                                v8.scene = id_models[2] if (k + scene_phase) % 7 == 0 else None\n",
-     "                                v8.scene = id_models[2] if scene_due(observed) else None  # T2 parity F: own slot\n"),
+     "                                v8.scene = None  # T2 parity F: set below, on this camera's own slot\n"),
+    ("                            add(\"identity_frames\", int(identity_frame))\n",
+     "                            add(\"identity_frames\", int(identity_frame))\n"
+     "                            if ours_policy:  # T2 parity F: scene on its own slot, checked on every frame\n"
+     "                                v8.scene = id_models[2] if scene_due(observed) else None\n"),
     ("                        v8.process(packet, faces)\n",
      "                        scene_before = dict(v8.last_scene)\n"
      "                        v8.process(packet, faces)\n"

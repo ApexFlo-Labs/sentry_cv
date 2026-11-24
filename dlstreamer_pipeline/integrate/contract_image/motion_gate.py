@@ -7,8 +7,9 @@ T2's design, same element and same numbers:
   while quiet, one frame every 5 s still goes to the models (safety sweep);
   quiet frames are dropped BEFORE the shared detector (no inference, tracking, faces, plates or pixels) and are reported
   to the camera's rules as quiet frames (V8EventPipeline.process_quiet), as T2's DlsMotionPolicyGate does.
-The fire/smoke branch is split off before the gate and is never gated (as T2). The "motion" regions are removed after
-the vote, so they never reach the detector's output, the tracker or the events.
+The fire/smoke branch is split off before the gate and is never gated (as T2). As in T2 the "motion" regions stay on
+the frame (DL Streamer's Python API cannot remove them); the rules ignore that label, the detector and the plate/face
+steps only use their own classes.
 MOTION_GATE=0 turns it off (every frame to the detector, as before).
 """
 import collections
@@ -107,10 +108,7 @@ class Gate:
         buffer = info.get_buffer()
         if buffer is None:
             return Gst.PadProbeReturn.OK
-        frame = VideoFrame(buffer, caps=pad.get_current_caps())
-        motion = [r for r in frame.regions() if r.label() == "motion"]
-        for r in motion:  # the vote is read; the regions never go further
-            frame.remove_region(r)
+        motion = [r for r in VideoFrame(buffer, caps=pad.get_current_caps()).regions() if r.label() == "motion"]
         pts = int(buffer.pts)
         with self.lock:
             self.motion_frames += bool(motion)
