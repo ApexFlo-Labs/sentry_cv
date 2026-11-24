@@ -38,9 +38,10 @@ sed -i "s#/home/admin1/chandana_optimization#/opt/dls-integrate/home/chandana_op
 rm -rf "$C/dlstreamer_pipeline" "$C/edge_app" "$C/models"
 
 echo "== 2. contract glue (copies only; every edit must match exactly once)"
-cp "$B/contract_glue.py" "$B/motion_gate.py" "$R/integrate/"
+cp "$B/contract_glue.py" "$B/motion_gate.py" "$B/face_gate.py" "$R/integrate/"
 python3 "$B/apply_contract_patch.py" "$R/integrate"
 python3 "$B/t2_parity_patch.py" "$R/integrate"   # T2 parity functions (user decision 2026-11-24)
+python3 "$B/face_patch.py" "$R/integrate"        # WHENet pose + clear-face gate (user decision 2026-11-24)
 mkdir -p "$C/dls/worker-root/services/worker" "$C/dls/runtime"
 cp "$B/worker_root/services/worker/stream_fleet_openvino.py" "$C/dls/worker-root/services/worker/"
 cp -r "$B/runtime/traffic_pilot_runtime" "$B/runtime/image_schema" "$B/dls_entrypoint.py" "$C/dls/runtime/"
