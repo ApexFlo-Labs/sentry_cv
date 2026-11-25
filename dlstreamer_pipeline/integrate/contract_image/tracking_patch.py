@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Tracking test switches (user 2026-11-25: compare trackers and the body reconnect). Defaults keep the pipeline as is.
+  BODY_EVERY=N   body (TransReID) on every Nth frame as well, so every person has a recent body vector (V8 still
+                 computes at most one per person per second, as T2). 0 = off.
   REID_INTERVAL  deep-sort only: TransReID every Nth frame (default 1)
   TRACKER_TYPE   gvatrack tracking-type (default zero-term-imageless, hers; T2 uses zero-term). deep-sort adds a
                  TransReID vector per person per frame (gvainference, GPU) in front of the tracker.
@@ -71,6 +73,8 @@ patch(root / "event_worker_shm.py", [
      'import collections\n'
      'TRACKER_TENTATIVE_OK = os.getenv("TRACKER_TYPE") == "deep-sort"  # tracking_patch.py\n'),
     ("                        v8.process(packet, faces)\n",
+     "                        if body_every and frame_count % body_every == 0 and v8.body is None and id_models[0] is not None:\n"
+     "                            v8.body = id_models[0]  # tracking_patch.py BODY_EVERY: body on every Nth frame (V8 keeps <= 1/s per person)\n"
      "                        reid_now = None\n"
      "                        if reid_on_new and v8.body is None and id_models[0] is not None:  # tracking_patch.py REID_ON_NEW\n"
      "                            if any(st[\"kind\"] == \"person\" and st[\"lost\"] and st.get(\"body_vector\") is not None for st in v8.presences.values()):\n"
@@ -87,6 +91,7 @@ patch(root / "event_worker_shm.py", [
      "    id_count = [0]\n"
      "    reid_on_new = os.getenv(\"REID_ON_NEW\") == \"1\"  # tracking_patch.py\n"
      "    reid_count = [0]  # body vectors computed for new tracks (tracking_patch.py)\n"
+     "    body_every = int(os.getenv(\"BODY_EVERY\", \"0\"))  # tracking_patch.py: body model on every Nth frame (0 = her schedule only)\n"
      "    if reid_on_new:\n"
      "        from pipeline import v8_events as _ve_r\n"
      "        _orig_bv = _ve_r.V8EventPipeline._body_vectors\n"
