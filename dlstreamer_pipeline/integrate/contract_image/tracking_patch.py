@@ -50,6 +50,17 @@ patch(root / "integrate9.py", [
 ])
 
 patch(root / "event_worker_shm.py", [
+    # deep-sort gives a person a track ID only after n_init frames (tentative tracks have none): skip those boxes
+    # instead of failing the frame (the zero-term trackers always attach one, so this changes nothing for them)
+    ('            if track_id is None:\n'
+     '                raise RuntimeError("gvatrack did not attach a track ID")\n',
+     '            if track_id is None:\n'
+     '                if TRACKER_TENTATIVE_OK:  # tracking_patch.py: deep-sort tentative track\n'
+     '                    continue\n'
+     '                raise RuntimeError("gvatrack did not attach a track ID")\n'),
+    ('import collections\n',
+     'import collections\n'
+     'TRACKER_TENTATIVE_OK = os.getenv("TRACKER_TYPE") == "deep-sort"  # tracking_patch.py\n'),
     ("                        v8.process(packet, faces)\n",
      "                        reid_now = None\n"
      "                        if reid_on_new and v8.body is None and id_models[0] is not None:  # tracking_patch.py REID_ON_NEW\n"
@@ -59,13 +70,14 @@ patch(root / "event_worker_shm.py", [
      "                                            and (\"person\", str(d.metadata[\"track_id\"])) not in v8.tracks}\n"
      "                                if reid_now:\n"
      "                                    v8.body, v8._reid_only = id_models[0], reid_now\n"
-     "                                    add(\"reid_on_new\", len(reid_now))\n"
+     "                                    reid_count[0] += len(reid_now)\n"
      "                        v8.process(packet, faces)\n"
      "                        if reid_now:\n"
      "                            v8.body, v8._reid_only = None, None\n"),
     ("    id_count = [0]\n",
      "    id_count = [0]\n"
      "    reid_on_new = os.getenv(\"REID_ON_NEW\") == \"1\"  # tracking_patch.py\n"
+     "    reid_count = [0]  # body vectors computed for new tracks (tracking_patch.py)\n"
      "    if reid_on_new:\n"
      "        from pipeline import v8_events as _ve_r\n"
      "        _orig_bv = _ve_r.V8EventPipeline._body_vectors\n"
