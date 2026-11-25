@@ -30,9 +30,9 @@ root = Path(sys.argv[1])
 # TransReID as a gvainference model for deep-sort: RGB 256x128, -1..1 (as person_reid.py "rgb256x128-minus1to1-v1")
 (root / "reid_model_proc.json").write_text(json.dumps({
     "json_schema_version": "2.2.0",
-    "input_preproc": [{"format": "image", "layer_name": "images",
-                       "params": {"color_space": "RGB", "resize": "no-aspect", "range": [-1.0, 1.0]}}],
-    "output_postproc": []}, indent=1))
+    "input_preproc": [{"format": "image",
+                       "params": {"color_space": "RGB", "resize": "no-aspect-ratio", "range": [-1.0, 1.0]}}],
+    "output_postproc": [{"converter": "raw_data_copy", "attribute_name": "reid", "layer_name": "feat"}]}, indent=1))
 
 patch(root / "integrate9.py", [
     ('PLATE_INLINE = os.getenv("PLATE_INLINE") == "1"\n',
