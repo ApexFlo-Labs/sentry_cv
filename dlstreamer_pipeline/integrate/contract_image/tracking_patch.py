@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Tracking test switches (user 2026-11-25: compare trackers and the body reconnect). Defaults keep the pipeline as is.
+  REID_INTERVAL  deep-sort only: TransReID every Nth frame (default 1)
   TRACKER_TYPE   gvatrack tracking-type (default zero-term-imageless, hers; T2 uses zero-term). deep-sort adds a
                  TransReID vector per person per frame (gvainference, GPU) in front of the tracker.
   REID_ON_NEW=1  V8 reconnects a lost person by body vector only when one exists on the frame a new track appears
@@ -42,7 +43,8 @@ patch(root / "integrate9.py", [
      'f"{TRACKER_ELEMS} ! {Q} ! '),
     ("    def branch_parts(n, parts):",
      "    TRACKER_ELEMS = (f\"gvainference model={SEC}/surveillance/transreid_ssl_int8.xml model-proc={HERE}/reid_model_proc.json \"\n"
-     "                     f\"device=GPU inference-region=roi-list object-class=person model-instance-id=reid-shared nireq=4 ! {Q} ! \"\n"
+     "                     f\"device=GPU inference-region=roi-list object-class=person model-instance-id=reid-shared nireq=4 \"\n"
+     "                     f\"inference-interval={os.getenv('REID_INTERVAL', '1')} ! {Q} ! \"  # REID_INTERVAL=5: ReID every 5th frame (as faces)\n"
      "                     f\"gvatrack tracking-type=deep-sort deepsort-trck-cfg=max_age=60,max_cosine_distance=0.3,object_class=person,reid_max_age=30\"\n"
      "                     if TRACKER_TYPE == \"deep-sort\" else f\"gvatrack tracking-type={TRACKER_TYPE}\")  # tracking_patch.py\n"
      "    log(f\"tracker: {TRACKER_TYPE}\")\n"
