@@ -44,6 +44,7 @@ python3 "$B/t2_parity_patch.py" "$R/integrate"   # T2 parity functions (user dec
 python3 "$B/face_patch.py" "$R/integrate"        # WHENet pose + clear-face gate (user decision 2026-11-24)
 python3 "$B/orig_pixels_patch.py" "$R/integrate" # crops from the original NV12 frame, crop area only (user decision 2026-11-24)
 python3 "$B/anpr_patch.py" "$R/integrate"        # ANPR like the face path: plate + OCR C step on NV12 crops (user decision 2026-11-25)
+python3 "$B/tracking_patch.py" "$R/integrate"    # tracking test switches: TRACKER_TYPE, REID_ON_NEW (defaults unchanged)
 mkdir -p "$C/dls/worker-root/services/worker" "$C/dls/runtime"
 cp "$B/worker_root/services/worker/stream_fleet_openvino.py" "$C/dls/worker-root/services/worker/"
 cp -r "$B/runtime/traffic_pilot_runtime" "$B/runtime/image_schema" "$B/dls_entrypoint.py" "$C/dls/runtime/"
