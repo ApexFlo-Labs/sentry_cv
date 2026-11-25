@@ -9,7 +9,8 @@
                  exists, a body vector is computed for the new track(s) only.
   FACE_RECONNECT=1  (user 2026-11-25: use face to keep a person's track) each person keeps its 5 best face vectors
                  (AdaFace, quality >= V8's face_min_quality); a new, not yet confirmed person track that shows a face is
-                 matched against MISSING or LOST people nearby (cosine >= FACE_MATCH 0.45, 0.05 ahead of the next) and
+                 matched against MISSING or LOST people nearby (missing <= 3 s: cosine >= 0.45 and 0.05 ahead of the next;
+                 3-10 s: >= 0.55 and 0.20 ahead; > 10 s: never - measured on ChokePoint 2026-11-25) and
                  continues that presence (presence_recovered if it was already lost; silent continuation if only missing,
                  as if the tracker had kept the ID). While such a person is missing nearby, a new track waits up to
                  FACE_HOLD_S (1 s, faces come every 5th frame) before it is confirmed; all other tracks confirm as before.
@@ -134,7 +135,13 @@ patch(V8, [
      "                         for st in self._missing_people(state, box, now, active_keys)), key=lambda x: -x[0])\n"
      "        if not scored or scored[0][0] < FACE_MATCH:\n"
      "            return None\n"
-     "        if len(scored) > 1 and scored[0][0] - scored[1][0] < 0.05:\n"
+     "        runner_up = scored[1][0] if len(scored) > 1 else -1.0\n"
+     "        gap = now - scored[0][1][\"last_seen\"]\n"
+     "        if gap > 10.0:  # measured 2026-11-25: wrong joins came from 14-23 s gaps\n"
+     "            return None\n"
+     "        if gap > 3.0 and (scored[0][0] < 0.55 or scored[0][0] - runner_up < 0.20):\n"
+     "            return None\n"
+     "        if scored[0][0] - runner_up < 0.05:\n"
      "            return None\n"
      "        if self.telemetry is not None:\n"
      "            self.telemetry.count(\"face_reconnect\")\n"
