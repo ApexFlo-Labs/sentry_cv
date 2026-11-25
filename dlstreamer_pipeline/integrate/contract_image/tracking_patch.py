@@ -138,6 +138,9 @@ patch(V8, [
      "            return None\n"
      "        if self.telemetry is not None:\n"
      "            self.telemetry.count(\"face_reconnect\")\n"
+     "        print(f\"face reconnect: similarity {scored[0][0]:.3f} (next {scored[1][0] if len(scored) > 1 else -1:.3f}) \"\n"
+     "              f\"missing {now - scored[0][1]['last_seen']:.1f} s lost={scored[0][1]['lost']} \"\n"
+     "              f\"track {scored[0][1]['track_id']} -> new track, quality {float(face.quality):.2f}\", flush=True)\n"
      "        return scored[0][1]\n"
      "\n"
      "    def _reassociate(self, kind, box, vector, now, active_keys, class_name=None):\n"),
