@@ -7,6 +7,12 @@
                  (T2 computes body vectors on every frame); her schedule has one ~every 4 s, so reconnects never happen.
                  With this switch, on a frame where a new person track appears AND a lost person with a body vector
                  exists, a body vector is computed for the new track(s) only.
+  FACE_RECONNECT=1  (user 2026-11-25: use face to keep a person's track) each person keeps its 5 best face vectors
+                 (AdaFace, quality >= V8's face_min_quality); a new, not yet confirmed person track that shows a face is
+                 matched against MISSING or LOST people nearby (cosine >= FACE_MATCH 0.45, 0.05 ahead of the next) and
+                 continues that presence (presence_recovered if it was already lost; silent continuation if only missing,
+                 as if the tracker had kept the ID). While such a person is missing nearby, a new track waits up to
+                 FACE_HOLD_S (1 s, faces come every 5th frame) before it is confirmed; all other tracks confirm as before.
 Applied after anpr_patch.py; every replacement must match exactly once, or the build stops.
 
     tracking_patch.py <context>/home/chandana_optimization/integrate
@@ -91,4 +97,90 @@ patch(root / "event_worker_shm.py", [
      "            return _orig_bv(self, packet, detections, now)\n"
      "        _ve_r.V8EventPipeline._body_vectors = _bv_only\n"
      "        print(f\"{time.strftime('%T')} {name}: body vector for new tracks when a lost person can be reconnected\", flush=True)\n"),
+])
+
+V8 = root / "v8code" / "pipeline" / "v8_events.py"
+patch(V8, [
+    ("import uuid\n",
+     "import uuid\n"
+     "FACE_RECONNECT = os.getenv(\"FACE_RECONNECT\") == \"1\"  # tracking_patch.py\n"
+     "FACE_MATCH = float(os.getenv(\"FACE_MATCH\", \"0.45\"))\n"
+     "FACE_HOLD_S = float(os.getenv(\"FACE_HOLD_S\", \"1.0\"))\n"),
+    # helpers next to V8's own reassociation
+    ("    def _reassociate(self, kind, box, vector, now, active_keys, class_name=None):\n",
+     "    def _missing_people(self, state, box, now, active_keys):  # tracking_patch.py FACE_RECONNECT\n"
+     "        out = []\n"
+     "        for st in self.presences.values():\n"
+     "            if st is state or st[\"kind\"] != \"person\" or not st.get(\"confirmed\") or st[\"track_key\"] in active_keys:\n"
+     "                continue\n"
+     "            if not st.get(\"face_mem\"):\n"
+     "                continue\n"
+     "            _, ended_after = self._presence_timeouts(st)\n"
+     "            if now - st[\"last_seen\"] > ended_after:\n"
+     "                continue\n"
+     "            if np.linalg.norm(np.subtract(self._center(box), self._center(st[\"box\"]))) > self._recovery_distance_limit(st, box):\n"
+     "                continue\n"
+     "            out.append(st)\n"
+     "        return out\n"
+     "\n"
+     "    def _face_reassociate(self, state, box, face, now, active_keys):  # tracking_patch.py FACE_RECONNECT\n"
+     "        if face is None or getattr(face, \"embedding\", None) is None:\n"
+     "            return None\n"
+     "        if float(face.quality) < float(self.policy.section(\"identity\")[\"face_min_quality\"]):\n"
+     "            return None\n"
+     "        v = np.asarray(face.embedding, np.float32).reshape(-1)\n"
+     "        v = v / (np.linalg.norm(v) + 1e-9)\n"
+     "        scored = sorted(((max(float(np.dot(v, m)) for _, m in st[\"face_mem\"]), st)\n"
+     "                         for st in self._missing_people(state, box, now, active_keys)), key=lambda x: -x[0])\n"
+     "        if not scored or scored[0][0] < FACE_MATCH:\n"
+     "            return None\n"
+     "        if len(scored) > 1 and scored[0][0] - scored[1][0] < 0.05:\n"
+     "            return None\n"
+     "        if self.telemetry is not None:\n"
+     "            self.telemetry.count(\"face_reconnect\")\n"
+     "        return scored[0][1]\n"
+     "\n"
+     "    def _reassociate(self, kind, box, vector, now, active_keys, class_name=None):\n"),
+    # a brand-new person presence is marked, so only those can be joined to a missing person by face
+    ("                    self.presences[state[\"id\"]] = state\n",
+     "                    self.presences[state[\"id\"]] = state\n"
+     "                    state[\"_new\"] = kind == \"person\"  # tracking_patch.py FACE_RECONNECT\n"),
+    # face match while the new track is not confirmed yet: it continues the missing/lost presence
+    ("            previous_last_seen = state[\"last_seen\"]\n",
+     "            if FACE_RECONNECT and state.get(\"_new\") and not state.get(\"confirmed\"):  # tracking_patch.py\n"
+     "                match = self._face_reassociate(state, item.bbox, face_by_track.get(track_id), now, active_keys)\n"
+     "                if match is not None:\n"
+     "                    self.presences.pop(state[\"id\"], None)\n"
+     "                    self.tracks.pop(match[\"track_key\"], None)\n"
+     "                    previous = match[\"track_id\"]\n"
+     "                    match[\"track_key\"], match[\"track_id\"] = key, track_id\n"
+     "                    self.tracks[key] = match\n"
+     "                    recovered_from = previous if match[\"lost\"] else None  # only missing: silent continuation\n"
+     "                    state = match\n"
+     "            previous_last_seen = state[\"last_seen\"]\n"),
+    # face memory: the 5 best faces of each person
+    ("            if vector is not None:\n"
+     "                state[\"body_vector\"] = vector\n"
+     "                state[\"last_body_at\"] = now\n",
+     "            if vector is not None:\n"
+     "                state[\"body_vector\"] = vector\n"
+     "                state[\"last_body_at\"] = now\n"
+     "            if FACE_RECONNECT and kind == \"person\":  # tracking_patch.py: face memory\n"
+     "                _f = face_by_track.get(track_id)\n"
+     "                if (_f is not None and getattr(_f, \"embedding\", None) is not None\n"
+     "                        and float(_f.quality) >= float(self.policy.section(\"identity\")[\"face_min_quality\"])):\n"
+     "                    _v = np.asarray(_f.embedding, np.float32).reshape(-1)\n"
+     "                    _mem = state.setdefault(\"face_mem\", [])\n"
+     "                    _mem.append((float(_f.quality), _v / (np.linalg.norm(_v) + 1e-9)))\n"
+     "                    _mem.sort(key=lambda x: -x[0])\n"
+     "                    del _mem[5:]\n"),
+    # short wait before confirming a new track while a missing person with a face memory is nearby
+    ("            if state[\"hits\"] < stable_hits:\n"
+     "                continue\n",
+     "            if state[\"hits\"] < stable_hits:\n"
+     "                continue\n"
+     "            if (FACE_RECONNECT and state.get(\"_new\") and not state.get(\"confirmed\")\n"
+     "                    and now - state[\"first_seen\"] < FACE_HOLD_S\n"
+     "                    and self._missing_people(state, item.bbox, now, active_keys)):  # tracking_patch.py\n"
+     "                continue\n"),
 ])
