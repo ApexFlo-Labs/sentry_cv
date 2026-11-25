@@ -42,6 +42,10 @@ ENV HANDOFF_PROCESS=1 HANDOFF_QUEUE=64 PIX_VIA_MAP=1 CFACES=1 POLICY_OURS=1 \
 ENV PLATE_INLINE=1 PLATE_SELECT=1 PLATE_VEH_MIN_W=80 PLATE_PREPROC=opencv PLATE_NIREQ=4 PLATE_INTERVAL=1 \
     PLATE_C_EVERY=5 PLATE_STATE=1 PLATE_CHANGE=1 FACE_INTERVAL=5 FIRE_DEVICE=GPU \
     PLATE_CONFIRM_CONF=0.88 PLATE_C=1
+# tracking (user decision 2026-11-25, B+C): T2's tracker type (box + appearance) and V8's body reconnect fed with a body
+# vector when a new person track appears while a lost person could be reconnected (tracking_patch.py; measured on
+# MOT17-02: 1.04 presences per real person vs 1.16 before, T2 1.06; 100-170 reconnects vs 6, T2 108)
+ENV TRACKER_TYPE=zero-term REID_ON_NEW=1
 # PLATE_CONFIRM_CONF: the C plate state stops re-reading a vehicle only at a read V8 may send alone (strict 0.88;
 # t2_parity_patch.py A), so it never cuts V8's 2-read / single-read confirmation short
 
