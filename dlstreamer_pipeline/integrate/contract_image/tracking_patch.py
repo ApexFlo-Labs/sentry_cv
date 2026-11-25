@@ -189,6 +189,20 @@ patch(V8, [
      "                    _mem.append((float(_f.quality), _v / (np.linalg.norm(_v) + 1e-9)))\n"
      "                    _mem.sort(key=lambda x: -x[0])\n"
      "                    del _mem[5:]\n"),
+    # face veto on V8's body reconnect: a visible face that clearly is not the lost person's face blocks the join
+    ("                state = self._reassociate(kind, item.bbox, vector, now, active_keys, item.class_name)\n",
+     "                self._cur_face = face_by_track.get(track_id)  # tracking_patch.py: face veto\n"
+     "                state = self._reassociate(kind, item.bbox, vector, now, active_keys, item.class_name)\n"),
+    ("                similarity = float(np.dot(vector, state[\"body_vector\"]))\n",
+     "                similarity = float(np.dot(vector, state[\"body_vector\"]))\n"
+     "                _cf = getattr(self, \"_cur_face\", None)  # tracking_patch.py: face veto\n"
+     "                if (FACE_RECONNECT and similarity >= 0.78 and _cf is not None and state.get(\"face_mem\")\n"
+     "                        and getattr(_cf, \"embedding\", None) is not None):\n"
+     "                    _fv = np.asarray(_cf.embedding, np.float32).reshape(-1)\n"
+     "                    _fv = _fv / (np.linalg.norm(_fv) + 1e-9)\n"
+     "                    if max(float(np.dot(_fv, m)) for _, m in state[\"face_mem\"]) < 0.20:\n"
+     "                        print(f\"face veto: body {similarity:.3f} but face says another person (track {state['track_id']})\", flush=True)\n"
+     "                        continue\n"),
     # short wait before confirming a new track while a missing person with a face memory is nearby
     ("            if state[\"hits\"] < stable_hits:\n"
      "                continue\n",

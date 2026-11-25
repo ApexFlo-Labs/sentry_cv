@@ -45,7 +45,9 @@ ENV PLATE_INLINE=1 PLATE_SELECT=1 PLATE_VEH_MIN_W=80 PLATE_PREPROC=opencv PLATE_
 # tracking (user decision 2026-11-25, B+C): T2's tracker type (box + appearance) and V8's body reconnect fed with a body
 # vector when a new person track appears while a lost person could be reconnected (tracking_patch.py; measured on
 # MOT17-02: 1.04 presences per real person vs 1.16 before, T2 1.06; 100-170 reconnects vs 6, T2 108)
-ENV TRACKER_TYPE=zero-term REID_ON_NEW=1 FACE_RECONNECT=1
+ENV TRACKER_TYPE=zero-term REID_ON_NEW=1 FACE_RECONNECT=1 BODY_EVERY=5
+# BODY_EVERY=5 (user decision 2026-11-25): body vector on every 5th frame (V8 keeps <= 1/s per person) so every person has
+# a recent body vector; MOT17: split people 14 -> 4, zone entry/exit 47/38% -> 51/49%; camera-process time 14 -> 25 ms/frame (crowd)
 # FACE_RECONNECT (user decision 2026-11-25): a reappearing person continues its presence by face (tracking_patch.py;
 # ChokePoint: people split 16 -> 1-5, wrong joins 0 in 3 runs with the missing-time limits)
 # PLATE_CONFIRM_CONF: the C plate state stops re-reading a vehicle only at a read V8 may send alone (strict 0.88;
