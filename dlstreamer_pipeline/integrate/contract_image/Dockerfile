@@ -5,6 +5,12 @@ ARG BASE
 FROM ${BASE}
 ARG SRC_COMMIT
 USER 0:0
+# Intel GPU user-space drivers updated to the versions on argus-2 (compute runtime 26.31, IGC 2.40, media driver 26.3.2,
+# gmmlib 22.10, libva 2.24.1, Level Zero 1.32, oneVPL 2.16; gpu_drivers/packages.sha256). With the base image's older
+# drivers (compute runtime 25.18, IGC 2.11, media 25.2.4) 20-camera runs on argus-2 hit GPU hangs (i915 fence timeout);
+# with these: 0 hangs in ~20 runs. Same fps (detector alone 315 -> 336 inferences/s).
+COPY gpu_drivers/ /tmp/gpu_drivers/
+RUN dpkg -i /tmp/gpu_drivers/*.deb && rm -rf /tmp/gpu_drivers
 RUN rm -rf /opt/traffic-pilot /models /opt/sentinel-gst-plugins
 # Ubuntu's python3-gst-1.0 (GStreamer 1.24 bindings) shadows DL Streamer's 1.28 bindings for the same files; her engine
 # was measured with DL Streamer's (Gst.init(None) fails with Ubuntu's). Remove only the files DL Streamer also ships.

@@ -73,6 +73,7 @@ for so in "$R/integrate/gatesc/cgates.so" "$R/group_ingest/app/strip_meta.so"; d
 done
 
 echo "== 4. image $IMAGE"
+"$B/gpu_drivers/fetch_debs.sh" "$C/gpu_drivers"   # Intel GPU drivers as on argus-2 (no network inside the build)
 cp "$B/Dockerfile" "$C/"
 ( cd "$C" && find dls -type f ! -name "*.so" -print0 | sort -z | xargs -0 sha256sum ) > "$C/dls/SOURCE_SHA256SUMS"
 echo "$SRC_COMMIT" > "$C/dls/SOURCE_COMMIT"

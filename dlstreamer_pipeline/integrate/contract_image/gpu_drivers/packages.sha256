@@ -1,0 +1,15 @@
+# Intel GPU user-space drivers, the versions installed on argus-2 (Core Ultra 9 285H), from the pinned
+# kobuk-team/intel-graphics PPA snapshot below. sha256 <space> pool path. Fetched by fetch_debs.sh, installed in Dockerfile.
+9412a087a822389db5e8f7280ba53c1577f6084be4df2299a33a4fa69a9a673a pool/main/i/intel-media-driver-non-free/intel-media-va-driver-non-free_26.3.2-1~24.04~ppa1_amd64.deb
+51e873fe540d72cee03ccb319d02be516abdce145e704addd3b8d86e08d6af4d pool/main/i/intel-compute-runtime/intel-opencl-icd_26.31.39395.13-1~24.04~ppa1_amd64.deb
+a0ccf3fc0754a5b4ad6e7e343c6127dd40629e9386374a7bd3910ccffa46d1af pool/main/i/intel-compute-runtime/libze-intel-gpu1_26.31.39395.13-1~24.04~ppa1_amd64.deb
+c57e4ca8c780dc85a309e35b4d3249fc866251fea7bf3ebe68a5ab5ef5f71362 pool/main/i/intel-graphics-compiler/libigc2_2.40.13+ds1-1~24.04_amd64.deb
+e71f41b4dd54c9cda7024680528034204cd911a1c2f644ec2bc3c06e968f5afe pool/main/i/intel-graphics-compiler/libigdfcl2_2.40.13+ds1-1~24.04_amd64.deb
+2c68fcb150cba1b679063266cdf0054f26f18af90de71d6d3b614eaf95c98f80 pool/main/i/intel-gmmlib/libigdgmm12_22.10.1-1~24.04~ppa1_amd64.deb
+0995c0792efa28b40f4f4b8488d33d81926ebcd262e3c1456f20c3cbecd32d60 pool/main/o/onevpl-intel-gpu/libmfx-gen1.2_26.3.2-1~24.04~ppa1_amd64.deb
+d595468abb16a13e4fafcffa86c3823b89244d13a2b8552a0bc562654a00feaa pool/main/libv/libva/libva2_2.24.1-1~24.04~ppa2_amd64.deb
+9ff823ab9b7295bcde673f553663a8142219d3b0badf7a03d4247abc052cdf0e pool/main/libv/libva/libva-drm2_2.24.1-1~24.04~ppa2_amd64.deb
+6d80aaa16a0122c971547a1f63e94599c972492d61b0d43c16b954c8d395cc87 pool/main/libv/libva/libva-wayland2_2.24.1-1~24.04~ppa2_amd64.deb
+e9e3a97dd36bf5bb028e7cc72da35dd7434895d838fb89cfb948e54404e4bbc6 pool/main/libv/libva/libva-x11-2_2.24.1-1~24.04~ppa2_amd64.deb
+e4710f1f1f2196b45de835891b86bb2afe89a27c94693d098eabf3746bb9daad pool/main/libv/libvpl-disp/libvpl2_2.16.0-1~24.04~ppa1_amd64.deb
+d4001dc474d3cb74ded50a449b9f646cfdfbb31e69e70b8af38f2d18273dfce1 pool/main/l/level-zero-loader/libze1_1.32.0-1~24.04~ppa1_amd64.deb
