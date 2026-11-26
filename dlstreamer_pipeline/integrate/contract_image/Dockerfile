@@ -46,7 +46,7 @@ ENV HANDOFF_PROCESS=1 HANDOFF_QUEUE=64 PIX_VIA_MAP=1 CFACES=1 POLICY_OURS=1 \
 # option A (her run_option_a.sh, commit d6d8d81; user decision 2026-11-24): plates + OCR inside the graph on the native
 # frame (NPU), vehicles >= 80 px, every 5th frame, confirmed plates skipped 60 s, unchanged vehicles skipped; faces every 5th
 ENV PLATE_INLINE=1 PLATE_SELECT=1 PLATE_VEH_MIN_W=80 PLATE_PREPROC=opencv PLATE_NIREQ=4 PLATE_INTERVAL=1 \
-    PLATE_C_EVERY=5 PLATE_STATE=1 PLATE_CHANGE=1 FACE_INTERVAL=5 FIRE_DEVICE=GPU \
+    PLATE_C_EVERY=5 PLATE_STATE=1 PLATE_CHANGE=1 FACE_INTERVAL=5 FIRE_DEVICE=NPU \
     PLATE_CONFIRM_CONF=0.88 PLATE_C=1
 # tracking (user decision 2026-11-25, B+C): T2's tracker type (box + appearance) and V8's body reconnect fed with a body
 # vector when a new person track appears while a lost person could be reconnected (tracking_patch.py; measured on
