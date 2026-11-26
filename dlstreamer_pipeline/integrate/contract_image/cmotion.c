@@ -19,12 +19,8 @@ typedef struct {
     int tracking, miss, hist[MG_WIN], hn, hpos, lock, fire_hit;
     double last_sweep, fire_at;
     long passed, quiet, motion, sweeps, fire_hits, det_hits;
-    /* motion check only while quiet: selector in front of gvamotiondetect (route probe) */
-    void *sel, *pad_motion, *pad_bypass, *pad_now;
-    int via_motion, prime;
-    long motion_runs, motion_skipped;
+    long motion_runs;  /* frames that went through gvamotiondetect (side branch; only while quiet) */
 } MGate;
-extern void g_object_set(void *object, const char *first_property, ...);
 
 static double mg_now(void) { struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t); return t.tv_sec + t.tv_nsec * 1e-9; }
 static inline void mg_lock(MGate *g) { while (__atomic_exchange_n(&g->lock, 1, __ATOMIC_ACQUIRE)) ; }
@@ -50,7 +46,7 @@ static void mg_observe(MGate *g, int detected) {  /* SurfaceSwitch.observe */
         return;
     }
     if (detected) { g->miss = 0; return; }
-    if (++g->miss >= MG_RELEASE) { g->tracking = 0; g->miss = 0; g->hn = g->hpos = 0; memset(g->hist, 0, sizeof g->hist); g->prime = 1; }
+    if (++g->miss >= MG_RELEASE) { g->tracking = 0; g->miss = 0; g->hn = g->hpos = 0; memset(g->hist, 0, sizeof g->hist); }
 }
 
 static void mg_observe_models(MGate *g, int vehicle_hit, int smoke_hit, int fully_evaluated) {
@@ -58,23 +54,41 @@ static void mg_observe_models(MGate *g, int vehicle_hit, int smoke_hit, int full
     else if (fully_evaluated) mg_observe(g, 0);
 }
 
-static int mg_gate_probe(void *pad, ProbeInfo *info, void *data) {
+/* Motion detection only while quiet (2026-11-25): gvamotiondetect sits on a side branch (tee -> leaky queue ->
+   gvamotiondetect -> fakesink). mg_side_probe (gvamotiondetect sink) drops the frame there while the camera is active,
+   so an active camera pays nothing for motion detection; mg_vote_probe (gvamotiondetect src) runs T2's
+   SurfaceSwitch.update with the frame's vote while quiet. The main path's gate probe only passes/drops. */
+static int mg_side_probe(void *pad, ProbeInfo *info, void *data) {
+    MGate *g = data;
+    mg_lock(g);
+    int run = !g->tracking;
+    if (run) g->motion_runs++;
+    mg_unlock(g);
+    return run ? PROBE_OK : 0;  /* active: drop before gvamotiondetect */
+}
+
+static int mg_vote_probe(void *pad, ProbeInfo *info, void *data) {
     MGate *g = data;
     int candidate = mg_count(info->data, "motion", 1) > 0;
-    double now = mg_now();
-    int pass = 1;
     mg_lock(g);
-    if (g->sel) {  /* route in use: a frame that went around the motion element has no motion result */
-        if (!g->via_motion) candidate = 0;
-        else if (g->prime) { candidate = 0; g->prime = 0; }  /* first look after the active period: baseline only (T2) */
-    }
     g->motion += candidate;
-    if (g->last_sweep < 0) g->last_sweep = now;
     if (!g->tracking) {  /* SurfaceSwitch.update while quiet */
         g->hist[g->hpos] = candidate; g->hpos = (g->hpos + 1) % MG_WIN; if (g->hn < MG_WIN) g->hn++;
         int sum = 0; for (int i = 0; i < g->hn; i++) sum += g->hist[i];
         if (sum >= MG_NEED) { g->tracking = 1; g->miss = 0; }
-        else if (now - g->last_sweep >= MG_SWEEP_S) { g->last_sweep = now; g->sweeps++; }
+    }
+    mg_unlock(g);
+    return PROBE_OK;
+}
+
+static int mg_gate_probe(void *pad, ProbeInfo *info, void *data) {
+    MGate *g = data;
+    double now = mg_now();
+    int pass = 1;
+    mg_lock(g);
+    if (g->last_sweep < 0) g->last_sweep = now;
+    if (!g->tracking) {
+        if (now - g->last_sweep >= MG_SWEEP_S) { g->last_sweep = now; g->sweeps++; }
         else pass = 0;
     } else {
         g->last_sweep = now;
@@ -106,36 +120,14 @@ static int mg_fire_probe(void *pad, ProbeInfo *info, void *data) {
     return PROBE_OK;
 }
 
-/* route probe (identity mpre<n>, right before the selector, same streaming thread up to mg<n>): active camera ->
-   around the motion element; quiet camera -> through it */
-static int mg_route_probe(void *pad, ProbeInfo *info, void *data) {
-    MGate *g = data;
-    mg_lock(g);
-    int quiet = !g->tracking;
-    g->via_motion = quiet;
-    if (quiet) g->motion_runs++; else g->motion_skipped++;
-    void *want = quiet ? g->pad_motion : g->pad_bypass;
-    void *sel = g->sel;
-    int change = want != g->pad_now;
-    g->pad_now = want;
-    mg_unlock(g);
-    if (change) g_object_set(sel, "active-pad", want, (void *)0);
-    return PROBE_OK;
-}
-void cmotion_route(void *gp, void *route_pad, void *sel, void *pad_motion, void *pad_bypass) {
-    MGate *g = gp;
-    mg_lock(g);
-    g->sel = sel; g->pad_motion = pad_motion; g->pad_bypass = pad_bypass; g->pad_now = 0; g->prime = 1;
-    mg_unlock(g);
-    gst_pad_add_probe(route_pad, PROBE_TYPE_BUFFER, mg_route_probe, g, 0);
-}
-
 void *cmotion_new(void) {
     MGate *g = calloc(1, sizeof(MGate));
     g->tracking = 1; g->last_sweep = -1; g->fire_at = -1e9;
     return g;
 }
-void cmotion_attach(void *g, void *gate_pad, void *det_pad, void *fire_pad) {
+void cmotion_attach(void *g, void *gate_pad, void *det_pad, void *fire_pad, void *side_pad, void *vote_pad) {
+    gst_pad_add_probe(side_pad, PROBE_TYPE_BUFFER, mg_side_probe, g, 0);
+    gst_pad_add_probe(vote_pad, PROBE_TYPE_BUFFER, mg_vote_probe, g, 0);
     gst_pad_add_probe(gate_pad, PROBE_TYPE_BUFFER, mg_gate_probe, g, 0);
     gst_pad_add_probe(det_pad, PROBE_TYPE_BUFFER, mg_det_probe, g, 0);
     gst_pad_add_probe(fire_pad, PROBE_TYPE_BUFFER, mg_fire_probe, g, 0);
@@ -143,14 +135,14 @@ void cmotion_attach(void *g, void *gate_pad, void *det_pad, void *fire_pad) {
 void cmotion_reset(void *gp) {  /* a reused idle branch gets a new camera: start active, empty history */
     MGate *g = gp;
     mg_lock(g);
-    g->tracking = 1; g->miss = 0; g->hn = g->hpos = 0; memset(g->hist, 0, sizeof g->hist); g->last_sweep = -1; g->prime = 1;
+    g->tracking = 1; g->miss = 0; g->hn = g->hpos = 0; memset(g->hist, 0, sizeof g->hist); g->last_sweep = -1;
     mg_unlock(g);
 }
-void cmotion_stats(void *gp, long *out) {  /* tracking, passed, quiet, motion, sweeps, fire_hits, det_hits, motion_runs, motion_skipped */
+void cmotion_stats(void *gp, long *out) {  /* tracking, passed, quiet, motion, sweeps, fire_hits, det_hits, motion_runs */
     MGate *g = gp;
     mg_lock(g);
     out[0] = g->tracking; out[1] = g->passed; out[2] = g->quiet; out[3] = g->motion;
-    out[4] = g->sweeps; out[5] = g->fire_hits; out[6] = g->det_hits; out[7] = g->motion_runs; out[8] = g->motion_skipped;
+    out[4] = g->sweeps; out[5] = g->fire_hits; out[6] = g->det_hits; out[7] = g->motion_runs;
     mg_unlock(g);
 }
 

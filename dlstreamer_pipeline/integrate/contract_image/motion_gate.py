@@ -18,12 +18,13 @@ import os
 
 ENABLED = os.getenv("MOTION_GATE", "1") != "0"
 QUIET_SLOT = 100  # int64 slot (16..79 are her frame-request slots) in each camera's shared-memory header: quiet frames so far (engine -> event process)
-# mpre -> selector: quiet camera -> gvamotiondetect -> funnel; active camera -> straight to the funnel (pad linked in attach)
-ELEMENT = ("identity name=mpre{n} silent=true ! output-selector name=msel{n} pad-negotiation-mode=all ! "
+# Motion detection only while the camera is quiet (2026-11-25): gvamotiondetect on a side branch; its C probe drops
+# frames before it while the camera is active. Same element settings as before.
+ELEMENT = ("tee name=mt{n} ! queue name=mq{n} leaky=downstream max-size-buffers=2 ! "
            "gvamotiondetect name=mot{n} pixel-diff-threshold=15 motion-threshold=0.05 block-size=64 confirm-frames=1 "
-           "min-persistence=1 max-miss=0 min-rel-area=0.0005 ! funnel name=mfun{n} forward-sticky-events=false ! "
-           "identity name=mg{n} silent=true ! ")
-_STATS = ("tracking", "passed", "quiet", "motion", "sweeps", "fire_hits", "det_hits", "motion_runs", "motion_skipped")
+           "min-persistence=1 max-miss=0 min-rel-area=0.0005 ! fakesink name=mfs{n} sync=false async=false "
+           "mt{n}. ! identity name=mg{n} silent=true ! ")
+_STATS = ("tracking", "passed", "quiet", "motion", "sweeps", "fire_hits", "det_hits", "motion_runs")
 
 
 def element(n):
@@ -40,7 +41,7 @@ def attach(pipeline, cam, cg):
     if not ENABLED:
         return None
     cg.cmotion_new.restype = ctypes.c_void_p
-    cg.cmotion_attach.argtypes = [ctypes.c_void_p] * 4
+    cg.cmotion_attach.argtypes = [ctypes.c_void_p] * 6
     cg.cmotion_reset.argtypes = [ctypes.c_void_p]
     cg.cmotion_stats.argtypes = [ctypes.c_void_p, ctypes.c_void_p]
     gate = cam.get("motion")
@@ -49,18 +50,7 @@ def attach(pipeline, cam, cg):
         gate = cam["motion"] = ctypes.c_void_p(cg.cmotion_new())
         cam["motion_cg"] = cg
         cg.cmotion_attach(gate, _pad(pipeline, f"mg{n}", "sink"), _pad(pipeline, f"vd{n}", "src"),
-                          _pad(pipeline, f"fdet{n}", "src"))
-        # motion check only while quiet: the selector's second output goes straight to the funnel
-        sel, fun = pipeline.get_by_name(f"msel{n}"), pipeline.get_by_name(f"mfun{n}")
-        pad_motion = pipeline.get_by_name(f"mot{n}").get_static_pad("sink").get_peer()
-        pad_bypass = sel.request_pad_simple("src_%u")
-        fun_sink = fun.request_pad_simple("sink_%u")
-        if pad_bypass.link(fun_sink) != 0:  # Gst.PadLinkReturn.OK
-            raise RuntimeError(f"motion bypass of branch {n} not linked")
-        cam["motion_pads"] = (sel, pad_motion, pad_bypass)  # keep the Python objects alive
-        cg.cmotion_route.argtypes = [ctypes.c_void_p] * 5
-        cg.cmotion_route(gate, _pad(pipeline, f"mpre{n}", "src"), ctypes.c_void_p(hash(sel)),
-                         ctypes.c_void_p(hash(pad_motion)), ctypes.c_void_p(hash(pad_bypass)))
+                          _pad(pipeline, f"fdet{n}", "src"), _pad(pipeline, f"mot{n}", "sink"), _pad(pipeline, f"mot{n}", "src"))
     else:
         cg.cmotion_reset(gate)
     cam["motion_quiet_base"] = stats(cam)["quiet"]
@@ -89,8 +79,7 @@ def summary(cams):
             continue
         s = stats(c)
         parts.append(f"{c['name']}={'active' if s['tracking'] else 'quiet'} pass={s['passed']} quiet={s['quiet']} "
-                     f"motion={s['motion']} sweeps={s['sweeps']} det_hits={s['det_hits']} fire_hits={s['fire_hits']} "
-                     f"motion_checked={s['motion_runs']} motion_skipped_active={s['motion_skipped']}")
+                     f"motion={s['motion']} motion_runs={s['motion_runs']} sweeps={s['sweeps']} det_hits={s['det_hits']} fire_hits={s['fire_hits']}")
     return "; ".join(parts)
 
 
